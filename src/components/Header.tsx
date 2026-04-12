@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, Keyboard } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen } from 'lucide-react';
+import WelcomeGuide from './WelcomeGuide';
+import HelpMenu from './HelpMenu';
 
 export default function Header() {
   const { state, dispatch } = useApp();
@@ -9,7 +11,11 @@ export default function Header() {
     try { return (localStorage.getItem('fetchlab_theme') as 'dark' | 'light') || 'dark'; }
     catch { return 'dark'; }
   });
-  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showGuide, setShowGuide] = useState(() => {
+    try { return !localStorage.getItem('fetchlab_onboarded'); }
+    catch { return true; }
+  });
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -43,20 +49,21 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Keyboard shortcuts */}
+        <div className="flex items-center gap-1.5">
+          {/* Help / Guide */}
           <button
-            onClick={() => setShowShortcuts(true)}
-            className="p-1.5 rounded-lg text-gray-600 hover:text-gray-300 hover:bg-gray-800 transition-colors"
-            title="Keyboard shortcuts"
+            onClick={() => setShowHelp(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors text-xs"
+            title="Help & Guide"
           >
-            <Keyboard size={16} />
+            <BookOpen size={14} />
+            <span className="hidden sm:inline">Help</span>
           </button>
 
           {/* Theme toggle */}
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-1.5 rounded-lg text-gray-600 hover:text-gray-300 hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors"
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
@@ -78,35 +85,17 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Keyboard shortcuts modal */}
-      {showShortcuts && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowShortcuts(false)}>
-          <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-[420px] p-5 animate-slide-in" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-gray-200 flex items-center gap-2">
-                <Keyboard size={16} className="text-brand-400" />
-                Keyboard Shortcuts
-              </h2>
-              <button onClick={() => setShowShortcuts(false)} className="text-gray-500 hover:text-gray-300">✕</button>
-            </div>
-            <div className="space-y-2">
-              {[
-                ['Enter', 'Send request'],
-                ['Ctrl + N', 'New tab'],
-                ['Ctrl + W', 'Close tab'],
-                ['Ctrl + E', 'Export / Share'],
-                ['Ctrl + /', 'Toggle sidebar'],
-                ['Ctrl + L', 'Focus URL bar'],
-                ['Ctrl + 1-9', 'Switch to tab #'],
-              ].map(([key, desc]) => (
-                <div key={key} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-gray-800/50">
-                  <span className="text-xs text-gray-400">{desc}</span>
-                  <kbd className="px-2 py-0.5 rounded bg-gray-800 border border-gray-700 text-[10px] text-gray-300 font-mono">{key}</kbd>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      {/* Welcome guide — shown on first launch */}
+      {showGuide && (
+        <WelcomeGuide onClose={() => setShowGuide(false)} />
+      )}
+
+      {/* Help menu */}
+      {showHelp && (
+        <HelpMenu
+          onClose={() => setShowHelp(false)}
+          onShowGuide={() => { setShowHelp(false); setShowGuide(true); }}
+        />
       )}
     </>
   );
