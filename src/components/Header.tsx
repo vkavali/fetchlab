@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
+import HealthDashboard from './HealthDashboard';
 
 export default function Header() {
   const { state, dispatch } = useApp();
@@ -16,6 +17,7 @@ export default function Header() {
     catch { return true; }
   });
   const [showHelp, setShowHelp] = useState(false);
+  const [showHealth, setShowHealth] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -50,6 +52,16 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* Health Dashboard */}
+          <button
+            onClick={() => setShowHealth(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-green-400 hover:bg-green-500/10 transition-colors text-xs"
+            title="API Health Dashboard"
+          >
+            <Activity size={14} />
+            <span className="hidden sm:inline">Health</span>
+          </button>
+
           {/* Help / Guide */}
           <button
             onClick={() => setShowHelp(true)}
@@ -88,6 +100,11 @@ export default function Header() {
       {/* Welcome guide — shown on first launch */}
       {showGuide && (
         <WelcomeGuide onClose={() => setShowGuide(false)} />
+      )}
+
+      {/* Health Dashboard */}
+      {showHealth && (
+        <HealthDashboard onClose={() => setShowHealth(false)} />
       )}
 
       {/* Help menu */}

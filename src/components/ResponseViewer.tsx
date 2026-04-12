@@ -3,9 +3,12 @@ import { useApp } from '../store/AppContext';
 import { syntaxHighlightJson, formatBytes, formatTime, getStatusClass, generateCodeSnippet, generateId } from '../utils/helpers';
 import TestResults from './TestResults';
 import ResponseDiff from './ResponseDiff';
+import JsonExplorer from './JsonExplorer';
+import SchemaValidator from './SchemaValidator';
 import {
   FileJson, Table, Code, Copy, Check, Download,
-  Clock, HardDrive, ArrowDown, ChevronDown, FlaskConical, Camera, GitCompare
+  Clock, HardDrive, ArrowDown, ChevronDown, FlaskConical, Camera, GitCompare,
+  TreePine, Shield
 } from 'lucide-react';
 
 export default function ResponseViewer() {
@@ -14,7 +17,7 @@ export default function ResponseViewer() {
   const response = activeTab ? state.responses[activeTab.requestId] : null;
   const request = activeTab ? state.requests[activeTab.requestId] : null;
   const isLoading = activeTab ? state.loading[activeTab.requestId] : false;
-  const [activeView, setActiveView] = useState<'body' | 'headers' | 'code' | 'tests'>('body');
+  const [activeView, setActiveView] = useState<'body' | 'headers' | 'code' | 'tests' | 'explorer' | 'schema'>('body');
   const [bodyFormat, setBodyFormat] = useState<'pretty' | 'raw' | 'preview'>('pretty');
   const [codeLang, setCodeLang] = useState<'curl' | 'javascript' | 'python' | 'go'>('curl');
   const [copied, setCopied] = useState(false);
@@ -161,6 +164,8 @@ export default function ResponseViewer() {
           { id: 'body' as const, label: 'Body', icon: FileJson },
           { id: 'headers' as const, label: 'Headers', count: headerEntries.length, icon: Table },
           { id: 'code' as const, label: 'Code', icon: Code },
+          { id: 'explorer' as const, label: 'Explorer', icon: TreePine },
+          { id: 'schema' as const, label: 'Schema', icon: Shield },
           ...(hasTests ? [{ id: 'tests' as const, label: `Tests ${testResults.length > 0 ? `(${testResults.filter(t=>t.passed).length}/${testResults.length})` : ''}`, icon: FlaskConical }] : []),
         ].map(tab => (
           <button
@@ -302,6 +307,14 @@ export default function ResponseViewer() {
               </button>
             </div>
           </div>
+        )}
+
+        {activeView === 'explorer' && response && (
+          <JsonExplorer data={response.body} />
+        )}
+
+        {activeView === 'schema' && response && (
+          <SchemaValidator responseBody={response.body} />
         )}
 
         {activeView === 'tests' && (

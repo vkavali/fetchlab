@@ -4,6 +4,7 @@ import AuthEditor from './AuthEditor';
 import ResizeHandle from './ResizeHandle';
 import ExportDialog from './ExportDialog';
 import ScriptEditor from './ScriptEditor';
+import UrlAutocomplete from './UrlAutocomplete';
 import type { HttpMethod, KeyValue, ResponseExtraction } from '../types';
 import { generateId } from '../utils/helpers';
 import { parseCurl } from '../utils/curlParser';
@@ -88,42 +89,28 @@ export default function RequestBuilder() {
           )}
         </div>
 
-        {/* URL input */}
-        <div className="flex-1 relative">
-          <input
-            value={request.url}
-            onChange={e => {
-              const val = e.target.value;
-              // Auto-detect pasted cURL
-              if (val.trimStart().toLowerCase().startsWith('curl ')) {
-                const parsed = parseCurl(val);
-                if (parsed) {
-                  updateRequest(parsed);
-                  return;
-                }
-              }
-              updateRequest({ url: val });
-            }}
-            onPaste={e => {
-              const text = e.clipboardData.getData('text');
-              if (text.trimStart().toLowerCase().startsWith('curl ')) {
-                e.preventDefault();
-                const parsed = parseCurl(text);
-                if (parsed) {
-                  updateRequest(parsed);
-                }
-              }
-            }}
-            onKeyDown={e => e.key === 'Enter' && handleSend()}
-            placeholder="Enter URL or paste cURL command..."
-            className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-gray-100 font-mono placeholder-gray-600 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/20 transition-all"
-          />
-          {request.url.includes('{{') && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-400 font-mono">ENV</span>
-            </div>
-          )}
-        </div>
+        {/* URL input with autocomplete */}
+        <UrlAutocomplete
+          value={request.url}
+          onChange={val => {
+            if (val.trimStart().toLowerCase().startsWith('curl ')) {
+              const parsed = parseCurl(val);
+              if (parsed) { updateRequest(parsed); return; }
+            }
+            updateRequest({ url: val });
+          }}
+          onSubmit={handleSend}
+          onPaste={e => {
+            const text = e.clipboardData.getData('text');
+            if (text.trimStart().toLowerCase().startsWith('curl ')) {
+              e.preventDefault();
+              const parsed = parseCurl(text);
+              if (parsed) updateRequest(parsed);
+            }
+          }}
+          placeholder="Enter URL or paste cURL command..."
+          className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-gray-100 font-mono placeholder-gray-600 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/20 transition-all"
+        />
 
         {/* Send button */}
         <button
