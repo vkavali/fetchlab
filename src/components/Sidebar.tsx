@@ -20,26 +20,27 @@ export default function Sidebar() {
 
   return (
     <div className="flex flex-col h-full bg-gray-900/50 border-r border-gray-800">
-      {/* Sidebar tabs */}
-      <div className="flex overflow-x-auto border-b border-gray-800 scrollbar-hide">
+      {/* Sidebar tabs — icon + short label, wraps on narrow sidebar */}
+      <div className="grid grid-cols-5 border-b border-gray-800">
         {[
-          { id: 'collections' as const, icon: FolderOpen, label: 'Collections' },
+          { id: 'collections' as const, icon: FolderOpen, label: 'APIs' },
           { id: 'history' as const, icon: History, label: 'History' },
           { id: 'environments' as const, icon: Globe, label: 'Env' },
-          { id: 'tokens' as const, icon: Key, label: 'Tokens' },
-          { id: 'snippets' as const, icon: Puzzle, label: 'Snippets' },
+          { id: 'tokens' as const, icon: Key, label: 'Auth' },
+          { id: 'snippets' as const, icon: Puzzle, label: 'Snip' },
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => dispatch({ type: 'SET_SIDEBAR_TAB', tab: tab.id })}
-            className={`flex-shrink-0 flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 text-xs font-medium transition-colors ${
+            title={tab.id === 'collections' ? 'Collections' : tab.id === 'snippets' ? 'Snippets' : tab.id === 'tokens' ? 'Token Profiles' : tab.label}
+            className={`flex flex-col items-center justify-center gap-0.5 py-2 text-[9px] font-medium transition-colors ${
               sidebarTab === tab.id
                 ? 'text-brand-400 border-b-2 border-brand-400 bg-brand-400/5'
                 : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
             }`}
           >
             <tab.icon size={14} />
-            {tab.label}
+            <span>{tab.label}</span>
           </button>
         ))}
       </div>

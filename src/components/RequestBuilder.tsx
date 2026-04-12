@@ -175,7 +175,7 @@ export default function RequestBuilder() {
       )}
 
       {/* Section tabs */}
-      <div className="flex items-center gap-1 px-3 border-b border-gray-800 overflow-x-auto scrollbar-hide">
+      <div className="flex items-center gap-0 px-1 border-b border-gray-800 overflow-x-auto scrollbar-hide">
         {[
           { id: 'params' as const, label: 'Params', count: paramCount },
           { id: 'headers' as const, label: 'Headers', count: headerCount },
@@ -187,7 +187,7 @@ export default function RequestBuilder() {
           <button
             key={tab.id}
             onClick={() => setActiveSection(tab.id)}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+            className={`flex items-center gap-1 px-2 py-2 text-[11px] font-medium border-b-2 transition-colors flex-shrink-0 ${
               activeSection === tab.id
                 ? 'border-brand-400 text-brand-400'
                 : 'border-transparent text-gray-500 hover:text-gray-300'
@@ -195,7 +195,7 @@ export default function RequestBuilder() {
           >
             {tab.label}
             {tab.count !== undefined && tab.count > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-brand-500/20 text-brand-400 text-[10px] font-semibold">
+              <span className="px-1 py-0 rounded-full bg-brand-500/20 text-brand-400 text-[9px] font-semibold">
                 {tab.count}
               </span>
             )}

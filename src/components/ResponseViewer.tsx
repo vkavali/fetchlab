@@ -159,28 +159,28 @@ export default function ResponseViewer() {
       </div>
 
       {/* View tabs */}
-      <div className="flex items-center gap-1 px-3 border-b border-gray-800 overflow-x-auto scrollbar-hide">
+      <div className="flex items-center gap-0 px-1 border-b border-gray-800 overflow-x-auto scrollbar-hide">
         {[
           { id: 'body' as const, label: 'Body', icon: FileJson },
           { id: 'headers' as const, label: 'Headers', count: headerEntries.length, icon: Table },
-          { id: 'code' as const, label: 'Code', icon: Code },
           { id: 'explorer' as const, label: 'Explorer', icon: TreePine },
           { id: 'schema' as const, label: 'Schema', icon: Shield },
-          ...(hasTests ? [{ id: 'tests' as const, label: `Tests ${testResults.length > 0 ? `(${testResults.filter(t=>t.passed).length}/${testResults.length})` : ''}`, icon: FlaskConical }] : []),
+          { id: 'code' as const, label: 'Code', icon: Code },
+          ...(hasTests ? [{ id: 'tests' as const, label: `Tests (${testResults.filter(t=>t.passed).length}/${testResults.length})`, icon: FlaskConical }] : []),
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveView(tab.id)}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+            className={`flex items-center gap-1 px-2 py-2 text-[11px] font-medium border-b-2 transition-colors flex-shrink-0 ${
               activeView === tab.id
                 ? 'border-brand-400 text-brand-400'
                 : 'border-transparent text-gray-500 hover:text-gray-300'
             }`}
           >
-            <tab.icon size={12} />
+            <tab.icon size={11} />
             {tab.label}
             {tab.count !== undefined && (
-              <span className="px-1 py-0.5 rounded text-[10px] bg-gray-800 text-gray-500">{tab.count}</span>
+              <span className="px-1 py-0 rounded text-[9px] bg-gray-800 text-gray-500">{tab.count}</span>
             )}
           </button>
         ))}
