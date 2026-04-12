@@ -3,12 +3,13 @@ import { useApp } from '../store/AppContext';
 import AuthEditor from './AuthEditor';
 import ResizeHandle from './ResizeHandle';
 import ExportDialog from './ExportDialog';
-import type { HttpMethod, KeyValue } from '../types';
+import ScriptEditor from './ScriptEditor';
+import type { HttpMethod, KeyValue, ResponseExtraction } from '../types';
 import { generateId } from '../utils/helpers';
 import { parseCurl } from '../utils/curlParser';
 import {
   Send, Loader2, Plus, Trash2, Save, ChevronDown,
-  FileJson, AlignLeft, FormInput, Code, Share2
+  FileJson, AlignLeft, FormInput, Code, Share2, X
 } from 'lucide-react';
 
 export default function RequestBuilder() {
@@ -16,7 +17,7 @@ export default function RequestBuilder() {
   const activeTab = state.tabs.find(t => t.id === state.activeTabId);
   const request = activeTab ? state.requests[activeTab.requestId] : null;
   const isLoading = activeTab ? state.loading[activeTab.requestId] : false;
-  const [activeSection, setActiveSection] = useState<'params' | 'headers' | 'body' | 'auth'>('params');
+  const [activeSection, setActiveSection] = useState<'params' | 'headers' | 'body' | 'auth' | 'scripts' | 'extractions'>('params');
   const [showMethodDropdown, setShowMethodDropdown] = useState(false);
   const [showSaveDropdown, setShowSaveDropdown] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
@@ -193,6 +194,8 @@ export default function RequestBuilder() {
           { id: 'headers' as const, label: 'Headers', count: headerCount },
           { id: 'body' as const, label: 'Body' },
           { id: 'auth' as const, label: 'Auth' },
+          { id: 'scripts' as const, label: 'Scripts' },
+          { id: 'extractions' as const, label: 'Extract' },
         ].map(tab => (
           <button
             key={tab.id}
@@ -241,6 +244,28 @@ export default function RequestBuilder() {
 
         {activeSection === 'auth' && (
           <AuthEditor request={request} />
+        )}
+
+        {activeSection === 'scripts' && (
+          <div className="space-y-6">
+            <ScriptEditor
+              type="pre-request"
+              value={request.preRequestScript || ''}
+              onChange={v => updateRequest({ preRequestScript: v })}
+            />
+            <ScriptEditor
+              type="test"
+              value={request.testScript || ''}
+              onChange={v => updateRequest({ testScript: v })}
+            />
+          </div>
+        )}
+
+        {activeSection === 'extractions' && (
+          <ExtractionsEditor
+            extractions={request.responseExtractions || []}
+            onChange={exts => updateRequest({ responseExtractions: exts })}
+          />
         )}
       </div>
     </div>
@@ -470,6 +495,76 @@ function KeyValueFormEditor({
       >
         <Plus size={12} />
         Add field
+      </button>
+    </div>
+  );
+}
+
+function ExtractionsEditor({
+  extractions,
+  onChange,
+}: {
+  extractions: ResponseExtraction[];
+  onChange: (exts: ResponseExtraction[]) => void;
+}) {
+  const addExtraction = () => {
+    onChange([...extractions, { id: generateId(), variableName: '', jsonPath: '', source: 'body', enabled: true }]);
+  };
+
+  const update = (id: string, field: keyof ResponseExtraction, value: string | boolean) => {
+    onChange(extractions.map(e => e.id === id ? { ...e, [field]: value } : e));
+  };
+
+  const remove = (id: string) => {
+    onChange(extractions.filter(e => e.id !== id));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <p className="text-xs text-gray-400 mb-1">Extract values from the response and save as variables</p>
+        <p className="text-[10px] text-gray-600">Use <code className="text-gray-500">{'{{variableName}}'}</code> in other requests to reference extracted values</p>
+      </div>
+
+      <div className="space-y-2">
+        {extractions.map(ext => (
+          <div key={ext.id} className="flex items-center gap-2 group">
+            <input
+              type="checkbox"
+              checked={ext.enabled}
+              onChange={e => update(ext.id, 'enabled', e.target.checked)}
+              className="w-3.5 h-3.5 rounded bg-gray-800 border-gray-700 text-brand-500"
+            />
+            <input
+              value={ext.variableName}
+              onChange={e => update(ext.id, 'variableName', e.target.value)}
+              placeholder="Variable name"
+              className="flex-1 bg-gray-800/30 border border-gray-800 rounded px-2 py-1.5 text-xs font-mono text-gray-200 focus:outline-none focus:border-gray-700"
+            />
+            <input
+              value={ext.jsonPath}
+              onChange={e => update(ext.id, 'jsonPath', e.target.value)}
+              placeholder="e.g. data.token"
+              className="flex-1 bg-gray-800/30 border border-gray-800 rounded px-2 py-1.5 text-xs font-mono text-gray-200 focus:outline-none focus:border-gray-700"
+            />
+            <select
+              value={ext.source}
+              onChange={e => update(ext.id, 'source', e.target.value)}
+              className="bg-gray-800 border border-gray-800 rounded px-1.5 py-1.5 text-xs text-gray-400 focus:outline-none"
+            >
+              <option value="body">Body</option>
+              <option value="headers">Headers</option>
+            </select>
+            <button onClick={() => remove(ext.id)} className="p-1 rounded opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 transition-all">
+              <X size={12} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <button onClick={addExtraction} className="flex items-center gap-1.5 px-2 py-1.5 rounded text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800/50 transition-colors">
+        <Plus size={12} />
+        Add extraction
       </button>
     </div>
   );

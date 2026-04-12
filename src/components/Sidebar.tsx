@@ -6,11 +6,13 @@ import {
 import type { Collection, Environment, KeyValue, RequestConfig } from '../types';
 import {
   FolderOpen, History, Globe, Plus, Trash2, ChevronRight, ChevronDown,
-  Clock, Search, Check, X, Key, Download, Upload, Terminal, Copy, Play
+  Clock, Search, Check, X, Key, Download, Upload, Terminal, Copy, Play, Puzzle, FileText
 } from 'lucide-react';
 import TokenManager from './TokenManager';
 import ExportDialog from './ExportDialog';
 import CollectionRunner from './CollectionRunner';
+import SnippetManager from './SnippetManager';
+import DocGenerator from './DocGenerator';
 
 export default function Sidebar() {
   const { state, dispatch } = useApp();
@@ -25,6 +27,7 @@ export default function Sidebar() {
           { id: 'history' as const, icon: History, label: 'History' },
           { id: 'environments' as const, icon: Globe, label: 'Env' },
           { id: 'tokens' as const, icon: Key, label: 'Tokens' },
+          { id: 'snippets' as const, icon: Puzzle, label: 'Snippets' },
         ].map(tab => (
           <button
             key={tab.id}
@@ -57,6 +60,9 @@ export default function Sidebar() {
         {sidebarTab === 'tokens' && (
           <TokenManager />
         )}
+        {sidebarTab === 'snippets' && (
+          <SnippetManager />
+        )}
       </div>
     </div>
   );
@@ -72,6 +78,7 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
     { type: 'request'; request: RequestConfig } | { type: 'collection'; collection: Collection } | null
   >(null);
   const [runnerCollection, setRunnerCollection] = useState<Collection | null>(null);
+  const [docsCollection, setDocsCollection] = useState<Collection | null>(null);
 
   const toggleExpand = (id: string) => {
     setExpanded(p => ({ ...p, [id]: !p[id] }));
@@ -204,6 +211,13 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
                   <Download size={11} />
                   Export
                 </button>
+                <button
+                  onClick={() => setDocsCollection(col)}
+                  className="flex items-center gap-1.5 flex-1 px-2 py-1.5 rounded text-[10px] font-medium text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                >
+                  <FileText size={11} />
+                  Docs
+                </button>
               </div>
 
               {col.requests.map(req => (
@@ -268,6 +282,11 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
       {/* Collection runner */}
       {runnerCollection && (
         <CollectionRunner collection={runnerCollection} onClose={() => setRunnerCollection(null)} />
+      )}
+
+      {/* Doc generator */}
+      {docsCollection && (
+        <DocGenerator collection={docsCollection} onClose={() => setDocsCollection(null)} />
       )}
     </div>
   );

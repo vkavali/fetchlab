@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useCallback, useEffect, type ReactNode } from 'react';
-import type { RequestConfig, ResponseData, HistoryEntry, Collection, Environment, Tab, TokenProfile } from '../types';
+import type { RequestConfig, ResponseData, HistoryEntry, Collection, Environment, Tab, TokenProfile, RequestSnippet, TestResult, ScriptConsoleEntry, ResponseSnapshot } from '../types';
+import { runPreRequestScript, runTestScript } from '../utils/scriptRunner';
 import { generateId, createDefaultRequest } from '../utils/helpers';
 
 const STORAGE_KEY = 'fetchlab_state';
@@ -12,6 +13,8 @@ interface PersistedState {
   tokenProfiles: TokenProfile[];
   tabs: Tab[];
   requests: Record<string, RequestConfig>;
+  snippets: RequestSnippet[];
+  snapshots: ResponseSnapshot[];
 }
 
 function saveToStorage(state: AppState) {
@@ -23,11 +26,12 @@ function saveToStorage(state: AppState) {
       activeEnvironmentId: state.activeEnvironmentId,
       tokenProfiles: state.tokenProfiles.map(p => ({
         ...p,
-        // Clear runtime-only state that shouldn't persist as "fetching"
         status: p.status === 'fetching' ? 'idle' : p.status,
       })),
       tabs: state.tabs,
       requests: state.requests,
+      snippets: state.snippets,
+      snapshots: state.snapshots,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
   } catch {
@@ -58,6 +62,8 @@ function extractByPath(obj: unknown, path: string): unknown {
   }, obj);
 }
 
+type SidebarTab = 'collections' | 'history' | 'environments' | 'tokens' | 'snippets';
+
 interface AppState {
   tabs: Tab[];
   activeTabId: string | null;
@@ -69,8 +75,13 @@ interface AppState {
   environments: Environment[];
   activeEnvironmentId: string | null;
   sidebarOpen: boolean;
-  sidebarTab: 'collections' | 'history' | 'environments' | 'tokens';
+  sidebarTab: SidebarTab;
   tokenProfiles: TokenProfile[];
+  snippets: RequestSnippet[];
+  testResults: Record<string, TestResult[]>;
+  scriptConsole: Record<string, ScriptConsoleEntry[]>;
+  snapshots: ResponseSnapshot[];
+  chainVariables: Record<string, string>;
 }
 
 type Action =
@@ -91,12 +102,19 @@ type Action =
   | { type: 'DELETE_ENVIRONMENT'; id: string }
   | { type: 'SET_ACTIVE_ENVIRONMENT'; id: string | null }
   | { type: 'TOGGLE_SIDEBAR' }
-  | { type: 'SET_SIDEBAR_TAB'; tab: 'collections' | 'history' | 'environments' | 'tokens' }
+  | { type: 'SET_SIDEBAR_TAB'; tab: SidebarTab }
   | { type: 'OPEN_REQUEST'; request: RequestConfig }
   | { type: 'DUPLICATE_TAB'; tabId: string }
   | { type: 'ADD_TOKEN_PROFILE'; profile: TokenProfile }
   | { type: 'UPDATE_TOKEN_PROFILE'; id: string; updates: Partial<TokenProfile> }
-  | { type: 'DELETE_TOKEN_PROFILE'; id: string };
+  | { type: 'DELETE_TOKEN_PROFILE'; id: string }
+  | { type: 'ADD_SNIPPET'; snippet: RequestSnippet }
+  | { type: 'UPDATE_SNIPPET'; id: string; updates: Partial<RequestSnippet> }
+  | { type: 'DELETE_SNIPPET'; id: string }
+  | { type: 'SET_TEST_RESULTS'; requestId: string; tests: TestResult[]; console: ScriptConsoleEntry[] }
+  | { type: 'ADD_SNAPSHOT'; snapshot: ResponseSnapshot }
+  | { type: 'DELETE_SNAPSHOT'; id: string }
+  | { type: 'SET_CHAIN_VARIABLE'; key: string; value: string };
 
 function createFreshState(): AppState {
   const defaultReq = createDefaultRequest();
@@ -167,6 +185,26 @@ function createFreshState(): AppState {
     sidebarOpen: true,
     sidebarTab: 'collections',
     tokenProfiles: [],
+    snippets: [
+      {
+        id: generateId(), name: 'JSON Content Headers', category: 'headers', builtIn: true,
+        headers: [
+          { id: generateId(), key: 'Content-Type', value: 'application/json', enabled: true },
+          { id: generateId(), key: 'Accept', value: 'application/json', enabled: true },
+        ],
+      },
+      {
+        id: generateId(), name: 'Pagination Params', category: 'params', builtIn: true,
+        params: [
+          { id: generateId(), key: 'page', value: '1', enabled: true },
+          { id: generateId(), key: 'limit', value: '20', enabled: true },
+        ],
+      },
+    ],
+    testResults: {},
+    scriptConsole: {},
+    snapshots: [],
+    chainVariables: {},
   };
 }
 
@@ -201,6 +239,11 @@ function getInitialState(): AppState {
       : { [restoredReq.id]: restoredReq },
     responses: {},
     loading: {},
+    snippets: (saved as Partial<AppState>).snippets ?? fresh.snippets,
+    snapshots: (saved as Partial<AppState>).snapshots ?? fresh.snapshots,
+    testResults: {},
+    scriptConsole: {},
+    chainVariables: {},
   };
 }
 
@@ -322,6 +365,24 @@ function reducer(state: AppState, action: Action): AppState {
       };
     case 'DELETE_TOKEN_PROFILE':
       return { ...state, tokenProfiles: state.tokenProfiles.filter(p => p.id !== action.id) };
+    case 'ADD_SNIPPET':
+      return { ...state, snippets: [...state.snippets, action.snippet] };
+    case 'UPDATE_SNIPPET':
+      return { ...state, snippets: state.snippets.map(s => s.id === action.id ? { ...s, ...action.updates } : s) };
+    case 'DELETE_SNIPPET':
+      return { ...state, snippets: state.snippets.filter(s => s.id !== action.id) };
+    case 'SET_TEST_RESULTS':
+      return {
+        ...state,
+        testResults: { ...state.testResults, [action.requestId]: action.tests },
+        scriptConsole: { ...state.scriptConsole, [action.requestId]: action.console },
+      };
+    case 'ADD_SNAPSHOT':
+      return { ...state, snapshots: [action.snapshot, ...state.snapshots].slice(0, 50) };
+    case 'DELETE_SNAPSHOT':
+      return { ...state, snapshots: state.snapshots.filter(s => s.id !== action.id) };
+    case 'SET_CHAIN_VARIABLE':
+      return { ...state, chainVariables: { ...state.chainVariables, [action.key]: action.value } };
     default:
       return state;
   }
@@ -492,8 +553,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_LOADING', requestId, loading: true });
     dispatch({ type: 'SET_RESPONSE', requestId, response: null });
 
-    const vars = getEnvVariables();
+    const vars = { ...getEnvVariables(), ...state.chainVariables };
     const resolveVars = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? `{{${k}}}`);
+
+    // Run pre-request script
+    if (request.preRequestScript) {
+      const scriptResult = runPreRequestScript(request.preRequestScript, {
+        url: request.url, method: request.method,
+        headers: Object.fromEntries(request.headers.filter(h => h.enabled && h.key).map(h => [h.key, h.value])),
+        body: request.body.content, variables: vars,
+      });
+      // Apply script-set variables
+      Object.entries(scriptResult.variables).forEach(([k, v]) => {
+        if (!(k in vars)) vars[k] = v;
+        dispatch({ type: 'SET_CHAIN_VARIABLE', key: k, value: v });
+      });
+      // Apply script-set headers
+      Object.entries(scriptResult.headers).forEach(([k, v]) => {
+        const existing = request.headers.find(h => h.key === k);
+        if (!existing) {
+          dispatch({ type: 'UPDATE_REQUEST', requestId, updates: {
+            headers: [...request.headers, { id: generateId(), key: k, value: v, enabled: true }]
+          }});
+        }
+      });
+      if (scriptResult.console.length > 0) {
+        dispatch({ type: 'SET_TEST_RESULTS', requestId, tests: [], console: scriptResult.console });
+      }
+    }
 
     // Auto-refresh OAuth2 token
     if (request.auth.type === 'oauth2' && request.auth.oauth2?.autoRefresh) {
@@ -609,6 +696,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
         type: 'ADD_HISTORY',
         entry: { id: generateId(), request: freshRequest, response, timestamp: Date.now() },
       });
+
+      // Run test script
+      if (freshRequest.testScript) {
+        const testResult = runTestScript(freshRequest.testScript, {
+          response: { status: response.status, statusText: response.statusText, body: response.body, headers: response.headers, time: response.time },
+          variables: vars,
+        });
+        dispatch({ type: 'SET_TEST_RESULTS', requestId, tests: testResult.tests, console: testResult.console });
+        // Apply variables set by test script
+        Object.entries(testResult.variables).forEach(([k, v]) => {
+          if (!(k in vars)) dispatch({ type: 'SET_CHAIN_VARIABLE', key: k, value: v });
+        });
+      }
+
+      // Response extractions
+      if (freshRequest.responseExtractions?.length) {
+        for (const extraction of freshRequest.responseExtractions) {
+          if (!extraction.enabled || !extraction.variableName || !extraction.jsonPath) continue;
+          let source: unknown;
+          if (extraction.source === 'body') {
+            try { source = JSON.parse(response.body); } catch { source = response.body; }
+          } else {
+            source = response.headers;
+          }
+          const value = extractByPath(source, extraction.jsonPath);
+          if (value !== undefined) {
+            dispatch({ type: 'SET_CHAIN_VARIABLE', key: extraction.variableName, value: String(value) });
+          }
+        }
+      }
     } catch (err: unknown) {
       const elapsed = performance.now() - startTime;
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';

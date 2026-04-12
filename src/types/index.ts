@@ -70,6 +70,7 @@ export interface RequestConfig {
   auth: AuthConfig;
   preRequestScript?: string;
   testScript?: string;
+  responseExtractions?: ResponseExtraction[];
 }
 
 export interface ResponseData {
@@ -111,3 +112,48 @@ export type Tab = {
   method: HttpMethod;
   isDirty: boolean;
 };
+
+// === Feature: Request Snippets ===
+export interface RequestSnippet {
+  id: string;
+  name: string;
+  description?: string;
+  category: 'headers' | 'params' | 'body' | 'auth' | 'full';
+  headers?: KeyValue[];
+  params?: KeyValue[];
+  body?: { type: RequestConfig['body']['type']; content: string; formData?: KeyValue[] };
+  auth?: AuthConfig;
+  color?: string;
+  builtIn?: boolean;
+}
+
+// === Feature: Test Scripts ===
+export interface TestResult {
+  name: string;
+  passed: boolean;
+  error?: string;
+}
+
+export interface ScriptConsoleEntry {
+  type: 'log' | 'warn' | 'error';
+  args: string[];
+}
+
+// === Feature: Response Extraction / Chaining ===
+export interface ResponseExtraction {
+  id: string;
+  variableName: string;
+  jsonPath: string;
+  source: 'body' | 'headers';
+  enabled: boolean;
+}
+
+// === Feature: Response Snapshots / Diff ===
+export interface ResponseSnapshot {
+  id: string;
+  name: string;
+  requestMethod: HttpMethod;
+  requestUrl: string;
+  response: ResponseData;
+  timestamp: number;
+}

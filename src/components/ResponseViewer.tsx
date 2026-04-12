@@ -1,22 +1,29 @@
 import { useState } from 'react';
 import { useApp } from '../store/AppContext';
-import { syntaxHighlightJson, formatBytes, formatTime, getStatusClass, generateCodeSnippet } from '../utils/helpers';
+import { syntaxHighlightJson, formatBytes, formatTime, getStatusClass, generateCodeSnippet, generateId } from '../utils/helpers';
+import TestResults from './TestResults';
+import ResponseDiff from './ResponseDiff';
 import {
   FileJson, Table, Code, Copy, Check, Download,
-  Clock, HardDrive, ArrowDown, ChevronDown
+  Clock, HardDrive, ArrowDown, ChevronDown, FlaskConical, Camera, GitCompare
 } from 'lucide-react';
 
 export default function ResponseViewer() {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const activeTab = state.tabs.find(t => t.id === state.activeTabId);
   const response = activeTab ? state.responses[activeTab.requestId] : null;
   const request = activeTab ? state.requests[activeTab.requestId] : null;
   const isLoading = activeTab ? state.loading[activeTab.requestId] : false;
-  const [activeView, setActiveView] = useState<'body' | 'headers' | 'code'>('body');
+  const [activeView, setActiveView] = useState<'body' | 'headers' | 'code' | 'tests'>('body');
   const [bodyFormat, setBodyFormat] = useState<'pretty' | 'raw' | 'preview'>('pretty');
   const [codeLang, setCodeLang] = useState<'curl' | 'javascript' | 'python' | 'go'>('curl');
   const [copied, setCopied] = useState(false);
   const [showLangDropdown, setShowLangDropdown] = useState(false);
+  const [showDiff, setShowDiff] = useState(false);
+
+  const testResults = activeTab ? state.testResults[activeTab.requestId] || [] : [];
+  const consoleLogs = activeTab ? state.scriptConsole[activeTab.requestId] || [] : [];
+  const hasTests = testResults.length > 0 || consoleLogs.length > 0;
 
   if (isLoading) {
     return (
@@ -116,6 +123,36 @@ export default function ResponseViewer() {
         >
           <Download size={14} />
         </button>
+        <button
+          onClick={() => {
+            if (!request || !response) return;
+            dispatch({
+              type: 'ADD_SNAPSHOT',
+              snapshot: {
+                id: generateId(),
+                name: request.name || request.url,
+                requestMethod: request.method,
+                requestUrl: request.url,
+                response,
+                timestamp: Date.now(),
+              },
+            });
+          }}
+          className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-500 hover:text-amber-400 hover:bg-gray-800 transition-colors"
+          title="Save as snapshot"
+        >
+          <Camera size={12} />
+        </button>
+        {state.snapshots.length > 0 && (
+          <button
+            onClick={() => setShowDiff(true)}
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 transition-colors"
+            title="Compare with snapshot"
+          >
+            <GitCompare size={12} />
+            Diff
+          </button>
+        )}
       </div>
 
       {/* View tabs */}
@@ -124,6 +161,7 @@ export default function ResponseViewer() {
           { id: 'body' as const, label: 'Body', icon: FileJson },
           { id: 'headers' as const, label: 'Headers', count: headerEntries.length, icon: Table },
           { id: 'code' as const, label: 'Code', icon: Code },
+          ...(hasTests ? [{ id: 'tests' as const, label: `Tests ${testResults.length > 0 ? `(${testResults.filter(t=>t.passed).length}/${testResults.length})` : ''}`, icon: FlaskConical }] : []),
         ].map(tab => (
           <button
             key={tab.id}
@@ -265,7 +303,16 @@ export default function ResponseViewer() {
             </div>
           </div>
         )}
+
+        {activeView === 'tests' && (
+          <TestResults tests={testResults} consoleLogs={consoleLogs} />
+        )}
       </div>
+
+      {/* Diff modal */}
+      {showDiff && response && (
+        <ResponseDiff currentResponse={response} onClose={() => setShowDiff(false)} />
+      )}
     </div>
   );
 }
