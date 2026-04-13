@@ -5,12 +5,14 @@ import ResizeHandle from './ResizeHandle';
 import ExportDialog from './ExportDialog';
 import ScriptEditor from './ScriptEditor';
 import UrlAutocomplete from './UrlAutocomplete';
+import PerformanceBenchmark from './PerformanceBenchmark';
+import EnvDiff from './EnvDiff';
 import type { HttpMethod, KeyValue, ResponseExtraction } from '../types';
 import { generateId } from '../utils/helpers';
 import { parseCurl } from '../utils/curlParser';
 import {
   Send, Loader2, Plus, Trash2, Save, ChevronDown,
-  FileJson, AlignLeft, FormInput, Code, Share2, X
+  FileJson, AlignLeft, FormInput, Code, Share2, X, Zap, GitCompare
 } from 'lucide-react';
 
 export default function RequestBuilder() {
@@ -22,6 +24,8 @@ export default function RequestBuilder() {
   const [showMethodDropdown, setShowMethodDropdown] = useState(false);
   const [showSaveDropdown, setShowSaveDropdown] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showBenchmark, setShowBenchmark] = useState(false);
+  const [showEnvDiff, setShowEnvDiff] = useState(false);
 
   if (!request || !activeTab) {
     return (
@@ -156,7 +160,25 @@ export default function RequestBuilder() {
           )}
         </div>
 
-        {/* Export / Share button */}
+        {/* Benchmark */}
+        <button
+          onClick={() => setShowBenchmark(true)}
+          className="p-2.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-amber-400 hover:border-amber-500/30 transition-colors"
+          title="Performance benchmark — run N times"
+        >
+          <Zap size={16} />
+        </button>
+
+        {/* Env Diff */}
+        <button
+          onClick={() => setShowEnvDiff(true)}
+          className="p-2.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors"
+          title="Environment diff — compare dev vs prod"
+        >
+          <GitCompare size={16} />
+        </button>
+
+        {/* Export / Share */}
         <button
           onClick={() => setShowExportDialog(true)}
           className="p-2.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-600 transition-colors"
@@ -172,6 +194,12 @@ export default function RequestBuilder() {
           target={{ type: 'request', request }}
           onClose={() => setShowExportDialog(false)}
         />
+      )}
+      {showBenchmark && (
+        <PerformanceBenchmark request={request} onClose={() => setShowBenchmark(false)} />
+      )}
+      {showEnvDiff && (
+        <EnvDiff request={request} onClose={() => setShowEnvDiff(false)} />
       )}
 
       {/* Section tabs */}
