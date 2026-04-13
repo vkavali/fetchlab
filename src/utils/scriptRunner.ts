@@ -33,15 +33,18 @@ interface TestRunResult {
 
 export function runPreRequestScript(script: string, ctx: PreRequestContext): PreRequestResult {
   const consoleLogs: ScriptConsoleEntry[] = [];
-  const headers = { ...ctx.headers };
-  const variables = { ...ctx.variables };
+  // Use null-prototype objects to prevent prototype pollution
+  const headers: Record<string, string> = Object.create(null);
+  Object.entries(ctx.headers).forEach(([k, v]) => { if (isSafeKey(k)) headers[k] = v; });
+  const variables: Record<string, string> = Object.create(null);
+  Object.entries(ctx.variables).forEach(([k, v]) => { if (isSafeKey(k)) variables[k] = v; });
   let body = ctx.body;
 
   const fl = {
     setHeader: (key: string, value: string) => { if (isSafeKey(key)) headers[key] = value; },
     removeHeader: (key: string) => { if (isSafeKey(key)) delete headers[key]; },
     setVariable: (key: string, value: string) => { if (isSafeKey(key)) variables[key] = value; },
-    getVariable: (key: string) => isSafeKey(key) ? variables[key] ?? '' : '',
+    getVariable: (key: string) => isSafeKey(key) ? (variables[key] ?? '') : '',
     setBody: (content: string) => { body = content; },
     timestamp: () => Date.now(),
     isoTimestamp: () => new Date().toISOString(),
@@ -70,7 +73,9 @@ export function runPreRequestScript(script: string, ctx: PreRequestContext): Pre
 export function runTestScript(script: string, ctx: TestContext): TestRunResult {
   const consoleLogs: ScriptConsoleEntry[] = [];
   const tests: TestResult[] = [];
-  const variables = { ...ctx.variables };
+  // Use null-prototype object to prevent prototype pollution
+  const variables: Record<string, string> = Object.create(null);
+  Object.entries(ctx.variables).forEach(([k, v]) => { if (isSafeKey(k)) variables[k] = v; });
 
   let parsedBody: unknown = ctx.response.body;
   if (typeof parsedBody === 'string') {
