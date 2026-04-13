@@ -33,18 +33,16 @@ interface TestRunResult {
 
 export function runPreRequestScript(script: string, ctx: PreRequestContext): PreRequestResult {
   const consoleLogs: ScriptConsoleEntry[] = [];
-  // Use null-prototype objects to prevent prototype pollution
-  const headers: Record<string, string> = Object.create(null);
-  Object.entries(ctx.headers).forEach(([k, v]) => { if (isSafeKey(k)) headers[k] = v; });
-  const variables: Record<string, string> = Object.create(null);
-  Object.entries(ctx.variables).forEach(([k, v]) => { if (isSafeKey(k)) variables[k] = v; });
+  // Use Map to completely prevent prototype pollution — no object property writes
+  const headersMap = new Map<string, string>(Object.entries(ctx.headers).filter(([k]) => isSafeKey(k)));
+  const variablesMap = new Map<string, string>(Object.entries(ctx.variables).filter(([k]) => isSafeKey(k)));
   let body = ctx.body;
 
   const fl = {
-    setHeader: (key: string, value: string) => { if (isSafeKey(key)) headers[key] = value; },
-    removeHeader: (key: string) => { if (isSafeKey(key)) delete headers[key]; },
-    setVariable: (key: string, value: string) => { if (isSafeKey(key)) variables[key] = value; },
-    getVariable: (key: string) => isSafeKey(key) ? (variables[key] ?? '') : '',
+    setHeader: (key: string, value: string) => { if (isSafeKey(key)) headersMap.set(key, value); },
+    removeHeader: (key: string) => { headersMap.delete(key); },
+    setVariable: (key: string, value: string) => { if (isSafeKey(key)) variablesMap.set(key, value); },
+    getVariable: (key: string) => variablesMap.get(key) ?? '',
     setBody: (content: string) => { body = content; },
     timestamp: () => Date.now(),
     isoTimestamp: () => new Date().toISOString(),
@@ -67,15 +65,19 @@ export function runPreRequestScript(script: string, ctx: PreRequestContext): Pre
     consoleLogs.push({ type: 'error', args: [`Script error: ${err instanceof Error ? err.message : String(err)}`] });
   }
 
-  return { headers, variables, body, console: consoleLogs };
+  return {
+    headers: Object.fromEntries(headersMap),
+    variables: Object.fromEntries(variablesMap),
+    body,
+    console: consoleLogs,
+  };
 }
 
 export function runTestScript(script: string, ctx: TestContext): TestRunResult {
   const consoleLogs: ScriptConsoleEntry[] = [];
   const tests: TestResult[] = [];
-  // Use null-prototype object to prevent prototype pollution
-  const variables: Record<string, string> = Object.create(null);
-  Object.entries(ctx.variables).forEach(([k, v]) => { if (isSafeKey(k)) variables[k] = v; });
+  // Use Map to completely prevent prototype pollution
+  const variablesMap = new Map<string, string>(Object.entries(ctx.variables).filter(([k]) => isSafeKey(k)));
 
   let parsedBody: unknown = ctx.response.body;
   if (typeof parsedBody === 'string') {
@@ -109,8 +111,8 @@ export function runTestScript(script: string, ctx: TestContext): TestRunResult {
       catch (err) { tests.push({ name, passed: false, error: err instanceof Error ? err.message : String(err) }); }
     },
     expect: createExpect,
-    setVariable: (key: string, value: string) => { if (isSafeKey(key)) variables[key] = value; },
-    getVariable: (key: string) => isSafeKey(key) ? variables[key] ?? '' : '',
+    setVariable: (key: string, value: string) => { if (isSafeKey(key)) variablesMap.set(key, value); },
+    getVariable: (key: string) => variablesMap.get(key) ?? '',
   };
 
   const mockConsole = {
@@ -126,5 +128,5 @@ export function runTestScript(script: string, ctx: TestContext): TestRunResult {
     consoleLogs.push({ type: 'error', args: [`Script error: ${err instanceof Error ? err.message : String(err)}`] });
   }
 
-  return { tests, console: consoleLogs, variables };
+  return { tests, console: consoleLogs, variables: Object.fromEntries(variablesMap) };
 }
