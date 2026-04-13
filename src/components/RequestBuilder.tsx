@@ -12,7 +12,8 @@ import { generateId } from '../utils/helpers';
 import { parseCurl } from '../utils/curlParser';
 import {
   Send, Loader2, Plus, Trash2, Save, ChevronDown,
-  FileJson, AlignLeft, FormInput, Code, Share2, X, Zap, GitCompare
+  FileJson, AlignLeft, FormInput, Code, Share2, X, Zap, GitCompare,
+  FolderPlus, Check
 } from 'lucide-react';
 
 export default function RequestBuilder() {
@@ -64,8 +65,18 @@ export default function RequestBuilder() {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Request name */}
+      <div className="flex items-center gap-2 px-3 pt-2 pb-0">
+        <input
+          value={request.name}
+          onChange={e => updateRequest({ name: e.target.value })}
+          placeholder="Request name (optional)..."
+          className="flex-1 bg-transparent border-none text-sm font-medium text-gray-300 placeholder-gray-600 focus:outline-none focus:text-gray-100 truncate"
+        />
+      </div>
+
       {/* URL Bar */}
-      <div className="flex items-center gap-2 p-3 bg-gray-900/30">
+      <div className="flex items-center gap-2 p-3 pt-1.5 bg-gray-900/30">
         {/* Method selector */}
         <div className="relative">
           <button
@@ -130,7 +141,7 @@ export default function RequestBuilder() {
           Send
         </button>
 
-        {/* Save dropdown */}
+        {/* Save dialog */}
         <div className="relative">
           <button
             onClick={() => setShowSaveDropdown(!showSaveDropdown)}
@@ -140,23 +151,23 @@ export default function RequestBuilder() {
             <Save size={16} />
           </button>
           {showSaveDropdown && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setShowSaveDropdown(false)} />
-              <div className="absolute top-full right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-20 py-1 min-w-[200px] animate-slide-in">
-                <div className="px-3 py-1.5 text-[10px] text-gray-600 uppercase tracking-wider font-semibold">
-                  Save to collection
-                </div>
-                {state.collections.map(col => (
-                  <button
-                    key={col.id}
-                    onClick={() => saveToCollection(col.id)}
-                    className="w-full px-3 py-1.5 text-left text-sm text-gray-300 hover:bg-gray-700/50 transition-colors"
-                  >
-                    {col.name}
-                  </button>
-                ))}
-              </div>
-            </>
+            <SaveDialog
+              request={request}
+              collections={state.collections}
+              onSave={(collectionId, name) => {
+                updateRequest({ name });
+                saveToCollection(collectionId);
+                setShowSaveDropdown(false);
+              }}
+              onCreateCollection={(colName, reqName) => {
+                const colId = generateId();
+                dispatch({ type: 'ADD_COLLECTION', collection: { id: colId, name: colName, requests: [] } });
+                updateRequest({ name: reqName });
+                saveToCollection(colId);
+                setShowSaveDropdown(false);
+              }}
+              onClose={() => setShowSaveDropdown(false)}
+            />
           )}
         </div>
 
@@ -582,5 +593,100 @@ function ExtractionsEditor({
         Add extraction
       </button>
     </div>
+  );
+}
+
+function SaveDialog({ request, collections, onSave, onCreateCollection, onClose }: {
+  request: import('../types').RequestConfig;
+  collections: import('../types').Collection[];
+  onSave: (collectionId: string, name: string) => void;
+  onCreateCollection: (colName: string, reqName: string) => void;
+  onClose: () => void;
+}) {
+  const [reqName, setReqName] = useState(request.name || `${request.method} ${request.url?.split('/').pop() || 'request'}`);
+  const [selectedColId, setSelectedColId] = useState(collections[0]?.id || '');
+  const [showNewCol, setShowNewCol] = useState(false);
+  const [newColName, setNewColName] = useState('');
+
+  const handleSave = () => {
+    if (showNewCol && newColName.trim()) {
+      onCreateCollection(newColName, reqName);
+    } else if (selectedColId) {
+      onSave(selectedColId, reqName);
+    }
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 z-10" onClick={onClose} />
+      <div className="absolute top-full right-0 mt-1 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-20 w-[300px] animate-slide-in">
+        <div className="px-4 py-3 border-b border-gray-700/50">
+          <p className="text-xs font-semibold text-gray-300">Save Request</p>
+        </div>
+
+        <div className="p-4 space-y-3">
+          {/* Request name */}
+          <div>
+            <label className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Request Name</label>
+            <input
+              autoFocus
+              value={reqName}
+              onChange={e => setReqName(e.target.value)}
+              placeholder="e.g. Get All Users"
+              className="mt-1 w-full bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-brand-500/50"
+            />
+          </div>
+
+          {/* Collection selector */}
+          <div>
+            <label className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Save To Collection</label>
+            {!showNewCol ? (
+              <>
+                <select
+                  value={selectedColId}
+                  onChange={e => setSelectedColId(e.target.value)}
+                  className="mt-1 w-full bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none"
+                >
+                  {collections.map(c => (
+                    <option key={c.id} value={c.id}>{c.name} ({c.requests.length})</option>
+                  ))}
+                </select>
+                <button onClick={() => setShowNewCol(true)}
+                  className="flex items-center gap-1 mt-1.5 text-[10px] text-brand-400 hover:text-brand-300">
+                  <FolderPlus size={10} /> Create new collection
+                </button>
+              </>
+            ) : (
+              <>
+                <input
+                  value={newColName}
+                  onChange={e => setNewColName(e.target.value)}
+                  placeholder="New collection name..."
+                  className="mt-1 w-full bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-brand-500/50"
+                />
+                <button onClick={() => setShowNewCol(false)}
+                  className="mt-1.5 text-[10px] text-gray-500 hover:text-gray-300">
+                  ← Use existing collection
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-gray-700/50">
+          <button onClick={onClose} className="px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!reqName.trim() || (!selectedColId && !newColName.trim())}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-500 disabled:opacity-50 transition-colors"
+          >
+            <Check size={12} /> Save
+          </button>
+        </div>
+      </div>
+    </>
   );
 }

@@ -6,7 +6,8 @@ import {
 import type { Collection, Environment, KeyValue, RequestConfig } from '../types';
 import {
   FolderOpen, History, Globe, Plus, Trash2, ChevronRight, ChevronDown,
-  Clock, Search, Check, X, Key, Download, Upload, Terminal, Copy, Play, Puzzle, FileText, Share2
+  Clock, Search, Check, X, Key, Download, Upload, Terminal, Copy, Play, Puzzle, FileText, Share2,
+  Pencil
 } from 'lucide-react';
 import TokenManager from './TokenManager';
 import ExportDialog from './ExportDialog';
@@ -82,6 +83,8 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
   const [runnerCollection, setRunnerCollection] = useState<Collection | null>(null);
   const [docsCollection, setDocsCollection] = useState<Collection | null>(null);
   const [shareCollection, setShareCollection] = useState<Collection | null>(null);
+  const [renamingColId, setRenamingColId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
 
   const toggleExpand = (id: string) => {
     setExpanded(p => ({ ...p, [id]: !p[id] }));
@@ -186,8 +189,30 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
           >
             {expanded[col.id] ? <ChevronDown size={14} className="text-gray-600" /> : <ChevronRight size={14} className="text-gray-600" />}
             <FolderOpen size={14} className="text-brand-400/70" />
-            <span className="flex-1 truncate">{col.name}</span>
+            {renamingColId === col.id ? (
+              <input
+                autoFocus
+                value={renameValue}
+                onChange={e => setRenameValue(e.target.value)}
+                onBlur={() => { dispatch({ type: 'UPDATE_COLLECTION', id: col.id, updates: { name: renameValue } }); setRenamingColId(null); }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') { dispatch({ type: 'UPDATE_COLLECTION', id: col.id, updates: { name: renameValue } }); setRenamingColId(null); }
+                  if (e.key === 'Escape') setRenamingColId(null);
+                }}
+                onClick={e => e.stopPropagation()}
+                className="flex-1 bg-gray-800 border border-brand-500 rounded px-1.5 py-0.5 text-sm text-gray-200 focus:outline-none"
+              />
+            ) : (
+              <span className="flex-1 truncate">{col.name}</span>
+            )}
             <span className="text-xs text-gray-600">{col.requests.length}</span>
+            <button
+              onClick={e => { e.stopPropagation(); setRenameValue(col.name); setRenamingColId(col.id); }}
+              className="p-1 rounded opacity-0 group-hover:opacity-100 text-gray-600 hover:text-brand-400 transition-all"
+              title="Rename"
+            >
+              <Pencil size={11} />
+            </button>
             <button
               onClick={e => { e.stopPropagation(); dispatch({ type: 'DELETE_COLLECTION', id: col.id }); }}
               className="p-1 rounded opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 transition-all"
