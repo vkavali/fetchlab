@@ -215,19 +215,35 @@ export default function SchemaValidator({ responseBody }: Props) {
 
       {/* Rule builder */}
       <div className="border-t border-gray-800 pt-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Schema Rules</span>
-          <div className="flex gap-1">
-            <button onClick={autoGenerate} disabled={!parsed}
-              className="flex items-center gap-1 px-2 py-1 rounded text-[10px] text-accent-400 hover:bg-accent-500/10 transition-colors disabled:opacity-50">
-              <Zap size={10} /> Auto-detect
-            </button>
-            <button onClick={addRule}
-              className="flex items-center gap-1 px-2 py-1 rounded text-[10px] text-brand-400 hover:bg-brand-500/10 transition-colors">
-              <Plus size={10} /> Add rule
-            </button>
-          </div>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">
+            Custom Rules ({rules.length})
+          </span>
+          <button onClick={autoGenerate} disabled={!parsed}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] text-accent-400 hover:bg-accent-500/10 transition-colors disabled:opacity-50 border border-accent-500/20">
+            <Zap size={10} /> Auto-detect from response
+          </button>
         </div>
+
+        {rules.length === 0 && (
+          <div className="text-center py-4 mb-3 rounded-lg border border-dashed border-gray-700 bg-gray-800/10">
+            <p className="text-xs text-gray-500">No validation rules yet</p>
+            <p className="text-[10px] text-gray-600 mt-1 mb-3 px-4">
+              Add rules to validate your API responses automatically.
+              Check field types, required fields, value patterns, and more.
+            </p>
+            <div className="flex justify-center gap-2">
+              <button onClick={addRule}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-600 text-white text-[10px] font-medium hover:bg-brand-500 transition-colors">
+                <Plus size={10} /> Add Custom Rule
+              </button>
+              <button onClick={autoGenerate} disabled={!parsed}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-800 text-gray-300 text-[10px] font-medium hover:bg-gray-700 transition-colors border border-gray-700 disabled:opacity-50">
+                <Zap size={10} /> Auto-detect
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2">
           {rules.map(rule => (
@@ -289,6 +305,20 @@ export default function SchemaValidator({ responseBody }: Props) {
             </div>
           ))}
         </div>
+
+        {/* Always-visible add button at the bottom */}
+        {rules.length > 0 && (
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-800/50">
+            <button onClick={addRule}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-600 text-white text-xs font-medium hover:bg-brand-500 transition-colors shadow-lg shadow-brand-600/20">
+              <Plus size={12} /> Add Custom Rule
+            </button>
+            <button onClick={() => saveRules([])}
+              className="px-3 py-2 rounded-lg text-xs text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+              Clear all
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
