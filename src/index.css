@@ -32,31 +32,80 @@
   display: none;
 }
 
-/* Light theme overrides */
+/* Light theme — warm, soft, easy on the eyes */
 html.light {
   --tw-bg-opacity: 1;
+  color-scheme: light;
 }
 html.light body {
-  background: #f8f9fc;
-  color: #1e293b;
+  background: #f0ece4;
+  color: #2d2a26;
 }
-html.light .bg-gray-950 { background: #f8f9fc !important; }
+html.light .bg-gray-950 { background: #f0ece4 !important; }
 html.light .bg-gray-900\/80, html.light .bg-gray-900\/50, html.light .bg-gray-900\/30 {
-  background: rgba(255,255,255,0.9) !important;
+  background: rgba(235,229,218,0.95) !important;
 }
 html.light .bg-gray-800, html.light .bg-gray-800\/50, html.light .bg-gray-800\/30 {
-  background: rgba(241,245,249,0.8) !important;
+  background: rgba(228,221,208,0.7) !important;
 }
+html.light .bg-gray-800\/20 { background: rgba(228,221,208,0.35) !important; }
 html.light .border-gray-800, html.light .border-gray-700 {
-  border-color: #e2e8f0 !important;
+  border-color: #d6cfc3 !important;
 }
-html.light .text-gray-100, html.light .text-gray-200, html.light .text-gray-300 {
-  color: #1e293b !important;
+html.light .border-gray-800\/50 { border-color: rgba(214,207,195,0.5) !important; }
+html.light .text-gray-100, html.light .text-gray-200 {
+  color: #2d2a26 !important;
 }
-html.light .text-gray-400 { color: #64748b !important; }
-html.light .text-gray-500 { color: #94a3b8 !important; }
-html.light .text-gray-600 { color: #cbd5e1 !important; }
-html.light .placeholder-gray-600::placeholder { color: #94a3b8 !important; }
+html.light .text-gray-300 { color: #3d3832 !important; }
+html.light .text-gray-400 { color: #6b6358 !important; }
+html.light .text-gray-500 { color: #8a8178 !important; }
+html.light .text-gray-600 { color: #a89f94 !important; }
+html.light .text-gray-700 { color: #c4bbb0 !important; }
+html.light .placeholder-gray-600::placeholder { color: #a89f94 !important; }
+
+/* Light theme inputs */
+html.light input, html.light textarea, html.light select {
+  background: rgba(255,252,247,0.8) !important;
+  border-color: #d6cfc3 !important;
+  color: #2d2a26 !important;
+}
+html.light input:focus, html.light textarea:focus, html.light select:focus {
+  border-color: #3b82f6 !important;
+}
+html.light input::placeholder, html.light textarea::placeholder {
+  color: #a89f94 !important;
+}
+
+/* Light theme buttons and accents */
+html.light .bg-brand-600 { background: #2563eb !important; }
+html.light .bg-brand-500\/20 { background: rgba(37,99,235,0.12) !important; }
+html.light .text-brand-400 { color: #2563eb !important; }
+html.light .bg-green-500\/10 { background: rgba(22,163,74,0.1) !important; }
+html.light .text-green-400 { color: #16a34a !important; }
+html.light .bg-red-500\/10 { background: rgba(220,38,38,0.08) !important; }
+html.light .text-red-400 { color: #dc2626 !important; }
+html.light .bg-amber-500\/10 { background: rgba(217,119,6,0.08) !important; }
+html.light .text-amber-400 { color: #d97706 !important; }
+
+/* Light theme code blocks */
+html.light pre, html.light code {
+  background: rgba(255,252,247,0.9) !important;
+  color: #3d3832 !important;
+}
+html.light .json-key { color: #2563eb !important; }
+html.light .json-string { color: #16a34a !important; }
+html.light .json-number { color: #d97706 !important; }
+html.light .json-boolean { color: #7c3aed !important; }
+html.light .json-null { color: #8a8178 !important; }
+
+/* Light theme scrollbar */
+html.light * {
+  scrollbar-color: #c4bbb0 transparent;
+}
+
+/* Light theme modals */
+html.light .bg-black\/60 { background: rgba(45,42,38,0.4) !important; }
+html.light .bg-gray-900 { background: #f5f0e8 !important; }
 
 body {
   margin: 0;
