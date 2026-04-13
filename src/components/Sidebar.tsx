@@ -6,13 +6,14 @@ import {
 import type { Collection, Environment, KeyValue, RequestConfig } from '../types';
 import {
   FolderOpen, History, Globe, Plus, Trash2, ChevronRight, ChevronDown,
-  Clock, Search, Check, X, Key, Download, Upload, Terminal, Copy, Play, Puzzle, FileText
+  Clock, Search, Check, X, Key, Download, Upload, Terminal, Copy, Play, Puzzle, FileText, Share2
 } from 'lucide-react';
 import TokenManager from './TokenManager';
 import ExportDialog from './ExportDialog';
 import CollectionRunner from './CollectionRunner';
 import SnippetManager from './SnippetManager';
 import DocGenerator from './DocGenerator';
+import ShareDialog from './ShareDialog';
 
 export default function Sidebar() {
   const { state, dispatch } = useApp();
@@ -80,6 +81,7 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
   >(null);
   const [runnerCollection, setRunnerCollection] = useState<Collection | null>(null);
   const [docsCollection, setDocsCollection] = useState<Collection | null>(null);
+  const [shareCollection, setShareCollection] = useState<Collection | null>(null);
 
   const toggleExpand = (id: string) => {
     setExpanded(p => ({ ...p, [id]: !p[id] }));
@@ -197,27 +199,34 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
           {expanded[col.id] && (
             <div className="ml-4 border-l border-gray-800 pl-2 animate-slide-in">
               {/* Collection actions */}
-              <div className="flex items-center gap-1 mb-1 px-1">
+              <div className="grid grid-cols-4 gap-1 mb-1 px-1">
                 <button
                   onClick={() => setRunnerCollection(col)}
-                  className="flex items-center gap-1.5 flex-1 px-2 py-1.5 rounded text-[10px] font-medium text-gray-500 hover:text-green-400 hover:bg-green-500/10 transition-colors"
+                  className="flex flex-col items-center gap-0.5 px-1 py-1.5 rounded text-[9px] font-medium text-gray-500 hover:text-green-400 hover:bg-green-500/10 transition-colors"
                 >
-                  <Play size={11} />
-                  Run All
+                  <Play size={12} />
+                  Run
                 </button>
                 <button
                   onClick={e => handleExportCollection(e, col)}
-                  className="flex items-center gap-1.5 flex-1 px-2 py-1.5 rounded text-[10px] font-medium text-gray-500 hover:text-brand-400 hover:bg-gray-800/50 transition-colors"
+                  className="flex flex-col items-center gap-0.5 px-1 py-1.5 rounded text-[9px] font-medium text-gray-500 hover:text-brand-400 hover:bg-gray-800/50 transition-colors"
                 >
-                  <Download size={11} />
+                  <Download size={12} />
                   Export
                 </button>
                 <button
                   onClick={() => setDocsCollection(col)}
-                  className="flex items-center gap-1.5 flex-1 px-2 py-1.5 rounded text-[10px] font-medium text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                  className="flex flex-col items-center gap-0.5 px-1 py-1.5 rounded text-[9px] font-medium text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
                 >
-                  <FileText size={11} />
+                  <FileText size={12} />
                   Docs
+                </button>
+                <button
+                  onClick={() => setShareCollection(col)}
+                  className="flex flex-col items-center gap-0.5 px-1 py-1.5 rounded text-[9px] font-medium text-gray-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                >
+                  <Share2 size={12} />
+                  Share
                 </button>
               </div>
 
@@ -288,6 +297,11 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
       {/* Doc generator */}
       {docsCollection && (
         <DocGenerator collection={docsCollection} onClose={() => setDocsCollection(null)} />
+      )}
+
+      {/* Share dialog */}
+      {shareCollection && (
+        <ShareDialog collection={shareCollection} onClose={() => setShareCollection(null)} />
       )}
     </div>
   );

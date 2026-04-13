@@ -7,6 +7,9 @@ import RequestBuilder from './components/RequestBuilder';
 import ResponseViewer from './components/ResponseViewer';
 import ResizeHandle from './components/ResizeHandle';
 import { useApp } from './store/AppContext';
+import { extractSharedData, clearShareHash } from './utils/shareLink';
+import { generateId } from './utils/helpers';
+import type { Collection, RequestConfig } from './types';
 
 const SIDEBAR_MIN = 180;
 const SIDEBAR_MAX = 500;
@@ -80,9 +83,43 @@ function AppLayout() {
     return () => window.removeEventListener('keydown', handler);
   }, [state.activeTabId, state.tabs, dispatch]);
 
+  // Handle share link import on page load
+  const [shareImport, setShareImport] = useState<{ type: string; name: string } | null>(null);
+  useEffect(() => {
+    const shared = extractSharedData();
+    if (!shared) return;
+
+    const data = shared.data as Record<string, unknown>;
+    if (shared.type === 'collection' && data.name && Array.isArray(data.requests)) {
+      const col: Collection = {
+        id: generateId(),
+        name: data.name as string,
+        description: (data.description as string) || '',
+        requests: (data.requests as RequestConfig[]).map((r: RequestConfig) => ({ ...r, id: generateId() })),
+      };
+      dispatch({ type: 'ADD_COLLECTION', collection: col });
+      setShareImport({ type: 'collection', name: col.name });
+      clearShareHash();
+      setTimeout(() => setShareImport(null), 5000);
+    } else if (shared.type === 'request' && data.name) {
+      dispatch({ type: 'OPEN_REQUEST', request: data as unknown as RequestConfig });
+      setShareImport({ type: 'request', name: data.name as string });
+      clearShareHash();
+      setTimeout(() => setShareImport(null), 5000);
+    }
+  }, [dispatch]);
+
   return (
     <div className="flex flex-col h-screen bg-gray-950 text-gray-100 overflow-hidden">
       <Header />
+
+      {/* Share import toast */}
+      {shareImport && (
+        <div className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500/10 border-b border-green-500/20 text-green-400 text-xs animate-slide-in">
+          <span>✓ Imported {shareImport.type}: <strong>{shareImport.name}</strong></span>
+          <button onClick={() => setShareImport(null)} className="text-green-500/50 hover:text-green-400 ml-2">✕</button>
+        </div>
+      )}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         {state.sidebarOpen && (
