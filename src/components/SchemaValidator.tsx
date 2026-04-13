@@ -21,16 +21,43 @@ interface ValidationResult {
 }
 
 function extractByPath(obj: unknown, path: string): unknown {
-  return path.split('.').reduce<unknown>((cur, key) => {
-    if (cur === undefined || cur === null) return undefined;
-    if (key.includes('[')) {
-      const [arrKey, idxStr] = key.split('[');
-      const idx = parseInt(idxStr);
-      const arr = (cur as Record<string, unknown>)[arrKey];
-      return Array.isArray(arr) ? arr[idx] : undefined;
+  if (!path || path === '(root)') return obj;
+
+  // Tokenize: "foo.bar[0].baz" → ["foo", "bar", "[0]", "baz"]
+  // Also handles paths starting with [0] like "[0].id"
+  const tokens: string[] = [];
+  let i = 0;
+  while (i < path.length) {
+    if (path[i] === '.') { i++; continue; }
+    if (path[i] === '[') {
+      const end = path.indexOf(']', i);
+      if (end === -1) break;
+      tokens.push(path.substring(i, end + 1)); // e.g. "[0]"
+      i = end + 1;
+    } else {
+      let end = i;
+      while (end < path.length && path[end] !== '.' && path[end] !== '[') end++;
+      tokens.push(path.substring(i, end));
+      i = end;
     }
-    return (cur as Record<string, unknown>)[key];
-  }, obj);
+  }
+
+  let cur: unknown = obj;
+  for (const token of tokens) {
+    if (cur === undefined || cur === null) return undefined;
+    if (token.startsWith('[') && token.endsWith(']')) {
+      const idx = parseInt(token.slice(1, -1));
+      if (Array.isArray(cur)) cur = cur[idx];
+      else return undefined;
+    } else {
+      if (typeof cur === 'object' && cur !== null && token in (cur as Record<string, unknown>)) {
+        cur = (cur as Record<string, unknown>)[token];
+      } else {
+        return undefined;
+      }
+    }
+  }
+  return cur;
 }
 
 function validateRule(rule: SchemaRule, data: unknown): ValidationResult {
