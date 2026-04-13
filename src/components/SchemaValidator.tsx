@@ -229,23 +229,63 @@ export default function SchemaValidator({ responseBody }: Props) {
           </div>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {rules.map(rule => (
-            <div key={rule.id} className="flex items-center gap-1.5 group">
-              <input value={rule.path} onChange={e => updateRule(rule.id, { path: e.target.value })} placeholder="e.g. data.users[0].name"
-                className="flex-1 bg-gray-800/30 border border-gray-800 rounded px-2 py-1 text-[10px] font-mono text-gray-300 focus:outline-none focus:border-gray-700" />
-              <select value={rule.type} onChange={e => updateRule(rule.id, { type: e.target.value as SchemaRule['type'] })}
-                className="bg-gray-800 border border-gray-800 rounded px-1 py-1 text-[10px] text-gray-400">
-                <option value="any">any</option><option value="string">string</option><option value="number">number</option>
-                <option value="boolean">bool</option><option value="array">array</option><option value="object">object</option>
-              </select>
-              <label className="flex items-center gap-0.5 text-[9px] text-gray-500 cursor-pointer">
-                <input type="checkbox" checked={rule.required} onChange={e => updateRule(rule.id, { required: e.target.checked })}
-                  className="w-3 h-3 rounded bg-gray-800 border-gray-700 text-brand-500" /> req
-              </label>
-              <button onClick={() => removeRule(rule.id)} className="p-0.5 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100">
-                <X size={10} />
-              </button>
+            <div key={rule.id} className="rounded-lg border border-gray-800 bg-gray-800/20 p-2.5 space-y-2 group">
+              {/* Row 1: path, type, required, delete */}
+              <div className="flex items-center gap-1.5">
+                <input value={rule.path} onChange={e => updateRule(rule.id, { path: e.target.value })} placeholder="e.g. data.users[0].name"
+                  className="flex-1 bg-gray-800/50 border border-gray-800 rounded px-2 py-1.5 text-[11px] font-mono text-gray-200 focus:outline-none focus:border-brand-500/50" />
+                <select value={rule.type} onChange={e => updateRule(rule.id, { type: e.target.value as SchemaRule['type'] })}
+                  className="bg-gray-800 border border-gray-700 rounded px-1.5 py-1.5 text-[11px] text-gray-300 focus:outline-none">
+                  <option value="any">any</option><option value="string">string</option><option value="number">number</option>
+                  <option value="boolean">bool</option><option value="array">array</option><option value="object">object</option>
+                </select>
+                <label className="flex items-center gap-1 text-[10px] text-gray-400 cursor-pointer flex-shrink-0">
+                  <input type="checkbox" checked={rule.required} onChange={e => updateRule(rule.id, { required: e.target.checked })}
+                    className="w-3.5 h-3.5 rounded bg-gray-800 border-gray-700 text-brand-500" /> Required
+                </label>
+                <button onClick={() => removeRule(rule.id)} className="p-1 text-gray-600 hover:text-red-400 rounded hover:bg-red-500/10 transition-colors">
+                  <X size={12} />
+                </button>
+              </div>
+
+              {/* Row 2: condition */}
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={rule.condition || ''}
+                  onChange={e => updateRule(rule.id, { condition: (e.target.value || undefined) as SchemaRule['condition'], conditionValue: rule.conditionValue || '' })}
+                  className="bg-gray-800 border border-gray-700 rounded px-1.5 py-1 text-[10px] text-gray-400 focus:outline-none"
+                >
+                  <option value="">No condition</option>
+                  <option value="equals">equals</option>
+                  <option value="contains">contains</option>
+                  <option value="gt">greater than</option>
+                  <option value="lt">less than</option>
+                  <option value="minLength">min length</option>
+                  <option value="maxLength">max length</option>
+                  <option value="regex">matches regex</option>
+                </select>
+                {rule.condition && (
+                  <input
+                    value={rule.conditionValue || ''}
+                    onChange={e => updateRule(rule.id, { conditionValue: e.target.value })}
+                    placeholder={
+                      rule.condition === 'equals' ? 'Expected value' :
+                      rule.condition === 'contains' ? 'Must contain...' :
+                      rule.condition === 'gt' ? 'Min value (exclusive)' :
+                      rule.condition === 'lt' ? 'Max value (exclusive)' :
+                      rule.condition === 'minLength' ? 'Minimum length' :
+                      rule.condition === 'maxLength' ? 'Maximum length' :
+                      rule.condition === 'regex' ? 'Regex pattern' : 'Value'
+                    }
+                    className="flex-1 bg-gray-800/50 border border-gray-800 rounded px-2 py-1 text-[10px] font-mono text-gray-300 focus:outline-none focus:border-brand-500/50"
+                  />
+                )}
+                {!rule.condition && (
+                  <span className="text-[9px] text-gray-600 italic">Add a condition to validate the value, not just the type</span>
+                )}
+              </div>
             </div>
           ))}
         </div>
