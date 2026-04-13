@@ -341,12 +341,14 @@ function HistoryPanel({ history }: { history: import('../types').HistoryEntry[] 
     h.request.method.toLowerCase().includes(search.toLowerCase())
   );
 
-  const grouped = filtered.reduce<Record<string, typeof history>>((acc, entry) => {
-    const date = new Date(entry.timestamp);
-    const key = date.toLocaleDateString();
-    (acc[key] = acc[key] || []).push(entry);
-    return acc;
-  }, {});
+  const groupedMap = new Map<string, typeof history>();
+  filtered.forEach(entry => {
+    const key = new Date(entry.timestamp).toLocaleDateString();
+    const group = groupedMap.get(key) || [];
+    group.push(entry);
+    groupedMap.set(key, group);
+  });
+  const grouped = Object.fromEntries(groupedMap);
 
   return (
     <div className="p-2">

@@ -1,5 +1,10 @@
 import type { TestResult, ScriptConsoleEntry } from '../types';
 
+const BLOCKED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+function isSafeKey(key: string): boolean {
+  return typeof key === 'string' && !BLOCKED_KEYS.has(key);
+}
+
 interface PreRequestContext {
   url: string;
   method: string;
@@ -33,10 +38,10 @@ export function runPreRequestScript(script: string, ctx: PreRequestContext): Pre
   let body = ctx.body;
 
   const fl = {
-    setHeader: (key: string, value: string) => { headers[key] = value; },
-    removeHeader: (key: string) => { delete headers[key]; },
-    setVariable: (key: string, value: string) => { variables[key] = value; },
-    getVariable: (key: string) => variables[key] ?? '',
+    setHeader: (key: string, value: string) => { if (isSafeKey(key)) headers[key] = value; },
+    removeHeader: (key: string) => { if (isSafeKey(key)) delete headers[key]; },
+    setVariable: (key: string, value: string) => { if (isSafeKey(key)) variables[key] = value; },
+    getVariable: (key: string) => isSafeKey(key) ? variables[key] ?? '' : '',
     setBody: (content: string) => { body = content; },
     timestamp: () => Date.now(),
     isoTimestamp: () => new Date().toISOString(),
@@ -99,8 +104,8 @@ export function runTestScript(script: string, ctx: TestContext): TestRunResult {
       catch (err) { tests.push({ name, passed: false, error: err instanceof Error ? err.message : String(err) }); }
     },
     expect: createExpect,
-    setVariable: (key: string, value: string) => { variables[key] = value; },
-    getVariable: (key: string) => variables[key] ?? '',
+    setVariable: (key: string, value: string) => { if (isSafeKey(key)) variables[key] = value; },
+    getVariable: (key: string) => isSafeKey(key) ? variables[key] ?? '' : '',
   };
 
   const mockConsole = {
