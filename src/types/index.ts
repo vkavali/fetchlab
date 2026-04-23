@@ -63,9 +63,11 @@ export interface RequestConfig {
   params: KeyValue[];
   headers: KeyValue[];
   body: {
-    type: 'none' | 'json' | 'form-data' | 'x-www-form-urlencoded' | 'raw' | 'binary';
+    type: 'none' | 'json' | 'form-data' | 'x-www-form-urlencoded' | 'raw' | 'binary' | 'graphql';
     content: string;
     formData?: KeyValue[];
+    graphqlVariables?: string;
+    graphqlOperationName?: string;
   };
   auth: AuthConfig;
   preRequestScript?: string;

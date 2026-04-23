@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
 import Integrations from './Integrations';
+import WebSocketTester from './WebSocketTester';
+import SSEViewer from './SSEViewer';
+import FlowBuilder from './FlowBuilder';
 
 export default function Header() {
   const { state, dispatch } = useApp();
@@ -20,6 +23,9 @@ export default function Header() {
   const [showHelp, setShowHelp] = useState(false);
   const [showHealth, setShowHealth] = useState(false);
   const [showIntegrations, setShowIntegrations] = useState(false);
+  const [showWebSocket, setShowWebSocket] = useState(false);
+  const [showSSE, setShowSSE] = useState(false);
+  const [showFlow, setShowFlow] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -54,6 +60,36 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* WebSocket Tester */}
+          <button
+            onClick={() => setShowWebSocket(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors text-xs"
+            title="WebSocket Tester"
+          >
+            <Wifi size={14} />
+            <span className="hidden sm:inline">WS</span>
+          </button>
+
+          {/* SSE Viewer */}
+          <button
+            onClick={() => setShowSSE(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-orange-400 hover:bg-orange-500/10 transition-colors text-xs"
+            title="SSE / Event Stream Viewer"
+          >
+            <Radio size={14} />
+            <span className="hidden sm:inline">SSE</span>
+          </button>
+
+          {/* Flow Builder */}
+          <button
+            onClick={() => setShowFlow(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors text-xs"
+            title="Visual API Flow Builder"
+          >
+            <GitBranch size={14} />
+            <span className="hidden sm:inline">Flow</span>
+          </button>
+
           {/* Health Dashboard */}
           <button
             onClick={() => setShowHealth(true)}
@@ -130,6 +166,21 @@ export default function Header() {
           onClose={() => setShowHelp(false)}
           onShowGuide={() => { setShowHelp(false); setShowGuide(true); }}
         />
+      )}
+
+      {/* WebSocket Tester */}
+      {showWebSocket && (
+        <WebSocketTester onClose={() => setShowWebSocket(false)} />
+      )}
+
+      {/* SSE Viewer */}
+      {showSSE && (
+        <SSEViewer onClose={() => setShowSSE(false)} />
+      )}
+
+      {/* Flow Builder */}
+      {showFlow && (
+        <FlowBuilder onClose={() => setShowFlow(false)} collections={state.collections} />
       )}
     </>
   );

@@ -652,7 +652,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     let body: string | FormData | undefined;
     if (!['GET', 'HEAD'].includes(freshRequest.method)) {
-      if (freshRequest.body.type === 'json') {
+      if (freshRequest.body.type === 'graphql') {
+        headers['Content-Type'] = 'application/json';
+        const gqlPayload: Record<string, unknown> = { query: resolveVars(freshRequest.body.content) };
+        if (freshRequest.body.graphqlVariables) {
+          try { gqlPayload.variables = JSON.parse(resolveVars(freshRequest.body.graphqlVariables)); }
+          catch { /* invalid JSON variables, skip */ }
+        }
+        if (freshRequest.body.graphqlOperationName) {
+          gqlPayload.operationName = freshRequest.body.graphqlOperationName;
+        }
+        body = JSON.stringify(gqlPayload);
+      } else if (freshRequest.body.type === 'json') {
         headers['Content-Type'] = headers['Content-Type'] || 'application/json';
         body = resolveVars(freshRequest.body.content);
       } else if (freshRequest.body.type === 'raw') {

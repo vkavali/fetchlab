@@ -6,10 +6,11 @@ import ResponseDiff from './ResponseDiff';
 import JsonExplorer from './JsonExplorer';
 import SchemaValidator from './SchemaValidator';
 import ErrorDiagnosis from './ErrorDiagnosis';
+import ResponseTimeline from './ResponseTimeline';
 import {
   FileJson, Table, Code, Copy, Check, Download,
   Clock, HardDrive, ArrowDown, ChevronDown, FlaskConical, Camera, GitCompare,
-  TreePine, Shield, Stethoscope
+  TreePine, Shield, Stethoscope, Timer
 } from 'lucide-react';
 
 export default function ResponseViewer() {
@@ -18,7 +19,7 @@ export default function ResponseViewer() {
   const response = activeTab ? state.responses[activeTab.requestId] : null;
   const request = activeTab ? state.requests[activeTab.requestId] : null;
   const isLoading = activeTab ? state.loading[activeTab.requestId] : false;
-  const [activeView, setActiveView] = useState<'body' | 'headers' | 'code' | 'tests' | 'explorer' | 'schema' | 'diagnosis'>('body');
+  const [activeView, setActiveView] = useState<'body' | 'headers' | 'code' | 'tests' | 'explorer' | 'schema' | 'diagnosis' | 'timeline'>('body');
   const [bodyFormat, setBodyFormat] = useState<'pretty' | 'raw' | 'preview'>('pretty');
   const [codeLang, setCodeLang] = useState<'curl' | 'javascript' | 'python' | 'go'>('curl');
   const [copied, setCopied] = useState(false);
@@ -167,6 +168,7 @@ export default function ResponseViewer() {
           { id: 'explorer' as const, label: 'Explorer', icon: TreePine },
           { id: 'schema' as const, label: 'Schema', icon: Shield },
           { id: 'code' as const, label: 'Code', icon: Code },
+          { id: 'timeline' as const, label: 'Timeline', icon: Timer },
           ...(hasTests ? [{ id: 'tests' as const, label: `Tests (${testResults.filter(t=>t.passed).length}/${testResults.length})`, icon: FlaskConical }] : []),
           ...((response && (response.status === 0 || response.status >= 400 || response.time > 3000 || response.size > 1024 * 1024)) ? [{ id: 'diagnosis' as const, label: '🩺 Fix', icon: Stethoscope }] : []),
         ].map(tab => (
@@ -321,6 +323,10 @@ export default function ResponseViewer() {
 
         {activeView === 'tests' && (
           <TestResults tests={testResults} consoleLogs={consoleLogs} />
+        )}
+
+        {activeView === 'timeline' && response && (
+          <ResponseTimeline response={response} />
         )}
 
         {activeView === 'diagnosis' && response && request && (

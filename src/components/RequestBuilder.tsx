@@ -13,7 +13,7 @@ import { parseCurl } from '../utils/curlParser';
 import {
   Send, Loader2, Plus, Trash2, Save, ChevronDown,
   FileJson, AlignLeft, FormInput, Code, Share2, X, Zap, GitCompare,
-  FolderPlus, Check
+  FolderPlus, Check, Braces, Play, RefreshCw
 } from 'lucide-react';
 
 export default function RequestBuilder() {
@@ -410,6 +410,7 @@ function BodyEditor({
           { type: 'form-data' as const, label: 'Form Data', icon: FormInput },
           { type: 'x-www-form-urlencoded' as const, label: 'URL Encoded', icon: FormInput },
           { type: 'raw' as const, label: 'Raw', icon: Code },
+          { type: 'graphql' as const, label: 'GraphQL', icon: Braces },
         ].map(opt => (
           <button
             key={opt.type}
@@ -469,6 +470,138 @@ function BodyEditor({
           items={body.formData || []}
           onChange={formData => updateBody({ formData })}
         />
+      )}
+
+      {body.type === 'graphql' && (
+        <GraphQLEditor body={body} onChange={updateBody} bodyHeight={bodyHeight} onResize={handleBodyResize} />
+      )}
+    </div>
+  );
+}
+
+function GraphQLEditor({
+  body,
+  onChange,
+  bodyHeight,
+  onResize,
+}: {
+  body: import('../types').RequestConfig['body'];
+  onChange: (updates: Partial<import('../types').RequestConfig['body']>) => void;
+  bodyHeight: number;
+  onResize: (delta: number) => void;
+}) {
+  const [activeGqlTab, setActiveGqlTab] = useState<'query' | 'variables'>('query');
+  const [schemaInfo, setSchemaInfo] = useState<string | null>(null);
+  const [fetchingSchema, setFetchingSchema] = useState(false);
+
+  const introspect = async () => {
+    const urlInput = document.querySelector<HTMLInputElement>('input[placeholder*="URL"]');
+    const endpoint = urlInput?.value;
+    if (!endpoint) return;
+    setSchemaInfo(null);
+    setFetchingSchema(true);
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: `{ __schema { types { name kind description fields { name type { name kind ofType { name kind } } } } } }`,
+        }),
+      });
+      const data = await res.json();
+      const types = data?.data?.__schema?.types
+        ?.filter((t: { name: string }) => !t.name.startsWith('__'))
+        ?.map((t: { name: string; kind: string; fields?: { name: string }[] }) =>
+          `${t.kind} ${t.name}${t.fields ? ` { ${t.fields.map((f: { name: string }) => f.name).join(', ')} }` : ''}`
+        )
+        ?.join('\n');
+      setSchemaInfo(types || 'No types found');
+    } catch (err) {
+      setSchemaInfo(`Introspection failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setFetchingSchema(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1 bg-gray-800/50 rounded-lg p-0.5">
+          <button
+            onClick={() => setActiveGqlTab('query')}
+            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+              activeGqlTab === 'query' ? 'bg-purple-500/20 text-purple-400' : 'text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            Query
+          </button>
+          <button
+            onClick={() => setActiveGqlTab('variables')}
+            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+              activeGqlTab === 'variables' ? 'bg-purple-500/20 text-purple-400' : 'text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            Variables
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={introspect}
+            disabled={!!fetchingSchema}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 disabled:opacity-50 transition-colors"
+          >
+            {fetchingSchema ? <RefreshCw size={10} className="animate-spin" /> : <Play size={10} />}
+            Introspect Schema
+          </button>
+        </div>
+      </div>
+
+      {activeGqlTab === 'query' && (
+        <div>
+          <textarea
+            value={body.content}
+            onChange={e => onChange({ content: e.target.value })}
+            placeholder={'query {\n  users {\n    id\n    name\n    email\n  }\n}'}
+            className="w-full bg-gray-800/30 border border-gray-800 rounded-lg px-4 py-3 text-sm text-purple-300 font-mono resize-none focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 leading-relaxed"
+            style={{ height: bodyHeight }}
+            spellCheck={false}
+          />
+          <ResizeHandle direction="vertical" onResize={onResize} />
+        </div>
+      )}
+
+      {activeGqlTab === 'variables' && (
+        <div>
+          <textarea
+            value={body.graphqlVariables || ''}
+            onChange={e => onChange({ graphqlVariables: e.target.value })}
+            placeholder={'{\n  "id": 1,\n  "limit": 10\n}'}
+            className="w-full bg-gray-800/30 border border-gray-800 rounded-lg px-4 py-3 text-sm text-gray-200 font-mono resize-none focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 leading-relaxed"
+            style={{ height: bodyHeight * 0.6 }}
+            spellCheck={false}
+          />
+        </div>
+      )}
+
+      <div>
+        <input
+          value={body.graphqlOperationName || ''}
+          onChange={e => onChange({ graphqlOperationName: e.target.value })}
+          placeholder="Operation name (optional)"
+          className="w-full bg-gray-800/30 border border-gray-800 rounded px-3 py-1.5 text-xs font-mono text-gray-200 focus:outline-none focus:border-purple-500/50"
+        />
+      </div>
+
+      {schemaInfo && typeof schemaInfo === 'string' && (
+        <div className="mt-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider">Schema Types</span>
+            <button onClick={() => setSchemaInfo(null)} className="text-gray-600 hover:text-gray-400 text-xs">dismiss</button>
+          </div>
+          <pre className="p-3 rounded-lg bg-gray-800/50 border border-purple-500/20 text-[11px] font-mono text-gray-400 max-h-48 overflow-auto leading-relaxed">
+            {schemaInfo}
+          </pre>
+        </div>
       )}
     </div>
   );
