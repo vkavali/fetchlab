@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { useAuth } from '../auth/AuthContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, LogOut, User as UserIcon, Users } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -9,6 +9,7 @@ import Integrations from './Integrations';
 import WebSocketTester from './WebSocketTester';
 import SSEViewer from './SSEViewer';
 import FlowBuilder from './FlowBuilder';
+import AIRequestBuilder from './AIRequestBuilder';
 
 export default function Header() {
   const { state, dispatch } = useApp();
@@ -31,6 +32,7 @@ export default function Header() {
   const [showWebSocket, setShowWebSocket] = useState(false);
   const [showSSE, setShowSSE] = useState(false);
   const [showFlow, setShowFlow] = useState(false);
+  const [showAi, setShowAi] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -65,6 +67,16 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* AI Request Builder — prominent gradient button */}
+          <button
+            onClick={() => setShowAi(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/15 to-pink-500/15 ring-1 ring-purple-500/30 text-purple-300 hover:text-white hover:from-purple-500 hover:to-pink-500 transition-all text-xs font-semibold"
+            title="AI Request Builder — describe in natural language or paste cURL"
+          >
+            <Sparkles size={14} />
+            <span className="hidden sm:inline">AI Builder</span>
+          </button>
+
           {/* WebSocket Tester */}
           <button
             onClick={() => setShowWebSocket(true)}
@@ -242,6 +254,11 @@ export default function Header() {
       {/* Flow Builder */}
       {showFlow && (
         <FlowBuilder onClose={() => setShowFlow(false)} collections={state.collections} />
+      )}
+
+      {/* AI Request Builder */}
+      {showAi && (
+        <AIRequestBuilder onClose={() => setShowAi(false)} />
       )}
     </>
   );

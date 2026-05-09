@@ -1,9 +1,10 @@
 import type { ResponseData, RequestConfig } from '../types';
 import {
   AlertTriangle, ShieldAlert, Clock, Lock, Server,
-  FileWarning, Wifi, Ban, ArrowRight, Copy, Check
+  FileWarning, Wifi, Ban, ArrowRight, Copy, Check, Sparkles, Loader2
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { aiPost, getAiStatus, type AiDiagnosis } from '../utils/aiClient';
 
 interface Diagnosis {
   title: string;
@@ -202,9 +203,61 @@ interface Props {
 
 export default function ErrorDiagnosis({ request, response }: Props) {
   const [copiedIdx, setCopiedIdx] = useState<string | null>(null);
+  const [aiResult, setAiResult] = useState<AiDiagnosis | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiEnabled, setAiEnabled] = useState<boolean | null>(null);
   const diagnoses = diagnose(request, response);
 
-  if (diagnoses.length === 0) return null;
+  useEffect(() => {
+    getAiStatus().then(s => setAiEnabled(s.enabled));
+  }, []);
+
+  // Reset AI result when the response changes so we don't show stale advice
+  useEffect(() => {
+    setAiResult(null);
+    setAiError(null);
+  }, [response.status, response.body, request.url]);
+
+  const requestAiDiagnosis = async () => {
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const requestHeaders: Record<string, string> = {};
+      request.headers.filter(h => h.enabled && h.key).forEach(h => {
+        // Redact obvious secrets before sending to the AI endpoint
+        const isSensitive = /authorization|api[-_]?key|token|cookie|secret/i.test(h.key);
+        requestHeaders[h.key] = isSensitive ? '<redacted>' : h.value;
+      });
+      const result = await aiPost<AiDiagnosis>('/api/ai/diagnose', {
+        method: request.method,
+        url: request.url,
+        status: response.status,
+        statusText: response.statusText,
+        time: response.time,
+        authType: request.auth?.type || 'none',
+        requestHeaders,
+        requestBody: request.body?.content || '',
+        responseHeaders: response.headers,
+        responseBody: response.body,
+      });
+      setAiResult(result);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : 'AI diagnosis failed');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  if (diagnoses.length === 0 && !aiResult && !aiLoading) {
+    // Still show the AI button so users can ask for help on edge cases.
+    return (
+      <div className="p-3">
+        <AiDiagnosisButton onClick={requestAiDiagnosis} loading={false} disabled={aiEnabled === false} />
+        {aiEnabled === false && <AiDisabledNotice />}
+      </div>
+    );
+  }
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -214,6 +267,28 @@ export default function ErrorDiagnosis({ request, response }: Props) {
 
   return (
     <div className="space-y-3 p-3 animate-slide-in">
+      {/* AI diagnosis controls */}
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Diagnosis</p>
+        <AiDiagnosisButton
+          onClick={requestAiDiagnosis}
+          loading={aiLoading}
+          disabled={aiEnabled === false}
+        />
+      </div>
+
+      {aiEnabled === false && <AiDisabledNotice />}
+      {aiError && (
+        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-300">
+          <AlertTriangle size={12} className="flex-shrink-0 mt-0.5" />
+          <span>{aiError}</span>
+        </div>
+      )}
+
+      {aiResult && (
+        <AiDiagnosisCard result={aiResult} onCopy={handleCopy} copiedIdx={copiedIdx} />
+      )}
+
       {diagnoses.map((d, i) => (
         <div key={i} className={`rounded-xl border p-4 space-y-3 ${
           d.severity === 'critical' ? 'bg-red-500/5 border-red-500/20' :
@@ -256,6 +331,97 @@ export default function ErrorDiagnosis({ request, response }: Props) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function AiDiagnosisButton({ onClick, loading, disabled }: { onClick: () => void; loading: boolean; disabled: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading || disabled}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-purple-300 bg-gradient-to-r from-purple-500/15 to-pink-500/15 ring-1 ring-purple-500/30 hover:text-white hover:from-purple-500 hover:to-pink-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+      title={disabled ? 'Set ANTHROPIC_API_KEY on the server to enable' : 'AI diagnosis'}
+    >
+      {loading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+      {loading ? 'Analyzing…' : 'Ask AI to diagnose'}
+    </button>
+  );
+}
+
+function AiDisabledNotice() {
+  return (
+    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300">
+      <AlertTriangle size={12} className="flex-shrink-0 mt-0.5" />
+      <span>
+        AI diagnosis requires <code className="px-1 py-0.5 rounded bg-amber-500/10 font-mono">ANTHROPIC_API_KEY</code> on the server.
+      </span>
+    </div>
+  );
+}
+
+function AiDiagnosisCard({
+  result,
+  onCopy,
+  copiedIdx,
+}: {
+  result: AiDiagnosis;
+  onCopy: (text: string, id: string) => void;
+  copiedIdx: string | null;
+}) {
+  const sevClass =
+    result.severity === 'critical' ? 'bg-red-500/10 text-red-400 ring-red-500/20'
+    : result.severity === 'warning' ? 'bg-amber-500/10 text-amber-400 ring-amber-500/20'
+    : 'bg-blue-500/10 text-blue-400 ring-blue-500/20';
+  return (
+    <div className={`rounded-xl border p-4 space-y-3 bg-purple-500/5 border-purple-500/20`}>
+      <div className="flex items-start gap-2.5">
+        <Sparkles size={18} className="text-purple-400 mt-0.5 flex-shrink-0" />
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-gray-100">AI diagnosis</p>
+            <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider ring-1 ${sevClass}`}>
+              {result.severity}
+            </span>
+          </div>
+          <p className="text-xs text-gray-300 mt-1.5 leading-relaxed">{result.summary}</p>
+          {result.likelyCause && (
+            <p className="text-[11px] text-gray-500 mt-1">
+              <span className="text-gray-400 font-semibold">Likely cause: </span>{result.likelyCause}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {result.fixes && result.fixes.length > 0 && (
+        <div className="space-y-2 ml-7">
+          <p className="text-[10px] text-purple-400 uppercase tracking-wider font-semibold">Suggested fixes</p>
+          {result.fixes.map((fix, j) => (
+            <div key={j} className="space-y-1">
+              <div className="flex items-start gap-2">
+                <ArrowRight size={10} className="text-purple-500/60 mt-1 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-[11px] text-gray-200 font-medium">{fix.title}</p>
+                  {fix.detail && <p className="text-[11px] text-gray-400 mt-0.5">{fix.detail}</p>}
+                </div>
+              </div>
+              {fix.code && (
+                <div className="ml-4 flex items-start gap-1">
+                  <pre className="flex-1 p-2 rounded bg-gray-800/50 border border-gray-800 text-[10px] font-mono text-gray-300 whitespace-pre-wrap break-all">
+                    {fix.code}
+                  </pre>
+                  <button
+                    onClick={() => onCopy(fix.code!, `ai-${j}`)}
+                    className={`p-1 rounded flex-shrink-0 ${copiedIdx === `ai-${j}` ? 'text-green-400' : 'text-gray-600 hover:text-gray-300'}`}
+                  >
+                    {copiedIdx === `ai-${j}` ? <Check size={10} /> : <Copy size={10} />}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

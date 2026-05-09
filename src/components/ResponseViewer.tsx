@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../store/AppContext';
 import { syntaxHighlightJson, formatBytes, formatTime, getStatusClass, generateCodeSnippet, generateId } from '../utils/helpers';
+import { aiPost } from '../utils/aiClient';
 import TestResults from './TestResults';
 import ResponseDiff from './ResponseDiff';
 import JsonExplorer from './JsonExplorer';
@@ -10,7 +11,7 @@ import ResponseTimeline from './ResponseTimeline';
 import {
   FileJson, Table, Code, Copy, Check, Download,
   Clock, HardDrive, ArrowDown, ChevronDown, FlaskConical, Camera, GitCompare,
-  TreePine, Shield, Stethoscope, Timer
+  TreePine, Shield, Stethoscope, Timer, Sparkles, Loader2
 } from 'lucide-react';
 
 export default function ResponseViewer() {
@@ -25,6 +26,8 @@ export default function ResponseViewer() {
   const [copied, setCopied] = useState(false);
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
+  const [aiTestStatus, setAiTestStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [aiTestError, setAiTestError] = useState<string | null>(null);
 
   const testResults = activeTab ? state.testResults[activeTab.requestId] || [] : [];
   const consoleLogs = activeTab ? state.scriptConsole[activeTab.requestId] || [] : [];
@@ -70,6 +73,34 @@ export default function ResponseViewer() {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleGenerateTests = async () => {
+    if (!request || !response) return;
+    setAiTestStatus('loading');
+    setAiTestError(null);
+    try {
+      const result = await aiPost<{ script: string }>('/api/ai/generate-tests', {
+        method: request.method,
+        url: request.url,
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+        time: response.time,
+        body: response.body,
+      });
+      const existing = request.testScript?.trim() || '';
+      const merged = existing
+        ? `${existing}\n\n// === AI generated tests ===\n${result.script}`
+        : result.script;
+      dispatch({ type: 'UPDATE_REQUEST', requestId: request.id, updates: { testScript: merged } });
+      setAiTestStatus('done');
+      setTimeout(() => setAiTestStatus('idle'), 2500);
+    } catch (err) {
+      setAiTestStatus('error');
+      setAiTestError(err instanceof Error ? err.message : 'AI test generation failed');
+      setTimeout(() => { setAiTestStatus('idle'); setAiTestError(null); }, 5000);
+    }
   };
 
   const headerEntries = Object.entries(response.headers);
@@ -156,6 +187,23 @@ export default function ResponseViewer() {
           >
             <GitCompare size={12} />
             Diff
+          </button>
+        )}
+        {!isError && (
+          <button
+            onClick={handleGenerateTests}
+            disabled={aiTestStatus === 'loading'}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
+              aiTestStatus === 'done'
+                ? 'text-green-400 bg-green-500/10'
+                : aiTestStatus === 'error'
+                ? 'text-red-400 bg-red-500/10'
+                : 'text-purple-300 bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 ring-1 ring-purple-500/20'
+            }`}
+            title={aiTestError || 'Generate test assertions with AI'}
+          >
+            {aiTestStatus === 'loading' ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+            {aiTestStatus === 'loading' ? 'Generating…' : aiTestStatus === 'done' ? 'Tests added' : aiTestStatus === 'error' ? 'Failed' : 'Generate Tests'}
           </button>
         )}
       </div>
