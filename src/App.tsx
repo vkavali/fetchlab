@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { AppProvider } from './store/AppContext';
+import { AuthProvider, useAuth } from './auth/AuthContext';
+import LoginPage from './auth/LoginPage';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import TabBar from './components/TabBar';
@@ -175,10 +177,33 @@ function AppLayout() {
   );
 }
 
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { user, loading, serverEnabled } = useAuth();
+  const requireAuth = !import.meta.env.VITE_AUTH_DISABLED;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-950 text-gray-400 text-sm">
+        Loading…
+      </div>
+    );
+  }
+
+  // If server isn't reachable (pure static / dev with no backend), allow legacy localStorage mode.
+  if (!serverEnabled) return <>{children}</>;
+  if (!requireAuth) return <>{children}</>;
+  if (!user) return <LoginPage />;
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
-    <AppProvider>
-      <AppLayout />
-    </AppProvider>
+    <AuthProvider>
+      <AuthGate>
+        <AppProvider>
+          <AppLayout />
+        </AppProvider>
+      </AuthGate>
+    </AuthProvider>
   );
 }

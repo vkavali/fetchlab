@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch } from 'lucide-react';
+import { useAuth } from '../auth/AuthContext';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, LogOut, User as UserIcon, Users } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -11,7 +12,11 @@ import FlowBuilder from './FlowBuilder';
 
 export default function Header() {
   const { state, dispatch } = useApp();
+  const { user, workspaces, activeWorkspaceId, setActiveWorkspaceId, logout, serverEnabled } = useAuth();
+  const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
   const activeEnv = state.environments.find(e => e.id === state.activeEnvironmentId);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [wsMenuOpen, setWsMenuOpen] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try { return (localStorage.getItem('fetchlab_theme') as 'dark' | 'light') || 'dark'; }
     catch { return 'dark'; }
@@ -142,6 +147,62 @@ export default function Header() {
             {activeEnv ? activeEnv.name : 'No Environment'}
             {activeEnv && <div className="w-1.5 h-1.5 rounded-full bg-green-400" />}
           </button>
+
+          {/* Workspace switcher (when authed) */}
+          {serverEnabled && user && workspaces.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setWsMenuOpen(o => !o)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
+                title="Switch workspace"
+              >
+                <Users size={12} />
+                {activeWs ? activeWs.name : 'Workspace'}
+              </button>
+              {wsMenuOpen && (
+                <div className="absolute right-0 mt-1 w-56 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-50 py-1">
+                  {workspaces.map(w => (
+                    <button
+                      key={w.id}
+                      onClick={() => { setActiveWorkspaceId(w.id); setWsMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-800 ${w.id === activeWorkspaceId ? 'text-purple-400' : 'text-gray-300'}`}
+                    >
+                      {w.name}
+                      <span className="ml-2 text-[9px] text-gray-600 uppercase">{w.member_role}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* User menu (when authed) */}
+          {serverEnabled && user && (
+            <div className="relative">
+              <button
+                onClick={() => setUserMenuOpen(o => !o)}
+                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs bg-gray-800/50 text-gray-300 hover:bg-gray-800"
+                title={user.email}
+              >
+                <UserIcon size={12} />
+                <span className="hidden md:inline max-w-[120px] truncate">{user.name || user.email}</span>
+              </button>
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-1 w-56 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-50 py-1">
+                  <div className="px-3 py-2 border-b border-gray-800">
+                    <div className="text-xs font-semibold text-gray-200 truncate">{user.name || user.email}</div>
+                    <div className="text-[10px] text-gray-500 truncate">{user.email} · {user.role}</div>
+                  </div>
+                  <button
+                    onClick={() => { setUserMenuOpen(false); logout(); }}
+                    className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                  >
+                    <LogOut size={12} /> Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 

@@ -10,6 +10,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
-COPY server.js .
+COPY server.js ./
+COPY server ./server
 EXPOSE 3000
+ENV NODE_ENV=production
 CMD ["node", "server.js"]

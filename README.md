@@ -48,6 +48,41 @@ docker run -p 3000:3000 fetchlab
 3. Select the `fetchlab` repo → Railway auto-detects the Dockerfile
 4. Done — your team gets a public URL
 
+## 🏢 Enterprise Mode
+
+FetchLab can run in two modes:
+
+- **Local mode** (default): no auth, all state in `localStorage`. Just `npm run dev` and go.
+- **Server mode**: PostgreSQL-backed multi-user with auth, team workspaces, encrypted credentials, audit log, rate limiting, and OIDC SSO.
+
+### Environment variables
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | Postgres connection string. When set, the server uses Postgres. When unset, falls back to in-memory (or `FETCHLAB_DATA_FILE` for JSON file persistence). |
+| `FETCHLAB_DATA_FILE` | Optional path to persist auth/workspace data as JSON when no DB is configured. |
+| `JWT_SECRET` | Required in production. Used to sign session tokens. |
+| `APP_ENCRYPTION_KEY` | Required in production. 32 bytes (hex or base64) used for AES-256-GCM credential encryption. |
+| `ANTHROPIC_API_KEY` | Optional. Enables `/api/ai/*` endpoints (diagnose, generate-tests). |
+| `ANTHROPIC_MODEL` | Optional. Defaults to `claude-haiku-4-5-20251001`. |
+| `AUTH_DISABLED=1` | Skips auth checks server-side (single-user / dev only). |
+| `RATE_LIMIT_DISABLED=1` | Disables rate limiting (tests only). |
+
+### Auth, workspaces, and SSO
+
+- `POST /api/auth/register` — first user becomes admin. 8+ char password.
+- `POST /api/auth/login` / `POST /api/auth/logout` / `GET /api/auth/me`
+- `GET /api/workspaces`, `POST /api/workspaces`, members at `/api/workspaces/:id/members` (admin role to invite)
+- OIDC SSO: admin configures providers via `POST /api/auth/sso/admin`; users log in at `/api/auth/sso/start/:configId`.
+
+### Tests
+
+```bash
+npm test
+```
+
+Runs vitest across the encryption layer, JWT auth flow, script runner (`fl.*`), curl parser, and AI endpoints (Anthropic call mocked).
+
 ---
 
 ## ✨ Features
