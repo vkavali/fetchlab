@@ -7,7 +7,7 @@ import type { Collection, Environment, KeyValue, RequestConfig } from '../types'
 import {
   FolderOpen, History, Globe, Plus, Trash2, ChevronRight, ChevronDown,
   Clock, Search, Check, X, Key, Download, Upload, Terminal, Copy, Play, Puzzle, FileText, Share2,
-  Pencil
+  Pencil, Sparkles
 } from 'lucide-react';
 import TokenManager from './TokenManager';
 import ExportDialog from './ExportDialog';
@@ -15,6 +15,7 @@ import CollectionRunner from './CollectionRunner';
 import SnippetManager from './SnippetManager';
 import DocGenerator from './DocGenerator';
 import ShareDialog from './ShareDialog';
+import OpenApiGenerator from './OpenApiGenerator';
 
 export default function Sidebar() {
   const { state, dispatch } = useApp();
@@ -83,6 +84,7 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
   const [runnerCollection, setRunnerCollection] = useState<Collection | null>(null);
   const [docsCollection, setDocsCollection] = useState<Collection | null>(null);
   const [shareCollection, setShareCollection] = useState<Collection | null>(null);
+  const [specCollection, setSpecCollection] = useState<Collection | null>(null);
   const [renamingColId, setRenamingColId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
 
@@ -224,7 +226,7 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
           {expanded[col.id] && (
             <div className="ml-4 border-l border-gray-800 pl-2 animate-slide-in">
               {/* Collection actions */}
-              <div className="grid grid-cols-4 gap-1 mb-1 px-1">
+              <div className="grid grid-cols-5 gap-1 mb-1 px-1">
                 <button
                   onClick={() => setRunnerCollection(col)}
                   className="flex flex-col items-center gap-0.5 px-1 py-1.5 rounded text-[9px] font-medium text-gray-500 hover:text-green-400 hover:bg-green-500/10 transition-colors"
@@ -245,6 +247,14 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
                 >
                   <FileText size={12} />
                   Docs
+                </button>
+                <button
+                  onClick={() => setSpecCollection(col)}
+                  className="flex flex-col items-center gap-0.5 px-1 py-1.5 rounded text-[9px] font-medium text-gray-500 hover:text-purple-400 hover:bg-purple-500/10 transition-colors"
+                  title="Generate OpenAPI 3.0 spec with AI"
+                >
+                  <Sparkles size={12} />
+                  API Spec
                 </button>
                 <button
                   onClick={() => setShareCollection(col)}
@@ -327,6 +337,11 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
       {/* Share dialog */}
       {shareCollection && (
         <ShareDialog collection={shareCollection} onClose={() => setShareCollection(null)} />
+      )}
+
+      {/* OpenAPI spec generator */}
+      {specCollection && (
+        <OpenApiGenerator collection={specCollection} onClose={() => setSpecCollection(null)} />
       )}
     </div>
   );

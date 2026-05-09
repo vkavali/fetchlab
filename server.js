@@ -1,6 +1,7 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { registerAiRoutes } from './ai-routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -8,11 +9,14 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Serve static files from dist
 app.use(express.static(join(__dirname, 'dist')));
+
+// AI endpoints (powered by Anthropic Claude)
+registerAiRoutes(app);
 
 // ==========================================
 // SLACK INTEGRATION — /fetchlab slash command
@@ -265,4 +269,5 @@ app.listen(PORT, () => {
   console.log(`  Slack:  POST http://localhost:${PORT}/api/slack`);
   console.log(`  Teams:  POST http://localhost:${PORT}/api/teams/test`);
   console.log(`  Widget: GET  http://localhost:${PORT}/api/widget?method=GET&url=...`);
+  console.log(`  AI:     ${process.env.ANTHROPIC_API_KEY ? 'enabled (claude-sonnet-4-6)' : 'DISABLED — set ANTHROPIC_API_KEY to enable'}`);
 });
