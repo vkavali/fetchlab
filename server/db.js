@@ -28,6 +28,7 @@ function freshMemStore() {
     agent_issues: [],
     agent_actions: [],
     agent_config: [],
+    llm_configs: [],
   };
 }
 
@@ -212,6 +213,20 @@ CREATE TABLE IF NOT EXISTS agent_config (
   sensitivity TEXT NOT NULL DEFAULT 'medium',
   auto_fix BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS llm_configs (
+  user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL,
+  api_key_enc TEXT,
+  base_url TEXT,
+  model_id TEXT,
+  region TEXT,
+  project_id TEXT,
+  location TEXT,
+  extra_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_audit_log_workspace ON audit_log(workspace_id, created_at DESC);
@@ -934,6 +949,66 @@ export async function deleteAgentConfig(id) {
     await pgQuery(`DELETE FROM agent_config WHERE id = $1`, [id]);
   } else {
     memStore.agent_config = memCollection('agent_config').filter(c => c.id !== id);
+    await persistFile();
+  }
+}
+
+// ============ LLM Configs (per-user BYOK) ============
+export async function getLlmConfig(userId) {
+  if (!userId) return null;
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(`SELECT * FROM llm_configs WHERE user_id = $1`, [userId]);
+    return rows[0] || null;
+  }
+  return memCollection('llm_configs').find(c => c.user_id === userId) || null;
+}
+
+export async function upsertLlmConfig({ user_id, provider, api_key_enc, base_url, model_id, region, project_id, location, extra_config }) {
+  if (!user_id || !provider) throw new Error('user_id and provider required');
+  const updated_at = new Date().toISOString();
+  if (mode === 'pg') {
+    await pgQuery(
+      `INSERT INTO llm_configs (user_id, provider, api_key_enc, base_url, model_id, region, project_id, location, extra_config, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10)
+       ON CONFLICT (user_id) DO UPDATE SET
+         provider = EXCLUDED.provider,
+         api_key_enc = EXCLUDED.api_key_enc,
+         base_url = EXCLUDED.base_url,
+         model_id = EXCLUDED.model_id,
+         region = EXCLUDED.region,
+         project_id = EXCLUDED.project_id,
+         location = EXCLUDED.location,
+         extra_config = EXCLUDED.extra_config,
+         updated_at = EXCLUDED.updated_at`,
+      [user_id, provider, api_key_enc || null, base_url || null, model_id || null, region || null, project_id || null, location || null, extra_config || {}, updated_at]
+    );
+  } else {
+    const list = memCollection('llm_configs');
+    const idx = list.findIndex(c => c.user_id === user_id);
+    const row = {
+      user_id, provider,
+      api_key_enc: api_key_enc || null,
+      base_url: base_url || null,
+      model_id: model_id || null,
+      region: region || null,
+      project_id: project_id || null,
+      location: location || null,
+      extra_config: extra_config || {},
+      created_at: idx >= 0 ? list[idx].created_at : updated_at,
+      updated_at,
+    };
+    if (idx >= 0) list[idx] = row;
+    else list.push(row);
+    await persistFile();
+  }
+  return { user_id };
+}
+
+export async function deleteLlmConfig(userId) {
+  if (mode === 'pg') {
+    await pgQuery(`DELETE FROM llm_configs WHERE user_id = $1`, [userId]);
+  } else {
+    memStore.llm_configs = memCollection('llm_configs').filter(c => c.user_id !== userId);
     await persistFile();
   }
 }

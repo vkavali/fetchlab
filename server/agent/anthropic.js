@@ -1,43 +1,34 @@
 /**
- * Tiny Anthropic client used by the AI Ops Agent. Mirrors the call shape
- * used by tests so they can mock via { anthropicCall, fetchImpl }.
+ * AI Ops Agent LLM call. Routes through the multi-provider LLM abstraction
+ * (server/llm), so an enterprise can run the agent on Bedrock/Vertex/OpenAI
+ * by setting LLM_PROVIDER. Mirrors the original `callAnthropic` shape so
+ * the existing agent.js / detector.js code and tests still work.
+ *
+ * Tests can override behavior by passing either:
+ *   - anthropicCall: a custom function with the same shape, OR
+ *   - fetchImpl: a fake fetch (used when the default Anthropic provider runs)
  */
-const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+import { defaultProvider } from '../llm/index.js';
+import { AnthropicProvider } from '../llm/anthropic.js';
+
 const DEFAULT_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6';
 
 export async function callAnthropic({
-  prompt, system, maxTokens = 1024, model = DEFAULT_MODEL, fetchImpl = fetch,
+  prompt, system, maxTokens = 1024, model = DEFAULT_MODEL, fetchImpl,
 }) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    const err = new Error('ANTHROPIC_API_KEY is not configured');
-    err.status = 503;
-    throw err;
-  }
-  const body = {
-    model,
-    max_tokens: maxTokens,
-    messages: [{ role: 'user', content: prompt }],
-  };
-  if (system) body.system = system;
+  // When a fetchImpl is supplied (used by tests/mocks), route through a fresh
+  // AnthropicProvider with that fetchImpl so test assertions on the URL/headers
+  // continue to work. Otherwise use the configured default provider — which
+  // could be Bedrock, Vertex, OpenAI-compat, etc.
+  const provider = fetchImpl
+    ? new AnthropicProvider({ fetchImpl })
+    : defaultProvider();
 
-  const res = await fetchImpl(ANTHROPIC_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    const err = new Error(data?.error?.message || `Anthropic error ${res.status}`);
-    err.status = res.status;
-    throw err;
-  }
-  const text = Array.isArray(data.content)
-    ? data.content.filter(c => c.type === 'text').map(c => c.text).join('\n')
-    : '';
-  return { text, raw: data, model: data.model || model };
+  const messages = [{ role: 'user', content: prompt }];
+  const result = await provider.chat(messages, { system, maxTokens, model });
+  return {
+    text: result.content,
+    raw: result,
+    model: result.usage?.model || model,
+  };
 }

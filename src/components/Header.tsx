@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { useAuth } from '../auth/AuthContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users, Bot, Shield } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users, Bot, Shield, Cpu } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -12,6 +12,7 @@ import FlowBuilder from './FlowBuilder';
 import AIRequestBuilder from './AIRequestBuilder';
 import AgentDashboard from './AgentDashboard';
 import SecuritySettings from './SecuritySettings';
+import LLMSettings from './LLMSettings';
 
 export default function Header() {
   const { state, dispatch } = useApp();
@@ -38,6 +39,7 @@ export default function Header() {
   const [showAi, setShowAi] = useState(false);
   const [showAgent, setShowAgent] = useState(false);
   const [showSecurity, setShowSecurity] = useState(false);
+  const [showLlmSettings, setShowLlmSettings] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -234,6 +236,12 @@ export default function Header() {
                     <Shield size={12} /> Security &amp; sessions
                   </button>
                   <button
+                    onClick={() => { setUserMenuOpen(false); setShowLlmSettings(true); }}
+                    className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <Cpu size={12} /> LLM Provider / BYOK
+                  </button>
+                  <button
                     onClick={() => { setUserMenuOpen(false); logout(); }}
                     className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2"
                   >
@@ -297,6 +305,11 @@ export default function Header() {
       {/* Security settings */}
       {showSecurity && (
         <SecuritySettings onClose={() => setShowSecurity(false)} />
+      )}
+
+      {/* LLM Settings / BYOK */}
+      {showLlmSettings && (
+        <LLMSettings onClose={() => setShowLlmSettings(false)} />
       )}
     </>
   );
