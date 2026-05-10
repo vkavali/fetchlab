@@ -5,6 +5,7 @@ export interface AuthUser {
   email: string;
   name: string;
   role: string;
+  totp_enabled?: boolean;
 }
 
 export interface Workspace {
@@ -15,6 +16,12 @@ export interface Workspace {
   created_at?: string;
 }
 
+export interface LoginResult {
+  twofa_required?: boolean;
+  pending_token?: string;
+  user?: AuthUser;
+}
+
 interface AuthContextValue {
   user: AuthUser | null;
   workspaces: Workspace[];
@@ -22,7 +29,8 @@ interface AuthContextValue {
   setActiveWorkspaceId: (id: string | null) => void;
   loading: boolean;
   serverEnabled: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<LoginResult>;
+  loginVerify2fa: (args: { code?: string; recovery_code?: string; pending_token?: string }) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -103,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<LoginResult> => {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -112,6 +120,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
+    if (data.twofa_required) {
+      return { twofa_required: true, pending_token: data.pending_token };
+    }
+    setToken(data.token);
+    setUser(data.user);
+    await refresh();
+    return { user: data.user };
+  };
+
+  const loginVerify2fa = async ({ code, recovery_code, pending_token }: { code?: string; recovery_code?: string; pending_token?: string }) => {
+    const res = await fetch('/api/auth/login/2fa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, recovery_code, pending_token }),
+      credentials: 'include',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '2FA verification failed');
     setToken(data.token);
     setUser(data.user);
     await refresh();
@@ -141,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, workspaces, activeWorkspaceId, setActiveWorkspaceId, loading, serverEnabled, login, register, logout, refresh, authFetch }}
+      value={{ user, workspaces, activeWorkspaceId, setActiveWorkspaceId, loading, serverEnabled, login, loginVerify2fa, register, logout, refresh, authFetch }}
     >
       {children}
     </AuthContext.Provider>

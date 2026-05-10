@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { useAuth } from '../auth/AuthContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users, Shield } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -10,6 +10,7 @@ import WebSocketTester from './WebSocketTester';
 import SSEViewer from './SSEViewer';
 import FlowBuilder from './FlowBuilder';
 import AIRequestBuilder from './AIRequestBuilder';
+import SecuritySettings from './SecuritySettings';
 
 export default function Header() {
   const { state, dispatch } = useApp();
@@ -33,6 +34,7 @@ export default function Header() {
   const [showSSE, setShowSSE] = useState(false);
   const [showFlow, setShowFlow] = useState(false);
   const [showAi, setShowAi] = useState(false);
+  const [showSecurity, setShowSecurity] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -204,7 +206,18 @@ export default function Header() {
                   <div className="px-3 py-2 border-b border-gray-800">
                     <div className="text-xs font-semibold text-gray-200 truncate">{user.name || user.email}</div>
                     <div className="text-[10px] text-gray-500 truncate">{user.email} · {user.role}</div>
+                    {user.totp_enabled && (
+                      <div className="text-[9px] text-green-400 mt-1 flex items-center gap-1">
+                        <Shield size={10} /> 2FA enabled
+                      </div>
+                    )}
                   </div>
+                  <button
+                    onClick={() => { setUserMenuOpen(false); setShowSecurity(true); }}
+                    className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <Shield size={12} /> Security &amp; sessions
+                  </button>
                   <button
                     onClick={() => { setUserMenuOpen(false); logout(); }}
                     className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2"
@@ -259,6 +272,11 @@ export default function Header() {
       {/* AI Request Builder */}
       {showAi && (
         <AIRequestBuilder onClose={() => setShowAi(false)} />
+      )}
+
+      {/* Security settings */}
+      {showSecurity && (
+        <SecuritySettings onClose={() => setShowSecurity(false)} />
       )}
     </>
   );
