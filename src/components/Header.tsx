@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { useAuth } from '../auth/AuthContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users, Bot } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -10,6 +10,7 @@ import WebSocketTester from './WebSocketTester';
 import SSEViewer from './SSEViewer';
 import FlowBuilder from './FlowBuilder';
 import AIRequestBuilder from './AIRequestBuilder';
+import AgentDashboard from './AgentDashboard';
 
 export default function Header() {
   const { state, dispatch } = useApp();
@@ -33,6 +34,7 @@ export default function Header() {
   const [showSSE, setShowSSE] = useState(false);
   const [showFlow, setShowFlow] = useState(false);
   const [showAi, setShowAi] = useState(false);
+  const [showAgent, setShowAgent] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -75,6 +77,16 @@ export default function Header() {
           >
             <Sparkles size={14} />
             <span className="hidden sm:inline">AI Builder</span>
+          </button>
+
+          {/* AI Ops Agent Dashboard */}
+          <button
+            onClick={() => setShowAgent(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-purple-400 hover:bg-purple-500/10 transition-colors text-xs"
+            title="AI Ops Agent — monitors Slack, detects API issues, reproduces & diagnoses"
+          >
+            <Bot size={14} />
+            <span className="hidden sm:inline">Agent</span>
           </button>
 
           {/* WebSocket Tester */}
@@ -259,6 +271,11 @@ export default function Header() {
       {/* AI Request Builder */}
       {showAi && (
         <AIRequestBuilder onClose={() => setShowAi(false)} />
+      )}
+
+      {/* AI Ops Agent Dashboard */}
+      {showAgent && (
+        <AgentDashboard onClose={() => setShowAgent(false)} />
       )}
     </>
   );
