@@ -15,6 +15,7 @@ import SecuritySettings from './SecuritySettings';
 export default function Header() {
   const { state, dispatch } = useApp();
   const { user, workspaces, activeWorkspaceId, setActiveWorkspaceId, logout, serverEnabled } = useAuth();
+  const isGuest = serverEnabled && !user;
   const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
   const activeEnv = state.environments.find(e => e.id === state.activeEnvironmentId);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -69,15 +70,17 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* AI Request Builder — prominent gradient button */}
-          <button
-            onClick={() => setShowAi(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/15 to-pink-500/15 ring-1 ring-purple-500/30 text-purple-300 hover:text-white hover:from-purple-500 hover:to-pink-500 transition-all text-xs font-semibold"
-            title="AI Request Builder — describe in natural language or paste cURL"
-          >
-            <Sparkles size={14} />
-            <span className="hidden sm:inline">AI Builder</span>
-          </button>
+          {/* AI Request Builder — requires server-side auth, hidden for guests */}
+          {!isGuest && (
+            <button
+              onClick={() => setShowAi(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/15 to-pink-500/15 ring-1 ring-purple-500/30 text-purple-300 hover:text-white hover:from-purple-500 hover:to-pink-500 transition-all text-xs font-semibold"
+              title="AI Request Builder — describe in natural language or paste cURL"
+            >
+              <Sparkles size={14} />
+              <span className="hidden sm:inline">AI Builder</span>
+            </button>
+          )}
 
           {/* WebSocket Tester */}
           <button

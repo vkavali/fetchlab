@@ -3,9 +3,14 @@ import { useAuth } from './AuthContext';
 
 interface SsoConfig { id: string; name: string }
 
-export default function LoginPage() {
+interface LoginPageProps {
+  trialEnded?: boolean;
+  initialMode?: 'login' | 'register';
+}
+
+export default function LoginPage({ trialEnded = false, initialMode = 'login' }: LoginPageProps = {}) {
   const { login, loginVerify2fa, register } = useAuth();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register'>(trialEnded ? 'register' : initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -124,6 +129,12 @@ export default function LoginPage() {
       <div className="w-full max-w-sm bg-gray-900 rounded-xl border border-gray-800 p-6 shadow-xl">
         <h1 className="text-2xl font-bold mb-1 text-center">🧪 FetchLab</h1>
         <p className="text-xs text-gray-500 text-center mb-6">Enterprise API testing</p>
+
+        {trialEnded && (
+          <div className="mb-4 p-3 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs">
+            Your trial has ended. Create a free account to continue.
+          </div>
+        )}
 
         <div className="flex gap-1 mb-4 bg-gray-950 rounded-md p-1">
           <button

@@ -29,6 +29,9 @@ interface AuthContextValue {
   setActiveWorkspaceId: (id: string | null) => void;
   loading: boolean;
   serverEnabled: boolean;
+  trialActive: boolean;
+  trialDaysRemaining: number;
+  trialEnded: boolean;
   login: (email: string, password: string) => Promise<LoginResult>;
   loginVerify2fa: (args: { code?: string; recovery_code?: string; pending_token?: string }) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
@@ -39,6 +42,24 @@ interface AuthContextValue {
 
 const TOKEN_KEY = 'fetchlab_jwt';
 const ACTIVE_WS_KEY = 'fetchlab_active_workspace';
+const TRIAL_START_KEY = 'fetchlab_trial_start';
+const TRIAL_DAYS = 7;
+const TRIAL_MS = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+
+function readOrInitTrialStart(): number {
+  try {
+    const existing = localStorage.getItem(TRIAL_START_KEY);
+    if (existing) {
+      const n = parseInt(existing, 10);
+      if (Number.isFinite(n) && n > 0) return n;
+    }
+    const now = Date.now();
+    localStorage.setItem(TRIAL_START_KEY, String(now));
+    return now;
+  } catch {
+    return Date.now();
+  }
+}
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -59,6 +80,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [loading, setLoading] = useState(true);
   const [serverEnabled, setServerEnabled] = useState(false);
+  const [trialStart, setTrialStart] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const elapsed = trialStart != null ? Math.max(0, now - trialStart) : 0;
+  const trialRemainingMs = trialStart != null ? Math.max(0, TRIAL_MS - elapsed) : TRIAL_MS;
+  const trialDaysRemaining = trialStart != null
+    ? Math.max(0, Math.min(TRIAL_DAYS, Math.ceil(trialRemainingMs / (24 * 60 * 60 * 1000))))
+    : TRIAL_DAYS;
+  const trialEnded = trialStart != null && elapsed >= TRIAL_MS;
+  const trialActive = trialStart != null && !trialEnded;
 
   const setActiveWorkspaceId = (id: string | null) => {
     setActiveWorkspaceIdState(id);
@@ -106,6 +142,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const ok = await probeServer();
       setServerEnabled(ok);
       if (ok) await refresh();
+      // Initialize trial start lazily — only if there's no logged-in session.
+      // Logged-in users never touch the trial counter.
+      if (!getToken()) {
+        setTrialStart(readOrInitTrialStart());
+      }
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -167,7 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, workspaces, activeWorkspaceId, setActiveWorkspaceId, loading, serverEnabled, login, loginVerify2fa, register, logout, refresh, authFetch }}
+      value={{ user, workspaces, activeWorkspaceId, setActiveWorkspaceId, loading, serverEnabled, trialActive, trialDaysRemaining, trialEnded, login, loginVerify2fa, register, logout, refresh, authFetch }}
     >
       {children}
     </AuthContext.Provider>

@@ -383,6 +383,20 @@ export function buildAuthRouter() {
     res.json({ ok: true });
   });
 
+  // Trial mode is purely client-side (timestamp in localStorage). This endpoint
+  // exposes whether the server permits guest/trial access so the UI can probe it.
+  router.get('/trial-status', (_req, res) => {
+    const trialEnabled = process.env.FETCHLAB_TRIAL_DISABLED !== '1';
+    res.json({
+      trialEnabled,
+      trialDays: 7,
+      // Features available to guests (purely client-side, no server tracking).
+      guestFeatures: ['requests', 'collections', 'environments', 'history'],
+      // Features that require a real account.
+      authRequiredFeatures: ['ai', 'workspaces', 'settings'],
+    });
+  });
+
   router.get('/me', requireAuth, async (req, res) => {
     const user = await db.findUserById(req.user.id);
     const workspaces = await db.listWorkspacesForUser(req.user.id);
