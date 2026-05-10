@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { useAuth } from '../auth/AuthContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users, Bot } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users, Bot, Shield } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -11,10 +11,12 @@ import SSEViewer from './SSEViewer';
 import FlowBuilder from './FlowBuilder';
 import AIRequestBuilder from './AIRequestBuilder';
 import AgentDashboard from './AgentDashboard';
+import SecuritySettings from './SecuritySettings';
 
 export default function Header() {
   const { state, dispatch } = useApp();
   const { user, workspaces, activeWorkspaceId, setActiveWorkspaceId, logout, serverEnabled } = useAuth();
+  const isGuest = serverEnabled && !user;
   const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
   const activeEnv = state.environments.find(e => e.id === state.activeEnvironmentId);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -35,6 +37,7 @@ export default function Header() {
   const [showFlow, setShowFlow] = useState(false);
   const [showAi, setShowAi] = useState(false);
   const [showAgent, setShowAgent] = useState(false);
+  const [showSecurity, setShowSecurity] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -69,15 +72,17 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* AI Request Builder — prominent gradient button */}
-          <button
-            onClick={() => setShowAi(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/15 to-pink-500/15 ring-1 ring-purple-500/30 text-purple-300 hover:text-white hover:from-purple-500 hover:to-pink-500 transition-all text-xs font-semibold"
-            title="AI Request Builder — describe in natural language or paste cURL"
-          >
-            <Sparkles size={14} />
-            <span className="hidden sm:inline">AI Builder</span>
-          </button>
+          {/* AI Request Builder — requires server-side auth, hidden for guests */}
+          {!isGuest && (
+            <button
+              onClick={() => setShowAi(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/15 to-pink-500/15 ring-1 ring-purple-500/30 text-purple-300 hover:text-white hover:from-purple-500 hover:to-pink-500 transition-all text-xs font-semibold"
+              title="AI Request Builder — describe in natural language or paste cURL"
+            >
+              <Sparkles size={14} />
+              <span className="hidden sm:inline">AI Builder</span>
+            </button>
+          )}
 
           {/* AI Ops Agent Dashboard */}
           <button
@@ -216,7 +221,18 @@ export default function Header() {
                   <div className="px-3 py-2 border-b border-gray-800">
                     <div className="text-xs font-semibold text-gray-200 truncate">{user.name || user.email}</div>
                     <div className="text-[10px] text-gray-500 truncate">{user.email} · {user.role}</div>
+                    {user.totp_enabled && (
+                      <div className="text-[9px] text-green-400 mt-1 flex items-center gap-1">
+                        <Shield size={10} /> 2FA enabled
+                      </div>
+                    )}
                   </div>
+                  <button
+                    onClick={() => { setUserMenuOpen(false); setShowSecurity(true); }}
+                    className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <Shield size={12} /> Security &amp; sessions
+                  </button>
                   <button
                     onClick={() => { setUserMenuOpen(false); logout(); }}
                     className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2"
@@ -276,6 +292,11 @@ export default function Header() {
       {/* AI Ops Agent Dashboard */}
       {showAgent && (
         <AgentDashboard onClose={() => setShowAgent(false)} />
+      )}
+
+      {/* Security settings */}
+      {showSecurity && (
+        <SecuritySettings onClose={() => setShowSecurity(false)} />
       )}
     </>
   );

@@ -1,4 +1,4 @@
-import { callAnthropic } from '../ai.js';
+import { callAnthropic } from './anthropic.js';
 import { findRecentIssueByEndpoint } from '../db.js';
 
 const API_KEYWORDS = [

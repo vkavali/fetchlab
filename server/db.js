@@ -23,6 +23,8 @@ function freshMemStore() {
     api_tokens: [],
     audit_log: [],
     oidc_configs: [],
+    sessions: [],
+    login_attempts: [],
     agent_issues: [],
     agent_actions: [],
     agent_config: [],
@@ -66,8 +68,30 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT,
   role TEXT NOT NULL DEFAULT 'user',
   oidc_subject TEXT,
+  totp_secret_enc TEXT,
+  totp_enabled BOOLEAN NOT NULL DEFAULT false,
+  recovery_codes_hashed JSONB NOT NULL DEFAULT '[]'::jsonb,
+  failed_login_count INTEGER NOT NULL DEFAULT 0,
+  locked_until TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  refresh_token_hash TEXT NOT NULL,
+  parent_id UUID,
+  user_agent TEXT,
+  ip TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  revoked_at TIMESTAMPTZ,
+  rotated_at TIMESTAMPTZ,
+  reuse_detected BOOLEAN NOT NULL DEFAULT false
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(refresh_token_hash);
 
 CREATE TABLE IF NOT EXISTS workspaces (
   id UUID PRIMARY KEY,
@@ -294,6 +318,140 @@ export async function listUsers() {
     return rows;
   }
   return memCollection('users').map(u => ({ id: u.id, email: u.email, name: u.name, role: u.role, created_at: u.created_at }));
+}
+
+export async function updateUser(id, fields) {
+  if (mode === 'pg') {
+    const cols = [];
+    const vals = [];
+    let i = 1;
+    for (const [k, v] of Object.entries(fields)) {
+      cols.push(`${k} = $${i++}`);
+      vals.push(v);
+    }
+    if (!cols.length) return findUserById(id);
+    vals.push(id);
+    const { rows } = await pgQuery(`UPDATE users SET ${cols.join(', ')} WHERE id = $${i} RETURNING *`, vals);
+    return rows[0] || null;
+  }
+  const u = memCollection('users').find(x => x.id === id);
+  if (!u) return null;
+  Object.assign(u, fields);
+  await persistFile();
+  return u;
+}
+
+// ============ Sessions (refresh tokens) ============
+export async function createSession({ user_id, refresh_token_hash, parent_id = null, user_agent = null, ip = null, expires_at }) {
+  const id = newId();
+  const created_at = new Date().toISOString();
+  const row = {
+    id, user_id, refresh_token_hash, parent_id,
+    user_agent, ip, created_at, expires_at,
+    revoked_at: null, rotated_at: null, reuse_detected: false,
+  };
+  if (mode === 'pg') {
+    await pgQuery(
+      `INSERT INTO sessions (id, user_id, refresh_token_hash, parent_id, user_agent, ip, created_at, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [id, user_id, refresh_token_hash, parent_id, user_agent, ip, created_at, expires_at]
+    );
+  } else {
+    memCollection('sessions').push(row);
+    await persistFile();
+  }
+  return row;
+}
+
+export async function findSessionByTokenHash(hash) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(`SELECT * FROM sessions WHERE refresh_token_hash = $1`, [hash]);
+    return rows[0] || null;
+  }
+  return memCollection('sessions').find(s => s.refresh_token_hash === hash) || null;
+}
+
+export async function findSessionById(id) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(`SELECT * FROM sessions WHERE id = $1`, [id]);
+    return rows[0] || null;
+  }
+  return memCollection('sessions').find(s => s.id === id) || null;
+}
+
+export async function listSessionsForUser(userId, { activeOnly = false } = {}) {
+  if (mode === 'pg') {
+    if (activeOnly) {
+      const { rows } = await pgQuery(
+        `SELECT * FROM sessions WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > NOW() ORDER BY created_at DESC`,
+        [userId]
+      );
+      return rows;
+    }
+    const { rows } = await pgQuery(
+      `SELECT * FROM sessions WHERE user_id = $1 ORDER BY created_at DESC`,
+      [userId]
+    );
+    return rows;
+  }
+  let rows = memCollection('sessions').filter(s => s.user_id === userId);
+  if (activeOnly) {
+    const now = new Date().toISOString();
+    rows = rows.filter(s => !s.revoked_at && s.expires_at > now);
+  }
+  return [...rows].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+}
+
+export async function rotateSession(sessionId, newHash) {
+  const now = new Date().toISOString();
+  if (mode === 'pg') {
+    await pgQuery(
+      `UPDATE sessions SET rotated_at = $1, refresh_token_hash = $2 WHERE id = $3`,
+      [now, newHash, sessionId]
+    );
+    return;
+  }
+  const s = memCollection('sessions').find(x => x.id === sessionId);
+  if (s) {
+    s.rotated_at = now;
+    s.refresh_token_hash = newHash;
+    await persistFile();
+  }
+}
+
+export async function revokeSession(sessionId, { reuseDetected = false } = {}) {
+  const now = new Date().toISOString();
+  if (mode === 'pg') {
+    await pgQuery(
+      `UPDATE sessions SET revoked_at = COALESCE(revoked_at, $1), reuse_detected = reuse_detected OR $2 WHERE id = $3`,
+      [now, reuseDetected, sessionId]
+    );
+    return;
+  }
+  const s = memCollection('sessions').find(x => x.id === sessionId);
+  if (s) {
+    if (!s.revoked_at) s.revoked_at = now;
+    if (reuseDetected) s.reuse_detected = true;
+    await persistFile();
+  }
+}
+
+export async function revokeAllUserSessions(userId, { reuseDetected = false } = {}) {
+  const now = new Date().toISOString();
+  if (mode === 'pg') {
+    await pgQuery(
+      `UPDATE sessions SET revoked_at = COALESCE(revoked_at, $1), reuse_detected = reuse_detected OR $2 WHERE user_id = $3 AND revoked_at IS NULL`,
+      [now, reuseDetected, userId]
+    );
+    return;
+  }
+  for (const s of memCollection('sessions')) {
+    if (s.user_id === userId && !s.revoked_at) {
+      s.revoked_at = now;
+      if (reuseDetected) s.reuse_detected = true;
+    }
+  }
+  await persistFile();
 }
 
 // ============ Workspaces ============

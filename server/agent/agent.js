@@ -1,4 +1,4 @@
-import { callAnthropic } from '../ai.js';
+import { callAnthropic } from './anthropic.js';
 import { detectIssue } from './detector.js';
 import {
   createAgentIssue, updateAgentIssue, appendAgentAction,
