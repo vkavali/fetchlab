@@ -8,6 +8,8 @@ import TabBar from './components/TabBar';
 import RequestBuilder from './components/RequestBuilder';
 import ResponseViewer from './components/ResponseViewer';
 import ResizeHandle from './components/ResizeHandle';
+import PrivacyPolicy from './components/legal/PrivacyPolicy';
+import TermsOfService from './components/legal/TermsOfService';
 import { useApp } from './store/AppContext';
 import { extractSharedData, clearShareHash } from './utils/shareLink';
 import { generateId } from './utils/helpers';
@@ -196,7 +198,22 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function useCurrentPath() {
+  const [path, setPath] = useState(() => window.location.pathname);
+  useEffect(() => {
+    const onChange = () => setPath(window.location.pathname);
+    window.addEventListener('popstate', onChange);
+    return () => window.removeEventListener('popstate', onChange);
+  }, []);
+  return path;
+}
+
 export default function App() {
+  const path = useCurrentPath();
+
+  if (path === '/privacy') return <PrivacyPolicy />;
+  if (path === '/terms') return <TermsOfService />;
+
   return (
     <AuthProvider>
       <AuthGate>
