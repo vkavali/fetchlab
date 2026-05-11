@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { useAuth } from '../auth/AuthContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users, Bot, Shield, Cpu } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -10,10 +10,14 @@ import WebSocketTester from './WebSocketTester';
 import SSEViewer from './SSEViewer';
 import FlowBuilder from './FlowBuilder';
 import AIRequestBuilder from './AIRequestBuilder';
+import AgentDashboard from './AgentDashboard';
+import SecuritySettings from './SecuritySettings';
+import LLMSettings from './LLMSettings';
 
 export default function Header() {
   const { state, dispatch } = useApp();
   const { user, workspaces, activeWorkspaceId, setActiveWorkspaceId, logout, serverEnabled } = useAuth();
+  const isGuest = serverEnabled && !user;
   const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
   const activeEnv = state.environments.find(e => e.id === state.activeEnvironmentId);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -33,6 +37,9 @@ export default function Header() {
   const [showSSE, setShowSSE] = useState(false);
   const [showFlow, setShowFlow] = useState(false);
   const [showAi, setShowAi] = useState(false);
+  const [showAgent, setShowAgent] = useState(false);
+  const [showSecurity, setShowSecurity] = useState(false);
+  const [showLlmSettings, setShowLlmSettings] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -63,14 +70,26 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-0.5">
-          {/* AI Request Builder */}
+          {/* AI Request Builder — requires server-side auth, hidden for guests */}
+          {!isGuest && (
+            <button
+              onClick={() => setShowAi(true)}
+              className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-[color:var(--color-accent)] hover:bg-gray-800 text-[12px]"
+              title="AI Request Builder — describe in natural language or paste cURL"
+            >
+              <Sparkles size={13} />
+              <span className="hidden sm:inline">AI</span>
+            </button>
+          )}
+
+          {/* AI Ops Agent Dashboard */}
           <button
-            onClick={() => setShowAi(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-[color:var(--color-accent)] hover:bg-gray-800 text-[12px]"
-            title="AI Request Builder — describe in natural language or paste cURL"
+            onClick={() => setShowAgent(true)}
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
+            title="AI Ops Agent — monitors Slack, detects API issues, reproduces & diagnoses"
           >
-            <Sparkles size={13} />
-            <span className="hidden sm:inline">AI</span>
+            <Bot size={13} />
+            <span className="hidden sm:inline">Agent</span>
           </button>
 
           <button
@@ -192,7 +211,24 @@ export default function Header() {
                   <div className="px-3 py-2 border-b border-gray-800">
                     <div className="text-[12px] font-medium text-gray-200 truncate">{user.name || user.email}</div>
                     <div className="text-[10px] text-gray-500 truncate">{user.email} · {user.role}</div>
+                    {user.totp_enabled && (
+                      <div className="text-[9px] text-green-400 mt-1 flex items-center gap-1">
+                        <Shield size={10} /> 2FA enabled
+                      </div>
+                    )}
                   </div>
+                  <button
+                    onClick={() => { setUserMenuOpen(false); setShowSecurity(true); }}
+                    className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <Shield size={12} /> Security &amp; sessions
+                  </button>
+                  <button
+                    onClick={() => { setUserMenuOpen(false); setShowLlmSettings(true); }}
+                    className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <Cpu size={12} /> LLM Provider / BYOK
+                  </button>
                   <button
                     onClick={() => { setUserMenuOpen(false); logout(); }}
                     className="w-full text-left px-3 py-2 text-[12px] text-gray-300 hover:bg-gray-800 flex items-center gap-2"
@@ -247,6 +283,21 @@ export default function Header() {
       {/* AI Request Builder */}
       {showAi && (
         <AIRequestBuilder onClose={() => setShowAi(false)} />
+      )}
+
+      {/* AI Ops Agent Dashboard */}
+      {showAgent && (
+        <AgentDashboard onClose={() => setShowAgent(false)} />
+      )}
+
+      {/* Security settings */}
+      {showSecurity && (
+        <SecuritySettings onClose={() => setShowSecurity(false)} />
+      )}
+
+      {/* LLM Settings / BYOK */}
+      {showLlmSettings && (
+        <LLMSettings onClose={() => setShowLlmSettings(false)} />
       )}
     </>
   );
