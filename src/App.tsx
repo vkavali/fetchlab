@@ -8,6 +8,8 @@ import TabBar from './components/TabBar';
 import RequestBuilder from './components/RequestBuilder';
 import ResponseViewer from './components/ResponseViewer';
 import ResizeHandle from './components/ResizeHandle';
+import PrivacyPolicy from './components/legal/PrivacyPolicy';
+import TermsOfService from './components/legal/TermsOfService';
 import { useApp } from './store/AppContext';
 import { extractSharedData, clearShareHash } from './utils/shareLink';
 import { generateId } from './utils/helpers';
@@ -161,7 +163,11 @@ function AppLayout() {
       {/* Footer status bar */}
       <footer className="flex items-center justify-between px-4 py-1 bg-gray-900/50 border-t border-gray-800 text-[10px] text-gray-600">
         <div className="flex items-center gap-3">
-          <span>FetchLab v1.0.0</span>
+          <span>© 2025 FetchLab</span>
+          <span className="w-px h-3 bg-gray-800" />
+          <a href="/privacy" className="hover:text-gray-300">Privacy Policy</a>
+          <span className="w-px h-3 bg-gray-800" />
+          <a href="/terms" className="hover:text-gray-300">Terms of Service</a>
           <span className="w-px h-3 bg-gray-800" />
           <span className="flex items-center gap-1">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
@@ -196,7 +202,22 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function usePathname(): string {
+  const [pathname, setPathname] = useState(() => window.location.pathname);
+  useEffect(() => {
+    const onPop = () => setPathname(window.location.pathname);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+  return pathname;
+}
+
 export default function App() {
+  const pathname = usePathname();
+
+  if (pathname === '/privacy' || pathname === '/privacy/') return <PrivacyPolicy />;
+  if (pathname === '/terms' || pathname === '/terms/') return <TermsOfService />;
+
   return (
     <AuthProvider>
       <AuthGate>

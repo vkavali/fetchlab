@@ -115,7 +115,21 @@ export default function LoginPage() {
         <p className="text-[10px] text-gray-600 text-center mt-6">
           First account becomes admin. No data leaves your server.
         </p>
+
+        <p className="text-[10px] text-gray-500 text-center mt-3 leading-relaxed">
+          By {mode === 'login' ? 'signing in' : 'signing up'} you agree to our{' '}
+          <a href="/terms" className="text-blue-400 hover:underline">Terms of Service</a> and{' '}
+          <a href="/privacy" className="text-blue-400 hover:underline">Privacy Policy</a>.
+        </p>
       </div>
+
+      <footer className="mt-6 text-[10px] text-gray-600 flex items-center gap-3">
+        <span>© 2025 FetchLab</span>
+        <span className="w-px h-3 bg-gray-800" />
+        <a href="/privacy" className="hover:text-gray-400">Privacy</a>
+        <span className="w-px h-3 bg-gray-800" />
+        <a href="/terms" className="hover:text-gray-400">Terms</a>
+      </footer>
     </div>
   );
 }
