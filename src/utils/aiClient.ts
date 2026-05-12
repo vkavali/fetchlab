@@ -1,5 +1,5 @@
-// Thin client for the FetchLab AI endpoints. Same-origin in production
-// and proxied through Vite in dev (see vite.config.ts).
+import { authFetch } from './apiClient';
+
 let cachedStatus: { enabled: boolean; model: string } | null = null;
 
 export async function getAiStatus(): Promise<{ enabled: boolean; model: string }> {
@@ -20,7 +20,7 @@ export async function getAiStatus(): Promise<{ enabled: boolean; model: string }
 }
 
 export async function aiPost<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(path, {
+  const res = await authFetch(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

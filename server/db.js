@@ -23,6 +23,12 @@ function freshMemStore() {
     api_tokens: [],
     audit_log: [],
     oidc_configs: [],
+    sessions: [],
+    login_attempts: [],
+    agent_issues: [],
+    agent_actions: [],
+    agent_config: [],
+    llm_configs: [],
   };
 }
 
@@ -63,8 +69,30 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT,
   role TEXT NOT NULL DEFAULT 'user',
   oidc_subject TEXT,
+  totp_secret_enc TEXT,
+  totp_enabled BOOLEAN NOT NULL DEFAULT false,
+  recovery_codes_hashed JSONB NOT NULL DEFAULT '[]'::jsonb,
+  failed_login_count INTEGER NOT NULL DEFAULT 0,
+  locked_until TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  refresh_token_hash TEXT NOT NULL,
+  parent_id UUID,
+  user_agent TEXT,
+  ip TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  revoked_at TIMESTAMPTZ,
+  rotated_at TIMESTAMPTZ,
+  reuse_detected BOOLEAN NOT NULL DEFAULT false
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(refresh_token_hash);
 
 CREATE TABLE IF NOT EXISTS workspaces (
   id UUID PRIMARY KEY,
@@ -147,10 +175,68 @@ CREATE TABLE IF NOT EXISTS oidc_configs (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS agent_issues (
+  id UUID PRIMARY KEY,
+  workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
+  channel_type TEXT NOT NULL DEFAULT 'slack',
+  channel_id TEXT,
+  channel_name TEXT,
+  thread_ts TEXT,
+  user_id TEXT,
+  message_text TEXT NOT NULL,
+  endpoint TEXT,
+  method TEXT,
+  error_code INTEGER,
+  status TEXT NOT NULL DEFAULT 'detected',
+  diagnosis JSONB,
+  fix JSONB,
+  test_result JSONB,
+  detected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS agent_actions (
+  id UUID PRIMARY KEY,
+  issue_id UUID REFERENCES agent_issues(id) ON DELETE CASCADE,
+  action_type TEXT NOT NULL,
+  result JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS agent_config (
+  id UUID PRIMARY KEY,
+  workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
+  channel_type TEXT NOT NULL DEFAULT 'slack',
+  channel_id TEXT NOT NULL,
+  channel_name TEXT,
+  enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  sensitivity TEXT NOT NULL DEFAULT 'medium',
+  auto_fix BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS llm_configs (
+  user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL,
+  api_key_enc TEXT,
+  base_url TEXT,
+  model_id TEXT,
+  region TEXT,
+  project_id TEXT,
+  location TEXT,
+  extra_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_audit_log_workspace ON audit_log(workspace_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_log_user ON audit_log(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_collections_workspace ON collections(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_history_workspace ON history(workspace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_issues_workspace ON agent_issues(workspace_id, detected_at DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_issues_status ON agent_issues(status);
+CREATE INDEX IF NOT EXISTS idx_agent_actions_issue ON agent_actions(issue_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_config_channel ON agent_config(channel_type, channel_id);
 `;
 
 export async function initDb() {
@@ -247,6 +333,140 @@ export async function listUsers() {
     return rows;
   }
   return memCollection('users').map(u => ({ id: u.id, email: u.email, name: u.name, role: u.role, created_at: u.created_at }));
+}
+
+export async function updateUser(id, fields) {
+  if (mode === 'pg') {
+    const cols = [];
+    const vals = [];
+    let i = 1;
+    for (const [k, v] of Object.entries(fields)) {
+      cols.push(`${k} = $${i++}`);
+      vals.push(v);
+    }
+    if (!cols.length) return findUserById(id);
+    vals.push(id);
+    const { rows } = await pgQuery(`UPDATE users SET ${cols.join(', ')} WHERE id = $${i} RETURNING *`, vals);
+    return rows[0] || null;
+  }
+  const u = memCollection('users').find(x => x.id === id);
+  if (!u) return null;
+  Object.assign(u, fields);
+  await persistFile();
+  return u;
+}
+
+// ============ Sessions (refresh tokens) ============
+export async function createSession({ user_id, refresh_token_hash, parent_id = null, user_agent = null, ip = null, expires_at }) {
+  const id = newId();
+  const created_at = new Date().toISOString();
+  const row = {
+    id, user_id, refresh_token_hash, parent_id,
+    user_agent, ip, created_at, expires_at,
+    revoked_at: null, rotated_at: null, reuse_detected: false,
+  };
+  if (mode === 'pg') {
+    await pgQuery(
+      `INSERT INTO sessions (id, user_id, refresh_token_hash, parent_id, user_agent, ip, created_at, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [id, user_id, refresh_token_hash, parent_id, user_agent, ip, created_at, expires_at]
+    );
+  } else {
+    memCollection('sessions').push(row);
+    await persistFile();
+  }
+  return row;
+}
+
+export async function findSessionByTokenHash(hash) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(`SELECT * FROM sessions WHERE refresh_token_hash = $1`, [hash]);
+    return rows[0] || null;
+  }
+  return memCollection('sessions').find(s => s.refresh_token_hash === hash) || null;
+}
+
+export async function findSessionById(id) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(`SELECT * FROM sessions WHERE id = $1`, [id]);
+    return rows[0] || null;
+  }
+  return memCollection('sessions').find(s => s.id === id) || null;
+}
+
+export async function listSessionsForUser(userId, { activeOnly = false } = {}) {
+  if (mode === 'pg') {
+    if (activeOnly) {
+      const { rows } = await pgQuery(
+        `SELECT * FROM sessions WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > NOW() ORDER BY created_at DESC`,
+        [userId]
+      );
+      return rows;
+    }
+    const { rows } = await pgQuery(
+      `SELECT * FROM sessions WHERE user_id = $1 ORDER BY created_at DESC`,
+      [userId]
+    );
+    return rows;
+  }
+  let rows = memCollection('sessions').filter(s => s.user_id === userId);
+  if (activeOnly) {
+    const now = new Date().toISOString();
+    rows = rows.filter(s => !s.revoked_at && s.expires_at > now);
+  }
+  return [...rows].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+}
+
+export async function rotateSession(sessionId, newHash) {
+  const now = new Date().toISOString();
+  if (mode === 'pg') {
+    await pgQuery(
+      `UPDATE sessions SET rotated_at = $1, refresh_token_hash = $2 WHERE id = $3`,
+      [now, newHash, sessionId]
+    );
+    return;
+  }
+  const s = memCollection('sessions').find(x => x.id === sessionId);
+  if (s) {
+    s.rotated_at = now;
+    s.refresh_token_hash = newHash;
+    await persistFile();
+  }
+}
+
+export async function revokeSession(sessionId, { reuseDetected = false } = {}) {
+  const now = new Date().toISOString();
+  if (mode === 'pg') {
+    await pgQuery(
+      `UPDATE sessions SET revoked_at = COALESCE(revoked_at, $1), reuse_detected = reuse_detected OR $2 WHERE id = $3`,
+      [now, reuseDetected, sessionId]
+    );
+    return;
+  }
+  const s = memCollection('sessions').find(x => x.id === sessionId);
+  if (s) {
+    if (!s.revoked_at) s.revoked_at = now;
+    if (reuseDetected) s.reuse_detected = true;
+    await persistFile();
+  }
+}
+
+export async function revokeAllUserSessions(userId, { reuseDetected = false } = {}) {
+  const now = new Date().toISOString();
+  if (mode === 'pg') {
+    await pgQuery(
+      `UPDATE sessions SET revoked_at = COALESCE(revoked_at, $1), reuse_detected = reuse_detected OR $2 WHERE user_id = $3 AND revoked_at IS NULL`,
+      [now, reuseDetected, userId]
+    );
+    return;
+  }
+  for (const s of memCollection('sessions')) {
+    if (s.user_id === userId && !s.revoked_at) {
+      s.revoked_at = now;
+      if (reuseDetected) s.reuse_detected = true;
+    }
+  }
+  await persistFile();
 }
 
 // ============ Workspaces ============
@@ -531,6 +751,264 @@ export async function deleteOidcConfig(id) {
     await pgQuery(`DELETE FROM oidc_configs WHERE id = $1`, [id]);
   } else {
     memStore.oidc_configs = memCollection('oidc_configs').filter(c => c.id !== id);
+    await persistFile();
+  }
+}
+
+// ============ Agent: issues / actions / config ============
+export async function createAgentIssue(issue) {
+  const id = newId();
+  const now = new Date().toISOString();
+  const row = {
+    id,
+    workspace_id: issue.workspace_id || null,
+    channel_type: issue.channel_type || 'slack',
+    channel_id: issue.channel_id || null,
+    channel_name: issue.channel_name || null,
+    thread_ts: issue.thread_ts || null,
+    user_id: issue.user_id || null,
+    message_text: issue.message_text || '',
+    endpoint: issue.endpoint || null,
+    method: issue.method || null,
+    error_code: issue.error_code || null,
+    status: issue.status || 'detected',
+    diagnosis: issue.diagnosis || null,
+    fix: issue.fix || null,
+    test_result: issue.test_result || null,
+    detected_at: now,
+    updated_at: now,
+  };
+  if (mode === 'pg') {
+    await pgQuery(
+      `INSERT INTO agent_issues (id, workspace_id, channel_type, channel_id, channel_name, thread_ts, user_id, message_text, endpoint, method, error_code, status, diagnosis, fix, test_result, detected_at, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
+      [row.id, row.workspace_id, row.channel_type, row.channel_id, row.channel_name, row.thread_ts, row.user_id, row.message_text, row.endpoint, row.method, row.error_code, row.status, row.diagnosis, row.fix, row.test_result, row.detected_at, row.updated_at]
+    );
+  } else {
+    memCollection('agent_issues').push(row);
+    await persistFile();
+  }
+  return row;
+}
+
+export async function updateAgentIssue(id, patch) {
+  const updated_at = new Date().toISOString();
+  if (mode === 'pg') {
+    const fields = [];
+    const values = [];
+    let i = 1;
+    for (const [k, v] of Object.entries(patch)) {
+      fields.push(`${k} = $${i++}`);
+      values.push(v);
+    }
+    fields.push(`updated_at = $${i++}`);
+    values.push(updated_at);
+    values.push(id);
+    await pgQuery(`UPDATE agent_issues SET ${fields.join(', ')} WHERE id = $${i}`, values);
+    const { rows } = await pgQuery(`SELECT * FROM agent_issues WHERE id = $1`, [id]);
+    return rows[0] || null;
+  }
+  const list = memCollection('agent_issues');
+  const idx = list.findIndex(r => r.id === id);
+  if (idx < 0) return null;
+  list[idx] = { ...list[idx], ...patch, updated_at };
+  await persistFile();
+  return list[idx];
+}
+
+export async function getAgentIssue(id) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(`SELECT * FROM agent_issues WHERE id = $1`, [id]);
+    return rows[0] || null;
+  }
+  return memCollection('agent_issues').find(r => r.id === id) || null;
+}
+
+export async function listAgentIssues({ workspace_id, status, limit = 100 } = {}) {
+  if (mode === 'pg') {
+    const conds = [];
+    const params = [];
+    let i = 1;
+    if (workspace_id) { conds.push(`workspace_id = $${i++}`); params.push(workspace_id); }
+    if (status) { conds.push(`status = $${i++}`); params.push(status); }
+    const where = conds.length ? `WHERE ${conds.join(' AND ')}` : '';
+    params.push(limit);
+    const { rows } = await pgQuery(
+      `SELECT * FROM agent_issues ${where} ORDER BY detected_at DESC LIMIT $${i}`,
+      params
+    );
+    return rows;
+  }
+  let rows = memCollection('agent_issues');
+  if (workspace_id) rows = rows.filter(r => r.workspace_id === workspace_id);
+  if (status) rows = rows.filter(r => r.status === status);
+  return [...rows].reverse().slice(0, limit);
+}
+
+export async function findRecentIssueByEndpoint({ workspace_id, channel_id, endpoint, withinMinutes = 30 }) {
+  const cutoff = Date.now() - withinMinutes * 60 * 1000;
+  const all = await listAgentIssues({ workspace_id, limit: 50 });
+  return all.find(r =>
+    r.channel_id === channel_id &&
+    r.endpoint === endpoint &&
+    new Date(r.detected_at).getTime() >= cutoff
+  ) || null;
+}
+
+export async function appendAgentAction({ issue_id, action_type, result }) {
+  const id = newId();
+  const created_at = new Date().toISOString();
+  const row = { id, issue_id, action_type, result: result || null, created_at };
+  if (mode === 'pg') {
+    await pgQuery(
+      `INSERT INTO agent_actions (id, issue_id, action_type, result, created_at) VALUES ($1,$2,$3,$4,$5)`,
+      [id, issue_id, action_type, result || null, created_at]
+    );
+  } else {
+    memCollection('agent_actions').push(row);
+    await persistFile();
+  }
+  return row;
+}
+
+export async function listAgentActions({ issue_id, limit = 200 } = {}) {
+  if (mode === 'pg') {
+    if (issue_id) {
+      const { rows } = await pgQuery(
+        `SELECT * FROM agent_actions WHERE issue_id = $1 ORDER BY created_at DESC LIMIT $2`,
+        [issue_id, limit]
+      );
+      return rows;
+    }
+    const { rows } = await pgQuery(`SELECT * FROM agent_actions ORDER BY created_at DESC LIMIT $1`, [limit]);
+    return rows;
+  }
+  let rows = memCollection('agent_actions');
+  if (issue_id) rows = rows.filter(r => r.issue_id === issue_id);
+  return [...rows].reverse().slice(0, limit);
+}
+
+export async function upsertAgentConfig({ id, workspace_id, channel_type, channel_id, channel_name, enabled, sensitivity, auto_fix }) {
+  const cid = id || newId();
+  const created_at = new Date().toISOString();
+  const row = {
+    id: cid,
+    workspace_id: workspace_id || null,
+    channel_type: channel_type || 'slack',
+    channel_id,
+    channel_name: channel_name || null,
+    enabled: enabled !== undefined ? !!enabled : true,
+    sensitivity: sensitivity || 'medium',
+    auto_fix: !!auto_fix,
+    created_at,
+  };
+  if (mode === 'pg') {
+    await pgQuery(
+      `INSERT INTO agent_config (id, workspace_id, channel_type, channel_id, channel_name, enabled, sensitivity, auto_fix, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       ON CONFLICT (id) DO UPDATE SET workspace_id=EXCLUDED.workspace_id, channel_type=EXCLUDED.channel_type, channel_id=EXCLUDED.channel_id, channel_name=EXCLUDED.channel_name, enabled=EXCLUDED.enabled, sensitivity=EXCLUDED.sensitivity, auto_fix=EXCLUDED.auto_fix`,
+      [row.id, row.workspace_id, row.channel_type, row.channel_id, row.channel_name, row.enabled, row.sensitivity, row.auto_fix, row.created_at]
+    );
+  } else {
+    const list = memCollection('agent_config');
+    const idx = list.findIndex(c => c.id === cid);
+    if (idx >= 0) list[idx] = { ...list[idx], ...row };
+    else list.push(row);
+    await persistFile();
+  }
+  return row;
+}
+
+export async function listAgentConfigs(workspace_id) {
+  if (mode === 'pg') {
+    if (workspace_id) {
+      const { rows } = await pgQuery(`SELECT * FROM agent_config WHERE workspace_id = $1 ORDER BY created_at`, [workspace_id]);
+      return rows;
+    }
+    const { rows } = await pgQuery(`SELECT * FROM agent_config ORDER BY created_at`);
+    return rows;
+  }
+  let rows = memCollection('agent_config');
+  if (workspace_id) rows = rows.filter(r => r.workspace_id === workspace_id);
+  return rows;
+}
+
+export async function getAgentConfigByChannel({ channel_type = 'slack', channel_id }) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT * FROM agent_config WHERE channel_type = $1 AND channel_id = $2 LIMIT 1`,
+      [channel_type, channel_id]
+    );
+    return rows[0] || null;
+  }
+  return memCollection('agent_config').find(r => r.channel_type === channel_type && r.channel_id === channel_id) || null;
+}
+
+export async function deleteAgentConfig(id) {
+  if (mode === 'pg') {
+    await pgQuery(`DELETE FROM agent_config WHERE id = $1`, [id]);
+  } else {
+    memStore.agent_config = memCollection('agent_config').filter(c => c.id !== id);
+    await persistFile();
+  }
+}
+
+// ============ LLM Configs (per-user BYOK) ============
+export async function getLlmConfig(userId) {
+  if (!userId) return null;
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(`SELECT * FROM llm_configs WHERE user_id = $1`, [userId]);
+    return rows[0] || null;
+  }
+  return memCollection('llm_configs').find(c => c.user_id === userId) || null;
+}
+
+export async function upsertLlmConfig({ user_id, provider, api_key_enc, base_url, model_id, region, project_id, location, extra_config }) {
+  if (!user_id || !provider) throw new Error('user_id and provider required');
+  const updated_at = new Date().toISOString();
+  if (mode === 'pg') {
+    await pgQuery(
+      `INSERT INTO llm_configs (user_id, provider, api_key_enc, base_url, model_id, region, project_id, location, extra_config, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10)
+       ON CONFLICT (user_id) DO UPDATE SET
+         provider = EXCLUDED.provider,
+         api_key_enc = EXCLUDED.api_key_enc,
+         base_url = EXCLUDED.base_url,
+         model_id = EXCLUDED.model_id,
+         region = EXCLUDED.region,
+         project_id = EXCLUDED.project_id,
+         location = EXCLUDED.location,
+         extra_config = EXCLUDED.extra_config,
+         updated_at = EXCLUDED.updated_at`,
+      [user_id, provider, api_key_enc || null, base_url || null, model_id || null, region || null, project_id || null, location || null, extra_config || {}, updated_at]
+    );
+  } else {
+    const list = memCollection('llm_configs');
+    const idx = list.findIndex(c => c.user_id === user_id);
+    const row = {
+      user_id, provider,
+      api_key_enc: api_key_enc || null,
+      base_url: base_url || null,
+      model_id: model_id || null,
+      region: region || null,
+      project_id: project_id || null,
+      location: location || null,
+      extra_config: extra_config || {},
+      created_at: idx >= 0 ? list[idx].created_at : updated_at,
+      updated_at,
+    };
+    if (idx >= 0) list[idx] = row;
+    else list.push(row);
+    await persistFile();
+  }
+  return { user_id };
+}
+
+export async function deleteLlmConfig(userId) {
+  if (mode === 'pg') {
+    await pgQuery(`DELETE FROM llm_configs WHERE user_id = $1`, [userId]);
+  } else {
+    memStore.llm_configs = memCollection('llm_configs').filter(c => c.user_id !== userId);
     await persistFile();
   }
 }

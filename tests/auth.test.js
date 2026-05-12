@@ -131,3 +131,26 @@ describe('Health endpoint stays public', () => {
     expect(res.body.status).toBe('ok');
   });
 });
+
+describe('Trial status endpoint', () => {
+  it('is publicly accessible without auth', async () => {
+    const res = await request(app).get('/api/auth/trial-status');
+    expect(res.status).toBe(200);
+  });
+
+  it('reports trial enabled with a 7-day window by default', async () => {
+    const res = await request(app).get('/api/auth/trial-status');
+    expect(res.body.trialEnabled).toBe(true);
+    expect(res.body.trialDays).toBe(7);
+  });
+
+  it('lists guest-accessible and auth-required feature buckets', async () => {
+    const res = await request(app).get('/api/auth/trial-status');
+    expect(Array.isArray(res.body.guestFeatures)).toBe(true);
+    expect(res.body.guestFeatures).toContain('requests');
+    expect(res.body.guestFeatures).toContain('collections');
+    expect(Array.isArray(res.body.authRequiredFeatures)).toBe(true);
+    expect(res.body.authRequiredFeatures).toContain('ai');
+    expect(res.body.authRequiredFeatures).toContain('workspaces');
+  });
+});

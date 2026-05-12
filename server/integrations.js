@@ -1,4 +1,10 @@
 import express from 'express';
+import { assertSafeUrl, SsrfBlockedError, ssrfBypassEnabled } from './ssrf.js';
+
+async function safeFetch(url, opts) {
+  if (!ssrfBypassEnabled()) await assertSafeUrl(url);
+  return fetch(url, opts);
+}
 
 export function buildIntegrationsRouter() {
   const router = express.Router();
@@ -24,6 +30,28 @@ export function buildIntegrationsRouter() {
       const url = parts[2];
       const body = parts[3] || undefined;
 
+      // Validate URL upfront and acknowledge synchronously.
+      try {
+        if (!ssrfBypassEnabled()) await assertSafeUrl(url);
+      } catch (err) {
+        return res.json({
+          response_type: 'ephemeral',
+          text: `❌ Refusing to fetch \`${url}\`: ${err.message}`,
+        });
+      }
+      // Validate response_url too — Slack always sends https://hooks.slack.com/...
+      // but a malicious payload could try to redirect us elsewhere.
+      if (response_url) {
+        try {
+          if (!ssrfBypassEnabled()) await assertSafeUrl(response_url);
+        } catch (err) {
+          return res.json({
+            response_type: 'ephemeral',
+            text: `❌ Invalid response_url: ${err.message}`,
+          });
+        }
+      }
+
       res.json({ response_type: 'in_channel', text: `⏳ Running \`${method} ${url}\`...` });
 
       const startTime = Date.now();
@@ -35,7 +63,7 @@ export function buildIntegrationsRouter() {
 
       let result;
       try {
-        const response = await fetch(url, fetchOptions);
+        const response = await safeFetch(url, fetchOptions);
         const elapsed = Date.now() - startTime;
         const responseText = await response.text();
         let prettyBody = responseText;
@@ -54,11 +82,15 @@ export function buildIntegrationsRouter() {
       }
 
       if (response_url) {
-        await fetch(response_url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(result),
-        });
+        try {
+          await fetch(response_url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(result),
+          });
+        } catch (err) {
+          console.error('Slack response_url callback failed:', err.message);
+        }
       }
     } catch (err) {
       console.error('Slack handler error:', err);
@@ -74,13 +106,24 @@ export function buildIntegrationsRouter() {
       const { method = 'GET', url, body, webhookUrl } = req.body || {};
       if (!url || !webhookUrl) return res.status(400).json({ error: 'Missing url or webhookUrl' });
 
+      // Reject internal addresses for both URLs.
+      try {
+        if (!ssrfBypassEnabled()) {
+          await assertSafeUrl(url);
+          await assertSafeUrl(webhookUrl);
+        }
+      } catch (err) {
+        if (err instanceof SsrfBlockedError) return res.status(400).json({ error: err.message });
+        throw err;
+      }
+
       const startTime = Date.now();
       const fetchOptions = { method };
       if (body && !['GET', 'HEAD'].includes(method)) {
         fetchOptions.headers = { 'Content-Type': 'application/json' };
         fetchOptions.body = typeof body === 'string' ? body : JSON.stringify(body);
       }
-      const response = await fetch(url, fetchOptions);
+      const response = await safeFetch(url, fetchOptions);
       const elapsed = Date.now() - startTime;
       const responseText = await response.text();
       let prettyBody = responseText;
@@ -98,33 +141,55 @@ export function buildIntegrationsRouter() {
           facts: [
             { name: 'Status', value: `${response.status} ${response.statusText}` },
             { name: 'Time', value: `${elapsed}ms` },
-            { name: 'Size', value: `${new Blob([responseText]).size} bytes` },
+            { name: 'Size', value: `${Buffer.byteLength(responseText)} bytes` },
           ],
           text: `\`\`\`\n${prettyBody.substring(0, 2000)}\n\`\`\``,
         }],
       };
 
-      await fetch(webhookUrl, {
+      await safeFetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(teamsPayload),
       });
       res.json({ success: true, status: response.status, time: elapsed });
     } catch (err) {
+      if (err instanceof SsrfBlockedError) return res.status(400).json({ error: err.message });
       res.status(500).json({ error: err.message });
     }
   });
 
   // ============ Embeddable widget ============
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+  const VALID_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']);
+
   router.get('/widget', (req, res) => {
-    const { method = 'GET', url, title = 'API Demo' } = req.query;
+    const rawMethod = String(req.query.method || 'GET').toUpperCase();
+    const url = String(req.query.url || '');
+    const title = String(req.query.title || 'API Demo').slice(0, 100);
     if (!url) return res.status(400).send('Missing ?url= parameter');
+    if (!VALID_METHODS.has(rawMethod)) return res.status(400).send('Invalid method');
+    let parsed;
+    try { parsed = new URL(url); } catch { return res.status(400).send('Invalid URL'); }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return res.status(400).send('Only http(s) URLs are allowed');
+    }
+    const method = rawMethod;
+    const safeUrlAttr = escapeHtml(url);
+    const safeTitle = escapeHtml(title);
+    const safeMethodAttr = escapeHtml(method);
+    // For JS string literals in inline <script>, JSON.stringify escapes safely.
+    const jsUrl = JSON.stringify(url);
+    const jsMethod = JSON.stringify(method);
+    res.set('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src *");
     res.send(`<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${title} — FetchLab Widget</title>
+<title>${safeTitle} — FetchLab Widget</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,sans-serif;background:#0f0f17;color:#e5e7eb;padding:16px}
@@ -149,8 +214,8 @@ body{font-family:system-ui,sans-serif;background:#0f0f17;color:#e5e7eb;padding:1
 <body>
 <div class="widget">
   <div class="header">
-    <span class="method ${method}">${method}</span>
-    <span class="url">${url}</span>
+    <span class="method ${safeMethodAttr}">${safeMethodAttr}</span>
+    <span class="url">${safeUrlAttr}</span>
     <button class="send" onclick="run()" id="btn">▶ Run</button>
   </div>
   <div id="status-bar" class="status-bar" style="display:none"></div>
@@ -166,7 +231,7 @@ async function run(){
   pre.textContent='Loading...';
   const start=Date.now();
   try{
-    const res=await fetch('${url}',{method:'${method}'});
+    const res=await fetch(${jsUrl},{method:${jsMethod}});
     const elapsed=Date.now()-start;
     const text=await res.text();
     let pretty=text;
