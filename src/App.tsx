@@ -2,16 +2,20 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { AppProvider } from './store/AppContext';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import LoginPage from './auth/LoginPage';
+import TrialBanner from './auth/TrialBanner';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import TabBar from './components/TabBar';
 import RequestBuilder from './components/RequestBuilder';
 import ResponseViewer from './components/ResponseViewer';
 import ResizeHandle from './components/ResizeHandle';
+import PrivacyPolicy from './components/legal/PrivacyPolicy';
+import TermsOfService from './components/legal/TermsOfService';
 import { useApp } from './store/AppContext';
 import { extractSharedData, clearShareHash } from './utils/shareLink';
 import { generateId } from './utils/helpers';
 import type { Collection, RequestConfig } from './types';
+import Landing from './pages/Landing';
 
 const SIDEBAR_MIN = 180;
 const SIDEBAR_MAX = 500;
@@ -38,11 +42,13 @@ function usePersistentNumber(key: string, defaultValue: number): [number, (v: nu
   return [value, setAndPersist];
 }
 
-function AppLayout() {
+function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
   const { state, dispatch } = useApp();
+  const { user, trialActive, trialDaysRemaining } = useAuth();
   const [sidebarWidth, setSidebarWidth] = usePersistentNumber('fetchlab_sidebar_width', 256);
   const [splitPercent, setSplitPercent] = usePersistentNumber('fetchlab_split_percent', 50);
   const mainRef = useRef<HTMLDivElement>(null);
+  const showTrialBanner = !user && trialActive;
 
   const handleSidebarResize = useCallback((delta: number) => {
     setSidebarWidth(prev => Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, prev + delta)));
@@ -113,6 +119,9 @@ function AppLayout() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-950 text-gray-100 overflow-hidden">
+      {showTrialBanner && (
+        <TrialBanner daysRemaining={trialDaysRemaining} onSignUp={() => onSignUp?.()} />
+      )}
       <Header />
 
       {/* Share import toast */}
@@ -177,9 +186,10 @@ function AppLayout() {
   );
 }
 
-function AuthGate({ children }: { children: React.ReactNode }) {
-  const { user, loading, serverEnabled } = useAuth();
+function AuthGate({ children }: { children: (opts: { onSignUp: () => void }) => React.ReactNode }) {
+  const { user, loading, serverEnabled, trialActive, trialEnded } = useAuth();
   const requireAuth = !import.meta.env.VITE_AUTH_DISABLED;
+  const [forceLogin, setForceLogin] = useState(false);
 
   if (loading) {
     return (
@@ -190,19 +200,39 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   }
 
   // If server isn't reachable (pure static / dev with no backend), allow legacy localStorage mode.
-  if (!serverEnabled) return <>{children}</>;
-  if (!requireAuth) return <>{children}</>;
-  if (!user) return <LoginPage />;
-  return <>{children}</>;
+  if (!serverEnabled) return <>{children({ onSignUp: () => setForceLogin(true) })}</>;
+  if (!requireAuth) return <>{children({ onSignUp: () => setForceLogin(true) })}</>;
+  if (user) return <>{children({ onSignUp: () => setForceLogin(true) })}</>;
+  if (forceLogin) return <LoginPage initialMode="register" />;
+  if (trialActive) return <>{children({ onSignUp: () => setForceLogin(true) })}</>;
+  return <LoginPage trialEnded={trialEnded} />;
+}
+
+function useCurrentPath() {
+  const [path, setPath] = useState(() => window.location.pathname);
+  useEffect(() => {
+    const onChange = () => setPath(window.location.pathname);
+    window.addEventListener('popstate', onChange);
+    return () => window.removeEventListener('popstate', onChange);
+  }, []);
+  return path;
 }
 
 export default function App() {
+  const path = useCurrentPath();
+
+  if (path === '/' || path === '') return <Landing />;
+  if (path === '/privacy') return <PrivacyPolicy />;
+  if (path === '/terms') return <TermsOfService />;
+
   return (
     <AuthProvider>
       <AuthGate>
-        <AppProvider>
-          <AppLayout />
-        </AppProvider>
+        {({ onSignUp }) => (
+          <AppProvider>
+            <AppLayout onSignUp={onSignUp} />
+          </AppProvider>
+        )}
       </AuthGate>
     </AuthProvider>
   );

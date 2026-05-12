@@ -8,6 +8,8 @@ import { buildWorkspacesRouter } from './workspaces.js';
 import { buildAuditRouter } from './audit.js';
 import { authLimiter, aiLimiter, apiLimiter } from './rateLimit.js';
 import { buildIntegrationsRouter } from './integrations.js';
+import { buildAgentRouter } from './agent/routes.js';
+import { buildLlmSettingsRouter } from './llmRoutes.js';
 import { registerAiRoutes } from '../ai-routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -46,9 +48,15 @@ export async function buildApp({ skipDbInit = false } = {}) {
   // Workspace + audit + integrations
   app.use('/api/workspaces', apiLimiter, buildWorkspacesRouter());
   app.use('/api/audit', apiLimiter, buildAuditRouter());
+  app.use('/api/agent', apiLimiter, buildAgentRouter());
+  app.use('/api/settings/llm', apiLimiter, buildLlmSettingsRouter());
   app.use('/api', apiLimiter, buildIntegrationsRouter());
 
-  // Serve static SPA
+  // Serve static SPA. Client-side router in App.tsx maps:
+  //   /          → marketing landing page
+  //   /privacy   → privacy policy
+  //   /terms     → terms of service
+  //   /app, *    → API client app (with auth gate)
   app.use(express.static(join(ROOT, 'dist')));
   app.get('/{*path}', (_req, res) => {
     res.sendFile(join(ROOT, 'dist', 'index.html'));

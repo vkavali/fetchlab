@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { useAuth } from '../auth/AuthContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users, Bot, Shield, Cpu } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -10,17 +10,27 @@ import WebSocketTester from './WebSocketTester';
 import SSEViewer from './SSEViewer';
 import FlowBuilder from './FlowBuilder';
 import AIRequestBuilder from './AIRequestBuilder';
+import AgentDashboard from './AgentDashboard';
+import SecuritySettings from './SecuritySettings';
+import LLMSettings from './LLMSettings';
 
 export default function Header() {
   const { state, dispatch } = useApp();
   const { user, workspaces, activeWorkspaceId, setActiveWorkspaceId, logout, serverEnabled } = useAuth();
+  const isGuest = serverEnabled && !user;
   const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
   const activeEnv = state.environments.find(e => e.id === state.activeEnvironmentId);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [wsMenuOpen, setWsMenuOpen] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    try { return (localStorage.getItem('fetchlab_theme') as 'dark' | 'light') || 'dark'; }
-    catch { return 'dark'; }
+    try {
+      const saved = localStorage.getItem('fetchlab-theme') as 'dark' | 'light' | null;
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+      return 'light';
+    } catch { return 'light'; }
   });
   const [showGuide, setShowGuide] = useState(() => {
     try { return !localStorage.getItem('fetchlab_onboarded'); }
@@ -33,131 +43,135 @@ export default function Header() {
   const [showSSE, setShowSSE] = useState(false);
   const [showFlow, setShowFlow] = useState(false);
   const [showAi, setShowAi] = useState(false);
+  const [showAgent, setShowAgent] = useState(false);
+  const [showSecurity, setShowSecurity] = useState(false);
+  const [showLlmSettings, setShowLlmSettings] = useState(false);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('light', theme === 'light');
-    localStorage.setItem('fetchlab_theme', theme);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.classList.remove('light');
+    localStorage.setItem('fetchlab-theme', theme);
   }, [theme]);
 
   return (
     <>
-      <header className="flex items-center justify-between px-4 py-2 bg-gray-900/80 border-b border-gray-800">
+      <header className="flex items-center justify-between px-4 h-11 bg-gray-900 border-b border-gray-800">
         <div className="flex items-center gap-3">
           <button
             onClick={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
-            className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded text-gray-500 hover:text-gray-200 hover:bg-gray-800"
             title={state.sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
           >
-            {state.sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
+            {state.sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
           </button>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
-                <Zap size={14} className="text-white" />
-              </div>
-              <span className="text-base font-bold bg-gradient-to-r from-brand-400 to-accent-400 bg-clip-text text-transparent">
-                FetchLab
-              </span>
+            <div className="w-5 h-5 rounded bg-[color:var(--color-accent)] flex items-center justify-center">
+              <Zap size={11} className="text-black" strokeWidth={2.5} />
             </div>
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-brand-500/20 text-brand-400 uppercase tracking-wider">
+            <span className="text-[13px] font-medium text-gray-100 tracking-tight">FetchLab</span>
+            <span className="px-1.5 py-0.5 text-[9px] font-medium border border-gray-800 text-gray-500 uppercase tracking-wider">
               Beta
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {/* AI Request Builder — prominent gradient button */}
+        <div className="flex items-center gap-0.5">
+          {/* AI Request Builder — requires server-side auth, hidden for guests */}
+          {!isGuest && (
+            <button
+              onClick={() => setShowAi(true)}
+              className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-[color:var(--color-accent)] hover:bg-gray-800 text-[12px]"
+              title="AI Request Builder — describe in natural language or paste cURL"
+            >
+              <Sparkles size={13} />
+              <span className="hidden sm:inline">AI</span>
+            </button>
+          )}
+
+          {/* AI Ops Agent Dashboard */}
           <button
-            onClick={() => setShowAi(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/15 to-pink-500/15 ring-1 ring-purple-500/30 text-purple-300 hover:text-white hover:from-purple-500 hover:to-pink-500 transition-all text-xs font-semibold"
-            title="AI Request Builder — describe in natural language or paste cURL"
+            onClick={() => setShowAgent(true)}
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
+            title="AI Ops Agent — monitors Slack, detects API issues, reproduces & diagnoses"
           >
-            <Sparkles size={14} />
-            <span className="hidden sm:inline">AI Builder</span>
+            <Bot size={13} />
+            <span className="hidden sm:inline">Agent</span>
           </button>
 
-          {/* WebSocket Tester */}
           <button
             onClick={() => setShowWebSocket(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors text-xs"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
             title="WebSocket Tester"
           >
-            <Wifi size={14} />
+            <Wifi size={13} />
             <span className="hidden sm:inline">WS</span>
           </button>
 
-          {/* SSE Viewer */}
           <button
             onClick={() => setShowSSE(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-orange-400 hover:bg-orange-500/10 transition-colors text-xs"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
             title="SSE / Event Stream Viewer"
           >
-            <Radio size={14} />
+            <Radio size={13} />
             <span className="hidden sm:inline">SSE</span>
           </button>
 
-          {/* Flow Builder */}
           <button
             onClick={() => setShowFlow(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors text-xs"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
             title="Visual API Flow Builder"
           >
-            <GitBranch size={14} />
+            <GitBranch size={13} />
             <span className="hidden sm:inline">Flow</span>
           </button>
 
-          {/* Health Dashboard */}
           <button
             onClick={() => setShowHealth(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-green-400 hover:bg-green-500/10 transition-colors text-xs"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
             title="API Health Dashboard"
           >
-            <Activity size={14} />
+            <Activity size={13} />
             <span className="hidden sm:inline">Health</span>
           </button>
 
-          {/* Integrations */}
           <button
             onClick={() => setShowIntegrations(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-accent-400 hover:bg-accent-500/10 transition-colors text-xs"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
             title="Slack, Teams & Embed integrations"
           >
-            <Plug size={14} />
+            <Plug size={13} />
             <span className="hidden sm:inline">Integrate</span>
           </button>
 
-          {/* Help / Guide */}
           <button
             onClick={() => setShowHelp(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors text-xs"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
             title="Help & Guide"
           >
-            <BookOpen size={14} />
+            <BookOpen size={13} />
             <span className="hidden sm:inline">Help</span>
           </button>
 
-          {/* Theme toggle */}
+          <div className="w-px h-4 bg-gray-800 mx-1.5" />
+
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800"
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
           </button>
 
           {/* Environment selector */}
           <button
             onClick={() => dispatch({ type: 'SET_SIDEBAR_TAB', tab: 'environments' })}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              activeEnv
-                ? 'bg-green-500/10 text-green-400 hover:bg-green-500/15'
-                : 'bg-gray-800/50 text-gray-500 hover:text-gray-300 hover:bg-gray-800'
-            }`}
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] text-gray-400 hover:text-gray-100 hover:bg-gray-800"
+            title="Active environment"
           >
             <Globe size={12} />
-            {activeEnv ? activeEnv.name : 'No Environment'}
-            {activeEnv && <div className="w-1.5 h-1.5 rounded-full bg-green-400" />}
+            <span>{activeEnv ? activeEnv.name : 'No environment'}</span>
+            {activeEnv && <div className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-accent)]" />}
           </button>
 
           {/* Workspace switcher (when authed) */}
@@ -165,22 +179,22 @@ export default function Header() {
             <div className="relative">
               <button
                 onClick={() => setWsMenuOpen(o => !o)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
+                className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] text-gray-400 hover:text-gray-100 hover:bg-gray-800"
                 title="Switch workspace"
               >
                 <Users size={12} />
-                {activeWs ? activeWs.name : 'Workspace'}
+                <span className="max-w-[120px] truncate">{activeWs ? activeWs.name : 'Workspace'}</span>
               </button>
               {wsMenuOpen && (
-                <div className="absolute right-0 mt-1 w-56 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-50 py-1">
+                <div className="absolute right-0 mt-1 w-56 bg-gray-900 border border-gray-800 rounded z-50 py-1">
                   {workspaces.map(w => (
                     <button
                       key={w.id}
                       onClick={() => { setActiveWorkspaceId(w.id); setWsMenuOpen(false); }}
-                      className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-800 ${w.id === activeWorkspaceId ? 'text-purple-400' : 'text-gray-300'}`}
+                      className={`w-full text-left px-3 py-1.5 text-[12px] hover:bg-gray-800 ${w.id === activeWorkspaceId ? 'text-[color:var(--color-accent)]' : 'text-gray-300'}`}
                     >
                       {w.name}
-                      <span className="ml-2 text-[9px] text-gray-600 uppercase">{w.member_role}</span>
+                      <span className="ml-2 text-[10px] text-gray-600 uppercase">{w.member_role}</span>
                     </button>
                   ))}
                 </div>
@@ -193,21 +207,38 @@ export default function Header() {
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(o => !o)}
-                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs bg-gray-800/50 text-gray-300 hover:bg-gray-800"
+                className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] text-gray-400 hover:text-gray-100 hover:bg-gray-800"
                 title={user.email}
               >
                 <UserIcon size={12} />
                 <span className="hidden md:inline max-w-[120px] truncate">{user.name || user.email}</span>
               </button>
               {userMenuOpen && (
-                <div className="absolute right-0 mt-1 w-56 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-50 py-1">
+                <div className="absolute right-0 mt-1 w-56 bg-gray-900 border border-gray-800 rounded z-50 py-1">
                   <div className="px-3 py-2 border-b border-gray-800">
-                    <div className="text-xs font-semibold text-gray-200 truncate">{user.name || user.email}</div>
+                    <div className="text-[12px] font-medium text-gray-200 truncate">{user.name || user.email}</div>
                     <div className="text-[10px] text-gray-500 truncate">{user.email} · {user.role}</div>
+                    {user.totp_enabled && (
+                      <div className="text-[9px] text-green-400 mt-1 flex items-center gap-1">
+                        <Shield size={10} /> 2FA enabled
+                      </div>
+                    )}
                   </div>
                   <button
+                    onClick={() => { setUserMenuOpen(false); setShowSecurity(true); }}
+                    className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <Shield size={12} /> Security &amp; sessions
+                  </button>
+                  <button
+                    onClick={() => { setUserMenuOpen(false); setShowLlmSettings(true); }}
+                    className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <Cpu size={12} /> LLM Provider / BYOK
+                  </button>
+                  <button
                     onClick={() => { setUserMenuOpen(false); logout(); }}
-                    className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 text-[12px] text-gray-300 hover:bg-gray-800 flex items-center gap-2"
                   >
                     <LogOut size={12} /> Sign out
                   </button>
@@ -259,6 +290,21 @@ export default function Header() {
       {/* AI Request Builder */}
       {showAi && (
         <AIRequestBuilder onClose={() => setShowAi(false)} />
+      )}
+
+      {/* AI Ops Agent Dashboard */}
+      {showAgent && (
+        <AgentDashboard onClose={() => setShowAgent(false)} />
+      )}
+
+      {/* Security settings */}
+      {showSecurity && (
+        <SecuritySettings onClose={() => setShowSecurity(false)} />
+      )}
+
+      {/* LLM Settings / BYOK */}
+      {showLlmSettings && (
+        <LLMSettings onClose={() => setShowLlmSettings(false)} />
       )}
     </>
   );
