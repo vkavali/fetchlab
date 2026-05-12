@@ -48,7 +48,11 @@ export async function buildApp({ skipDbInit = false } = {}) {
   app.use('/api/audit', apiLimiter, buildAuditRouter());
   app.use('/api', apiLimiter, buildIntegrationsRouter());
 
-  // Serve static SPA
+  // Serve static SPA. Client-side router in App.tsx maps:
+  //   /          → marketing landing page
+  //   /privacy   → privacy policy
+  //   /terms     → terms of service
+  //   /app, *    → API client app (with auth gate)
   app.use(express.static(join(ROOT, 'dist')));
   app.get('/{*path}', (_req, res) => {
     res.sendFile(join(ROOT, 'dist', 'index.html'));

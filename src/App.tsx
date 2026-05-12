@@ -12,6 +12,8 @@ import { useApp } from './store/AppContext';
 import { extractSharedData, clearShareHash } from './utils/shareLink';
 import { generateId } from './utils/helpers';
 import type { Collection, RequestConfig } from './types';
+import Landing from './pages/Landing';
+import LegalPage from './pages/LegalPage';
 
 const SIDEBAR_MIN = 180;
 const SIDEBAR_MAX = 500;
@@ -197,6 +199,12 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const path = typeof window !== 'undefined' ? window.location.pathname : '/app';
+
+  if (path === '/' || path === '') return <Landing />;
+  if (path === '/privacy') return <LegalPage kind="privacy" />;
+  if (path === '/terms') return <LegalPage kind="terms" />;
+
   return (
     <AuthProvider>
       <AuthGate>
