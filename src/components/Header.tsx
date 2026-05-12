@@ -23,8 +23,14 @@ export default function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [wsMenuOpen, setWsMenuOpen] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    try { return (localStorage.getItem('fetchlab_theme') as 'dark' | 'light') || 'dark'; }
-    catch { return 'dark'; }
+    try {
+      const saved = localStorage.getItem('fetchlab-theme') as 'dark' | 'light' | null;
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+      return 'light';
+    } catch { return 'light'; }
   });
   const [showGuide, setShowGuide] = useState(() => {
     try { return !localStorage.getItem('fetchlab_onboarded'); }
@@ -42,8 +48,9 @@ export default function Header() {
   const [showLlmSettings, setShowLlmSettings] = useState(false);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('light', theme === 'light');
-    localStorage.setItem('fetchlab_theme', theme);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.classList.remove('light');
+    localStorage.setItem('fetchlab-theme', theme);
   }, [theme]);
 
   return (

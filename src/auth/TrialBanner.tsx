@@ -24,13 +24,21 @@ export default function TrialBanner({ daysRemaining, onSignUp }: TrialBannerProp
   const dayLabel = daysRemaining === 1 ? 'day' : 'days';
 
   return (
-    <div className="flex items-center justify-between px-4 py-1.5 bg-blue-500/10 border-b border-blue-500/20 text-blue-300 text-xs">
+    <div
+      className="flex items-center justify-between px-4 py-1.5 border-b text-xs"
+      style={{
+        background: 'var(--color-warning-soft)',
+        borderColor: 'var(--color-warning)',
+        color: 'var(--color-warning)',
+      }}
+    >
       <div className="flex items-center gap-2">
         <span>
           You're using FetchLab as a guest. <strong>{daysRemaining} {dayLabel} remaining.</strong>{' '}
           <button
             onClick={onSignUp}
-            className="underline hover:text-blue-200 font-semibold"
+            className="underline font-medium"
+            style={{ color: 'var(--color-accent)' }}
           >
             Sign up
           </button>{' '}
@@ -39,7 +47,8 @@ export default function TrialBanner({ daysRemaining, onSignUp }: TrialBannerProp
       </div>
       <button
         onClick={dismiss}
-        className="text-blue-400/70 hover:text-blue-200 ml-2"
+        className="ml-2 opacity-70 hover:opacity-100"
+        style={{ color: 'var(--color-warning)' }}
         title="Dismiss"
         aria-label="Dismiss trial banner"
       >

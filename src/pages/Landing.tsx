@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 
 const EMERALD = '#10b981';
-const BG = '#0a0a0a';
 
 function useFadeInOnScroll() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -54,21 +53,23 @@ function useUnlockScroll() {
 const styles = `
 .fl-fade { opacity: 0; transform: translateY(12px); transition: opacity 600ms ease-out, transform 600ms ease-out; }
 .fl-fade.fl-visible { opacity: 1; transform: translateY(0); }
-.fl-link { color: #9ca3af; transition: color 150ms; }
-.fl-link:hover { color: #e5e7eb; }
-.fl-btn-primary { background: ${EMERALD}; color: #042f1f; transition: background 150ms; }
-.fl-btn-primary:hover { background: #34d399; }
-.fl-btn-secondary { background: transparent; color: #e5e7eb; border: 1px solid #27272a; transition: border-color 150ms, color 150ms; }
-.fl-btn-secondary:hover { border-color: #3f3f46; color: #ffffff; }
-.fl-card { background: #111111; border: 1px solid #1f1f23; }
-.fl-card-pop { border: 1px solid ${EMERALD}33; }
-.fl-accent { color: ${EMERALD}; }
-.fl-divider { border-color: #1f1f23; }
+.fl-link { color: var(--color-text-muted); transition: color 150ms; }
+.fl-link:hover { color: var(--color-text); }
+.fl-btn-primary { background: var(--color-accent); color: #ffffff; transition: background 150ms; }
+.fl-btn-primary:hover { background: var(--color-accent-hover); }
+.fl-btn-secondary { background: transparent; color: var(--color-text); border: 1px solid var(--color-border); transition: border-color 150ms, color 150ms; }
+.fl-btn-secondary:hover { border-color: var(--color-border-strong); color: var(--color-text); }
+.fl-card { background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-card); }
+.fl-card-pop { border: 1px solid var(--color-accent); }
+.fl-accent { color: var(--color-accent); }
+.fl-divider { border-color: var(--color-border); }
+.fl-heading { color: var(--color-text); }
+.fl-body { color: var(--color-text-muted); }
 `;
 
 function Logo() {
   return (
-    <a href="/" className="flex items-center gap-2 text-white font-semibold tracking-tight">
+    <a href="/" className="flex items-center gap-2 fl-heading font-medium tracking-tight">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
         <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke={EMERALD} strokeWidth="1.8" strokeLinejoin="round" />
       </svg>
@@ -88,7 +89,7 @@ function Section({ id, children, className = '' }: { id?: string; children: Reac
 function FeatureCard({ title, body }: { title: string; body: string }) {
   return (
     <div className="fl-card fl-fade rounded-lg p-6">
-      <h3 className="text-base font-semibold text-white mb-2">{title}</h3>
+      <h3 className="text-base font-semibold fl-heading mb-2">{title}</h3>
       <p className="text-sm text-gray-400 leading-relaxed">{body}</p>
     </div>
   );
@@ -98,7 +99,7 @@ function Step({ n, title, body }: { n: number; title: string; body: string }) {
   return (
     <div className="fl-fade">
       <div className="text-xs fl-accent font-mono mb-3">STEP {n.toString().padStart(2, '0')}</div>
-      <h3 className="text-base font-semibold text-white mb-2">{title}</h3>
+      <h3 className="text-base font-semibold fl-heading mb-2">{title}</h3>
       <p className="text-sm text-gray-400 leading-relaxed">{body}</p>
     </div>
   );
@@ -126,7 +127,7 @@ function PriceCard({
       <div className="mb-5">
         <div className="text-sm text-gray-400 mb-2">{name}</div>
         <div className="flex items-baseline gap-1">
-          <span className="text-3xl font-semibold text-white tracking-tight">{price}</span>
+          <span className="text-3xl font-semibold fl-heading tracking-tight">{price}</span>
           {period && <span className="text-sm text-gray-500">/{period}</span>}
         </div>
       </div>
@@ -157,8 +158,8 @@ export default function Landing() {
   return (
     <div
       ref={rootRef}
-      className="min-h-screen w-full text-gray-100 font-sans"
-      style={{ background: BG }}
+      className="min-h-screen w-full font-sans"
+      style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
     >
       <style>{styles}</style>
 
@@ -177,7 +178,7 @@ export default function Landing() {
       {/* Hero */}
       <Section className="pt-24 sm:pt-32 pb-20 sm:pb-28">
         <div className="max-w-3xl">
-          <h1 className="text-4xl sm:text-6xl font-semibold tracking-tight text-white leading-[1.05] mb-6">
+          <h1 className="text-4xl sm:text-6xl font-semibold tracking-tight fl-heading leading-[1.05] mb-6">
             The API client that <span className="fl-accent">fixes</span> your APIs.
           </h1>
           <p className="text-lg sm:text-xl text-gray-400 leading-relaxed mb-10 max-w-2xl">
@@ -206,7 +207,7 @@ export default function Landing() {
       <Section id="features" className="py-20 sm:py-24 border-t fl-divider">
         <div className="mb-12 fl-fade">
           <div className="text-xs fl-accent font-mono mb-3">WHY FETCHLAB</div>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight max-w-2xl">
+          <h2 className="text-2xl sm:text-3xl font-semibold fl-heading tracking-tight max-w-2xl">
             Not another REST client. An agent that knows your API.
           </h2>
         </div>
@@ -230,7 +231,7 @@ export default function Landing() {
       <Section id="how" className="py-20 sm:py-24 border-t fl-divider">
         <div className="mb-12 fl-fade">
           <div className="text-xs fl-accent font-mono mb-3">HOW IT WORKS</div>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight max-w-2xl">
+          <h2 className="text-2xl sm:text-3xl font-semibold fl-heading tracking-tight max-w-2xl">
             Three steps from request to resolution.
           </h2>
         </div>
@@ -254,7 +255,7 @@ export default function Landing() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
           <div className="fl-fade">
             <div className="text-xs fl-accent font-mono mb-3">SECURITY</div>
-            <h2 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold fl-heading tracking-tight">
               Enterprise-grade by default.
             </h2>
             <p className="text-sm text-gray-400 mt-4 leading-relaxed max-w-md">
@@ -283,7 +284,7 @@ export default function Landing() {
       <Section id="pricing" className="py-20 sm:py-24 border-t fl-divider">
         <div className="mb-12 fl-fade">
           <div className="text-xs fl-accent font-mono mb-3">PRICING</div>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight max-w-2xl">
+          <h2 className="text-2xl sm:text-3xl font-semibold fl-heading tracking-tight max-w-2xl">
             Start free. Scale when you're ready.
           </h2>
         </div>
