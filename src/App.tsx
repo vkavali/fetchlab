@@ -17,6 +17,7 @@ import { generateId } from './utils/helpers';
 import type { Collection, RequestConfig } from './types';
 import Landing from './pages/Landing';
 import Download from './pages/Download';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const SIDEBAR_MIN = 180;
 const SIDEBAR_MAX = 500;
@@ -224,27 +225,54 @@ function useCurrentPath() {
   return path;
 }
 
-const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+const isTauri = (() => {
+  try {
+    return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+  } catch {
+    return false;
+  }
+})();
 
 export default function App() {
-  const path = useCurrentPath();
+  try {
+    const path = useCurrentPath();
 
-  if (!isTauri) {
-    if (path === '/' || path === '') return <Landing />;
-    if (path === '/download') return <Download />;
-    if (path === '/privacy') return <PrivacyPolicy />;
-    if (path === '/terms') return <TermsOfService />;
+    if (!isTauri) {
+      if (path === '/' || path === '') return <ErrorBoundary><Landing /></ErrorBoundary>;
+      if (path === '/download') return <ErrorBoundary><Download /></ErrorBoundary>;
+      if (path === '/privacy') return <ErrorBoundary><PrivacyPolicy /></ErrorBoundary>;
+      if (path === '/terms') return <ErrorBoundary><TermsOfService /></ErrorBoundary>;
+    }
+
+    return (
+      <ErrorBoundary>
+        <AuthProvider>
+          <AuthGate>
+            {({ onSignUp }) => (
+              <ErrorBoundary>
+                <AppProvider>
+                  <AppLayout onSignUp={onSignUp} />
+                </AppProvider>
+              </ErrorBoundary>
+            )}
+          </AuthGate>
+        </AuthProvider>
+      </ErrorBoundary>
+    );
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[App] render error', err);
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-950 text-gray-100 p-4">
+        <div className="max-w-md w-full bg-gray-900 border border-red-500/30 rounded-xl p-6">
+          <h2 className="text-lg font-bold mb-2">FetchLab failed to start</h2>
+          <p className="text-sm text-gray-400 mb-3">{err instanceof Error ? err.message : String(err)}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-semibold"
+          >Reload</button>
+        </div>
+      </div>
+    );
   }
-
-  return (
-    <AuthProvider>
-      <AuthGate>
-        {({ onSignUp }) => (
-          <AppProvider>
-            <AppLayout onSignUp={onSignUp} />
-          </AppProvider>
-        )}
-      </AuthGate>
-    </AuthProvider>
-  );
 }

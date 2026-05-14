@@ -64,8 +64,16 @@ function readOrInitTrialStart(): number {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 async function probeServer(): Promise<boolean> {
+  // In Tauri or file:// context, there's no server — skip probe entirely
+  const proto = window.location.protocol;
+  if (proto === 'tauri:' || proto === 'file:' || proto === 'https:' && window.location.hostname === 'tauri.localhost') {
+    return false;
+  }
   try {
-    const res = await fetch('/api/health', { cache: 'no-store' });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3000); // 3s timeout
+    const res = await fetch('/api/health', { cache: 'no-store', signal: controller.signal });
+    clearTimeout(timer);
     return res.ok;
   } catch {
     return false;
@@ -114,7 +122,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const headers = new Headers(init.headers || {});
     if (token) headers.set('Authorization', `Bearer ${token}`);
     if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
-    return fetch(input, { ...init, headers, credentials: 'include' });
+    try {
+      return await fetch(input, { ...init, headers, credentials: 'include' });
+    } catch {
+      return new Response(JSON.stringify({ error: 'Server unreachable' }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
   };
 
   const refresh = async () => {
@@ -139,13 +154,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const ok = await probeServer();
-      setServerEnabled(ok);
-      if (ok) await refresh();
-      // Initialize trial start lazily — only if there's no logged-in session.
-      // Logged-in users never touch the trial counter.
-      if (!getToken()) {
-        setTrialStart(readOrInitTrialStart());
+      try {
+        const ok = await probeServer();
+        setServerEnabled(ok);
+        if (ok) {
+          try { await refresh(); } catch { /* guest mode */ }
+        }
+      } catch {
+        setServerEnabled(false);
+      }
+      try {
+        if (!getToken()) {
+          setTrialStart(readOrInitTrialStart());
+        }
+      } catch {
+        setTrialStart(Date.now());
       }
       setLoading(false);
     })();
@@ -245,3 +268,4 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
+ 
