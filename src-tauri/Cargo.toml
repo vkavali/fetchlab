@@ -1,0 +1,23 @@
+[package]
+name = "fetchlab"
+version = "1.2.0"
+description = "FetchLab — enterprise API testing client"
+authors = ["FetchLab"]
+license = "MIT"
+repository = ""
+edition = "2021"
+
+[lib]
+name = "fetchlab_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+tauri = { version = "2", features = [] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
