@@ -975,7 +975,7 @@ const STYLES = `
 
 export default function Landing() {
   return (
-    <div className="bg-white min-h-screen font-sans antialiased" style={{ color: TEXT_DARK }}>
+    <div className="bg-white min-h-screen font-sans antialiased overflow-y-auto" style={{ color: TEXT_DARK }}>
       <style>{STYLES}</style>
       <Nav />
       <Hero />
