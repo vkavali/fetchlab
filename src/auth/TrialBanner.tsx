@@ -22,6 +22,7 @@ export default function TrialBanner({ daysRemaining, onSignUp }: TrialBannerProp
   };
 
   const dayLabel = daysRemaining === 1 ? 'day' : 'days';
+  const trialEnded = daysRemaining <= 0;
 
   return (
     <div
@@ -34,7 +35,12 @@ export default function TrialBanner({ daysRemaining, onSignUp }: TrialBannerProp
     >
       <div className="flex items-center gap-2">
         <span>
-          You're using FetchLab as a guest. <strong>{daysRemaining} {dayLabel} remaining.</strong>{' '}
+          You're using FetchLab free.{' '}
+          {!trialEnded && (
+            <>
+              <strong>{daysRemaining} {dayLabel} left in your trial.</strong>{' '}
+            </>
+          )}
           <button
             onClick={onSignUp}
             className="underline font-medium"
@@ -42,7 +48,7 @@ export default function TrialBanner({ daysRemaining, onSignUp }: TrialBannerProp
           >
             Sign up
           </button>{' '}
-          to save your work.
+          to save your work across devices.
         </span>
       </div>
       <button

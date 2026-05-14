@@ -43,7 +43,7 @@ interface AuthContextValue {
 const TOKEN_KEY = 'fetchlab_jwt';
 const ACTIVE_WS_KEY = 'fetchlab_active_workspace';
 const TRIAL_START_KEY = 'fetchlab_trial_start';
-const TRIAL_DAYS = 7;
+const TRIAL_DAYS = 30;
 const TRIAL_MS = TRIAL_DAYS * 24 * 60 * 60 * 1000;
 
 function readOrInitTrialStart(): number {
@@ -152,49 +152,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const login = async (email: string, password: string): Promise<LoginResult> => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Login failed');
-    if (data.twofa_required) {
-      return { twofa_required: true, pending_token: data.pending_token };
+  const parseAuthResponse = async (res: Response, action: 'Login' | 'Registration'): Promise<Record<string, unknown>> => {
+    let data: Record<string, unknown> = {};
+    try { data = await res.json(); } catch { /* non-JSON body (likely HTML 500) */ }
+    if (!res.ok) {
+      if (res.status >= 500) {
+        throw new Error(`${action} unavailable — server not configured`);
+      }
+      const errMsg = typeof data.error === 'string' ? data.error : null;
+      throw new Error(errMsg || `${action} failed (${res.status})`);
     }
-    setToken(data.token);
-    setUser(data.user);
+    return data;
+  };
+
+  const login = async (email: string, password: string): Promise<LoginResult> => {
+    let res: Response;
+    try {
+      res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+      });
+    } catch {
+      throw new Error('Login unavailable — cannot reach server');
+    }
+    const data = await parseAuthResponse(res, 'Login');
+    if (data.twofa_required) {
+      return { twofa_required: true, pending_token: data.pending_token as string | undefined };
+    }
+    setToken(data.token as string);
+    setUser(data.user as AuthUser);
     await refresh();
-    return { user: data.user };
+    return { user: data.user as AuthUser };
   };
 
   const loginVerify2fa = async ({ code, recovery_code, pending_token }: { code?: string; recovery_code?: string; pending_token?: string }) => {
-    const res = await fetch('/api/auth/login/2fa', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, recovery_code, pending_token }),
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || '2FA verification failed');
-    setToken(data.token);
-    setUser(data.user);
+    let res: Response;
+    try {
+      res = await fetch('/api/auth/login/2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, recovery_code, pending_token }),
+        credentials: 'include',
+      });
+    } catch {
+      throw new Error('2FA verification unavailable — cannot reach server');
+    }
+    const data = await parseAuthResponse(res, 'Login');
+    setToken(data.token as string);
+    setUser(data.user as AuthUser);
     await refresh();
   };
 
   const register = async (email: string, password: string, name?: string) => {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name }),
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Registration failed');
-    setToken(data.token);
-    setUser(data.user);
+    let res: Response;
+    try {
+      res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name }),
+        credentials: 'include',
+      });
+    } catch {
+      throw new Error('Registration unavailable — cannot reach server');
+    }
+    const data = await parseAuthResponse(res, 'Registration');
+    setToken(data.token as string);
+    setUser(data.user as AuthUser);
     await refresh();
   };
 

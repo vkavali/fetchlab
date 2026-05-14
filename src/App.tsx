@@ -45,11 +45,11 @@ function usePersistentNumber(key: string, defaultValue: number): [number, (v: nu
 
 function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
   const { state, dispatch } = useApp();
-  const { user, trialActive, trialDaysRemaining } = useAuth();
+  const { user, trialDaysRemaining } = useAuth();
   const [sidebarWidth, setSidebarWidth] = usePersistentNumber('fetchlab_sidebar_width', 256);
   const [splitPercent, setSplitPercent] = usePersistentNumber('fetchlab_split_percent', 50);
   const mainRef = useRef<HTMLDivElement>(null);
-  const showTrialBanner = !user && trialActive;
+  const showTrialBanner = !user;
 
   const handleSidebarResize = useCallback((delta: number) => {
     setSidebarWidth(prev => Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, prev + delta)));
@@ -123,7 +123,7 @@ function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
       {showTrialBanner && (
         <TrialBanner daysRemaining={trialDaysRemaining} onSignUp={() => onSignUp?.()} />
       )}
-      <Header />
+      <Header onSignIn={onSignUp} />
 
       {/* Share import toast */}
       {shareImport && (
@@ -188,9 +188,8 @@ function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
 }
 
 function AuthGate({ children }: { children: (opts: { onSignUp: () => void }) => React.ReactNode }) {
-  const { user, loading, serverEnabled, trialActive, trialEnded } = useAuth();
-  const requireAuth = !import.meta.env.VITE_AUTH_DISABLED;
-  const [forceLogin, setForceLogin] = useState(false);
+  const { loading, trialEnded } = useAuth();
+  const [forceLogin, setForceLogin] = useState<null | 'login' | 'register'>(null);
 
   if (loading) {
     return (
@@ -200,13 +199,11 @@ function AuthGate({ children }: { children: (opts: { onSignUp: () => void }) => 
     );
   }
 
-  // If server isn't reachable (pure static / dev with no backend), allow legacy localStorage mode.
-  if (!serverEnabled) return <>{children({ onSignUp: () => setForceLogin(true) })}</>;
-  if (!requireAuth) return <>{children({ onSignUp: () => setForceLogin(true) })}</>;
-  if (user) return <>{children({ onSignUp: () => setForceLogin(true) })}</>;
-  if (forceLogin) return <LoginPage initialMode="register" />;
-  if (trialActive) return <>{children({ onSignUp: () => setForceLogin(true) })}</>;
-  return <LoginPage trialEnded={trialEnded} />;
+  if (forceLogin) {
+    return <LoginPage initialMode={forceLogin} trialEnded={trialEnded} />;
+  }
+
+  return <>{children({ onSignUp: () => setForceLogin('register') })}</>;
 }
 
 function useCurrentPath() {

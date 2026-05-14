@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { useAuth } from '../auth/AuthContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, User as UserIcon, Users, Bot, Shield, Cpu } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, LogIn, User as UserIcon, Users, Bot, Shield, Cpu } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -14,10 +14,10 @@ import AgentDashboard from './AgentDashboard';
 import SecuritySettings from './SecuritySettings';
 import LLMSettings from './LLMSettings';
 
-export default function Header() {
+export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
   const { state, dispatch } = useApp();
-  const { user, workspaces, activeWorkspaceId, setActiveWorkspaceId, logout, serverEnabled } = useAuth();
-  const isGuest = serverEnabled && !user;
+  const { user, workspaces, activeWorkspaceId, setActiveWorkspaceId, logout } = useAuth();
+  const isGuest = !user;
   const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
   const activeEnv = state.environments.find(e => e.id === state.activeEnvironmentId);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -175,7 +175,7 @@ export default function Header() {
           </button>
 
           {/* Workspace switcher (when authed) */}
-          {serverEnabled && user && workspaces.length > 0 && (
+          {user && workspaces.length > 0 && (
             <div className="relative">
               <button
                 onClick={() => setWsMenuOpen(o => !o)}
@@ -202,8 +202,20 @@ export default function Header() {
             </div>
           )}
 
+          {/* Sign-in entry (guests only) */}
+          {isGuest && onSignIn && (
+            <button
+              onClick={() => onSignIn()}
+              className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] text-gray-300 hover:text-gray-100 hover:bg-gray-800 border border-gray-800"
+              title="Sign in or create an account"
+            >
+              <LogIn size={12} />
+              <span className="hidden sm:inline">Sign in</span>
+            </button>
+          )}
+
           {/* User menu (when authed) */}
-          {serverEnabled && user && (
+          {user && (
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(o => !o)}
