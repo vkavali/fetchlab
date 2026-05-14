@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const INDIGO = '#6366F1';
 const INDIGO_HOVER = '#4F46E5';
@@ -21,7 +21,7 @@ function Reveal({
   children: React.ReactNode;
   delay?: number;
   className?: string;
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
 }) {
   const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(false);
