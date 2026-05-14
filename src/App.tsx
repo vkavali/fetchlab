@@ -224,13 +224,17 @@ function useCurrentPath() {
   return path;
 }
 
+const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+
 export default function App() {
   const path = useCurrentPath();
 
-  if (path === '/' || path === '') return <Landing />;
-  if (path === '/download') return <Download />;
-  if (path === '/privacy') return <PrivacyPolicy />;
-  if (path === '/terms') return <TermsOfService />;
+  if (!isTauri) {
+    if (path === '/' || path === '') return <Landing />;
+    if (path === '/download') return <Download />;
+    if (path === '/privacy') return <PrivacyPolicy />;
+    if (path === '/terms') return <TermsOfService />;
+  }
 
   return (
     <AuthProvider>
