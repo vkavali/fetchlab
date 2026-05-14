@@ -16,6 +16,7 @@ import { extractSharedData, clearShareHash } from './utils/shareLink';
 import { generateId } from './utils/helpers';
 import type { Collection, RequestConfig } from './types';
 import Landing from './pages/Landing';
+import Download from './pages/Download';
 
 const SIDEBAR_MIN = 180;
 const SIDEBAR_MAX = 500;
@@ -222,6 +223,7 @@ export default function App() {
   const path = useCurrentPath();
 
   if (path === '/' || path === '') return <Landing />;
+  if (path === '/download') return <Download />;
   if (path === '/privacy') return <PrivacyPolicy />;
   if (path === '/terms') return <TermsOfService />;
 
