@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { AppProvider } from './store/AppContext';
 import { AuthProvider, useAuth } from './auth/AuthContext';
+import LoginPage from './auth/LoginPage';
 import TrialBanner from './auth/TrialBanner';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -186,6 +187,33 @@ function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
   );
 }
 
+function AuthGate({ children }: { children: (opts: { onSignUp: () => void }) => React.ReactNode }) {
+  const { user, loading, trialEnded } = useAuth();
+  const [forceLogin, setForceLogin] = useState<null | 'login' | 'register'>(null);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-950 text-gray-400 text-sm">
+        Loading…
+      </div>
+    );
+  }
+
+  if (user) {
+    return <>{children({ onSignUp: () => setForceLogin('register') })}</>;
+  }
+
+  if (trialEnded) {
+    return <LoginPage trialEnded initialMode="register" />;
+  }
+
+  if (forceLogin) {
+    return <LoginPage initialMode={forceLogin} />;
+  }
+
+  return <>{children({ onSignUp: () => setForceLogin('register') })}</>;
+}
+
 function useCurrentPath() {
   const [path, setPath] = useState(() => window.location.pathname);
   useEffect(() => {
@@ -206,9 +234,13 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <AppProvider>
-        <AppLayout />
-      </AppProvider>
+      <AuthGate>
+        {({ onSignUp }) => (
+          <AppProvider>
+            <AppLayout onSignUp={onSignUp} />
+          </AppProvider>
+        )}
+      </AuthGate>
     </AuthProvider>
   );
 }
