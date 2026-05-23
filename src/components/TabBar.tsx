@@ -25,36 +25,70 @@ export default function TabBar() {
 
   return (
     <>
-      <div className="flex items-center bg-gray-900/80 border-b border-gray-800 overflow-x-auto scrollbar-hide">
+      <div
+        className="flex items-center overflow-x-auto scrollbar-hide"
+        style={{ background: 'var(--color-surface-2)', borderBottom: '1px solid var(--color-border)' }}
+      >
         <div className="flex items-center flex-1 min-w-0">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tabId: tab.id })}
-              onContextMenu={e => handleContextMenu(e, tab.id)}
-              className={`group flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-r border-gray-800 min-w-0 max-w-[200px] transition-colors ${
-                activeTabId === tab.id
-                  ? 'bg-gray-950 text-gray-100 border-b-2 border-b-brand-500'
-                  : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
-              }`}
-            >
-              <span className={`font-mono font-bold text-[10px] method-${tab.method.toLowerCase()}`}>
-                {tab.method}
-              </span>
-              <span className="truncate">{tab.name || 'New Request'}</span>
-              {tab.isDirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />}
+          {tabs.map(tab => {
+            const active = activeTabId === tab.id;
+            return (
               <button
-                onClick={e => { e.stopPropagation(); dispatch({ type: 'CLOSE_TAB', tabId: tab.id }); }}
-                className="p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-gray-700 text-gray-500 hover:text-gray-200 transition-all flex-shrink-0"
+                key={tab.id}
+                onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tabId: tab.id })}
+                onContextMenu={e => handleContextMenu(e, tab.id)}
+                className="group flex items-center gap-2 px-4 py-2.5 text-xs min-w-0 max-w-[220px] transition-colors relative"
+                style={{
+                  borderRight: '1px solid var(--color-border)',
+                  background: active ? 'var(--color-surface)' : 'transparent',
+                  color: active ? 'var(--color-text)' : 'var(--color-text-muted)',
+                  fontWeight: active ? 500 : 400,
+                }}
               >
-                <X size={12} />
+                <span
+                  className={`font-mono method-${tab.method.toLowerCase()}`}
+                  style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em' }}
+                >
+                  {tab.method}
+                </span>
+                <span className="truncate">{tab.name || 'New Request'}</span>
+                {tab.isDirty && (
+                  <span
+                    className="flex-shrink-0"
+                    style={{
+                      width: 6, height: 6, borderRadius: 999,
+                      background: 'var(--color-warning)',
+                    }}
+                  />
+                )}
+                <button
+                  onClick={e => { e.stopPropagation(); dispatch({ type: 'CLOSE_TAB', tabId: tab.id }); }}
+                  className="p-0.5 rounded opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
+                  style={{ color: 'var(--color-text-subtle)' }}
+                >
+                  <X size={12} />
+                </button>
+                {/* Active underline — orange hairline that slides in */}
+                <span
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    left: 0, right: 0, bottom: -1,
+                    height: 2,
+                    background: 'var(--color-accent)',
+                    transform: active ? 'scaleX(1)' : 'scaleX(0)',
+                    transformOrigin: 'center',
+                    transition: 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+                  }}
+                />
               </button>
-            </button>
-          ))}
+            );
+          })}
         </div>
         <button
           onClick={() => dispatch({ type: 'NEW_TAB' })}
-          className="flex-shrink-0 p-2.5 text-gray-500 hover:text-gray-300 hover:bg-gray-800/50 transition-colors"
+          className="flex-shrink-0 p-2.5 transition-colors hover:bg-[color:var(--color-surface-3)]"
+          style={{ color: 'var(--color-text-muted)' }}
           title="New Tab (Ctrl+N)"
         >
           <Plus size={16} />

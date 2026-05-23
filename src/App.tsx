@@ -169,19 +169,41 @@ function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
         </div>
       </div>
 
-      {/* Footer status bar */}
-      <footer className="flex items-center justify-between px-4 py-1 bg-gray-900/50 border-t border-gray-800 text-[10px] text-gray-600">
+      {/* Footer status bar — instrument-grade nameplate */}
+      <footer
+        className="flex items-center justify-between px-4 py-1.5"
+        style={{
+          background: 'var(--color-surface-2)',
+          borderTop: '1px solid var(--color-border)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 10,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--color-text-subtle)',
+        }}
+      >
         <div className="flex items-center gap-3">
-          <span>FetchLab v1.0.0</span>
-          <span className="w-px h-3 bg-gray-800" />
-          <span className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+          <span style={{ color: 'var(--color-text-muted)' }}>FetchLab v1.2.0</span>
+          <span style={{ width: 1, height: 10, background: 'var(--color-border-strong)' }} />
+          <span className="flex items-center gap-1.5">
+            <span
+              style={{
+                width: 6, height: 6, borderRadius: 999,
+                background: 'var(--color-accent)',
+                boxShadow: '0 0 0 2px color-mix(in oklch, var(--color-accent) 18%, transparent)',
+              }}
+            />
             Ready
           </span>
+          <span style={{ width: 1, height: 10, background: 'var(--color-border-strong)' }} />
+          <span>Local-first · BYOK</span>
         </div>
         <div className="flex items-center gap-3">
-          <span>Press Enter to send</span>
-          <span>Ctrl+N for new tab</span>
+          <span>Enter · Send</span>
+          <span style={{ width: 1, height: 10, background: 'var(--color-border-strong)' }} />
+          <span>Ctrl+N · New tab</span>
+          <span style={{ width: 1, height: 10, background: 'var(--color-border-strong)' }} />
+          <span>Ctrl+L · Focus URL</span>
         </div>
       </footer>
     </div>

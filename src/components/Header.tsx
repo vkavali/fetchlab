@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { useAuth } from '../auth/AuthContext';
-import { PanelLeftClose, PanelLeft, Zap, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, LogIn, User as UserIcon, Users, Bot, Shield, Cpu } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, LogIn, User as UserIcon, Users, Bot, Shield, Cpu } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -55,33 +55,60 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
 
   return (
     <>
-      <header className="flex items-center justify-between px-4 h-11 bg-gray-900 border-b border-gray-800">
+      <header
+        className="flex items-center justify-between px-4 h-11"
+        style={{ background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)' }}
+      >
         <div className="flex items-center gap-3">
           <button
             onClick={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
-            className="p-1.5 rounded text-gray-500 hover:text-gray-200 hover:bg-gray-800"
+            className="p-1.5 rounded hover:bg-gray-800"
+            style={{ color: 'var(--color-text-muted)' }}
             title={state.sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
           >
             {state.sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
           </button>
 
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded bg-[color:var(--color-accent)] flex items-center justify-center">
-              <Zap size={11} className="text-black" strokeWidth={2.5} />
-            </div>
-            <span className="text-[13px] font-medium text-gray-100 tracking-tight">FetchLab</span>
-            <span className="px-1.5 py-0.5 text-[9px] font-medium border border-gray-800 text-gray-500 uppercase tracking-wider">
+          <div className="flex items-center gap-2.5">
+            {/* The accent dot — instrument power-on light, not a logo */}
+            <span
+              aria-hidden
+              style={{
+                width: 7, height: 7, borderRadius: 999,
+                background: 'var(--color-accent)',
+                boxShadow: '0 0 0 3px color-mix(in oklch, var(--color-accent) 14%, transparent)',
+              }}
+            />
+            <span
+              className="fl-wordmark"
+              style={{ fontSize: 11.5, color: 'var(--color-text)' }}
+            >
+              FETCHLAB
+            </span>
+            <span
+              className="font-mono"
+              style={{
+                padding: '2px 6px',
+                fontSize: 9.5,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: 'var(--color-text-subtle)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 3,
+              }}
+            >
               Beta
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5" style={{ color: 'var(--color-text-muted)' }}>
           {/* AI Request Builder — requires server-side auth, hidden for guests */}
           {!isGuest && (
             <button
               onClick={() => setShowAi(true)}
-              className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-[color:var(--color-accent)] hover:bg-gray-800 text-[12px]"
+              className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+              style={{ color: 'var(--color-text-muted)' }}
               title="AI Request Builder — describe in natural language or paste cURL"
             >
               <Sparkles size={13} />
@@ -92,7 +119,8 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
           {/* AI Ops Agent Dashboard */}
           <button
             onClick={() => setShowAgent(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+            style={{ color: 'var(--color-text-muted)' }}
             title="AI Ops Agent — monitors Slack, detects API issues, reproduces & diagnoses"
           >
             <Bot size={13} />
@@ -101,7 +129,8 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
 
           <button
             onClick={() => setShowWebSocket(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+            style={{ color: 'var(--color-text-muted)' }}
             title="WebSocket Tester"
           >
             <Wifi size={13} />
@@ -110,7 +139,8 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
 
           <button
             onClick={() => setShowSSE(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+            style={{ color: 'var(--color-text-muted)' }}
             title="SSE / Event Stream Viewer"
           >
             <Radio size={13} />
@@ -119,7 +149,8 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
 
           <button
             onClick={() => setShowFlow(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+            style={{ color: 'var(--color-text-muted)' }}
             title="Visual API Flow Builder"
           >
             <GitBranch size={13} />
@@ -128,7 +159,8 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
 
           <button
             onClick={() => setShowHealth(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+            style={{ color: 'var(--color-text-muted)' }}
             title="API Health Dashboard"
           >
             <Activity size={13} />
@@ -137,7 +169,8 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
 
           <button
             onClick={() => setShowIntegrations(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+            style={{ color: 'var(--color-text-muted)' }}
             title="Slack, Teams & Embed integrations"
           >
             <Plug size={13} />
@@ -146,32 +179,48 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
 
           <button
             onClick={() => setShowHelp(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800 text-[12px]"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+            style={{ color: 'var(--color-text-muted)' }}
             title="Help & Guide"
           >
             <BookOpen size={13} />
             <span className="hidden sm:inline">Help</span>
           </button>
 
-          <div className="w-px h-4 bg-gray-800 mx-1.5" />
+          <div style={{ width: 1, height: 14, background: 'var(--color-border)', margin: '0 6px' }} />
 
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-1.5 rounded text-gray-400 hover:text-gray-100 hover:bg-gray-800"
+            className="p-1.5 rounded hover:bg-[color:var(--color-surface-3)]"
+            style={{ color: 'var(--color-text-muted)' }}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
           </button>
 
-          {/* Environment selector */}
+          {/* Environment selector — mono label, accent dot only when active */}
           <button
             onClick={() => dispatch({ type: 'SET_SIDEBAR_TAB', tab: 'environments' })}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] text-gray-400 hover:text-gray-100 hover:bg-gray-800"
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+            style={{ color: 'var(--color-text-muted)' }}
             title="Active environment"
           >
             <Globe size={12} />
-            <span>{activeEnv ? activeEnv.name : 'No environment'}</span>
-            {activeEnv && <div className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-accent)]" />}
+            <span
+              className="font-mono"
+              style={{ fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase' }}
+            >
+              {activeEnv ? activeEnv.name : 'No env'}
+            </span>
+            {activeEnv && (
+              <span
+                style={{
+                  width: 6, height: 6, borderRadius: 999,
+                  background: 'var(--color-accent)',
+                  boxShadow: '0 0 0 2px color-mix(in oklch, var(--color-accent) 18%, transparent)',
+                }}
+              />
+            )}
           </button>
 
           {/* Workspace switcher (when authed) */}
@@ -202,11 +251,17 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
             </div>
           )}
 
-          {/* Sign-in entry (guests only) */}
+          {/* Sign-in entry (guests only) — solid signal-orange, mirrors landing CTA */}
           {isGuest && onSignIn && (
             <button
               onClick={() => onSignIn()}
-              className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] text-gray-300 hover:text-gray-100 hover:bg-gray-800 border border-gray-800"
+              className="flex items-center gap-1.5 px-3 h-7 text-[12px] font-semibold"
+              style={{
+                color: 'var(--color-accent-ink)',
+                background: 'var(--color-accent)',
+                borderRadius: 5,
+                marginLeft: 6,
+              }}
               title="Sign in or create an account"
             >
               <LogIn size={12} />

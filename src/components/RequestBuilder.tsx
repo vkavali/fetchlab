@@ -66,35 +66,73 @@ export default function RequestBuilder() {
   return (
     <div className="flex flex-col h-full">
       {/* Request name */}
-      <div className="flex items-center gap-2 px-3 pt-2 pb-0">
+      <div
+        className="flex items-center gap-2 px-3 pt-2 pb-0"
+        style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 6 }}
+      >
+        <span
+          className="font-mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--color-text-subtle)',
+            marginRight: 2,
+          }}
+        >
+          Req
+        </span>
         <input
           value={request.name}
           onChange={e => updateRequest({ name: e.target.value })}
-          placeholder="Request name (optional)..."
-          className="flex-1 bg-transparent border-none text-sm font-medium text-gray-300 placeholder-gray-600 focus:outline-none focus:text-gray-100 truncate"
+          placeholder="Untitled request"
+          className="flex-1 bg-transparent border-none focus:outline-none truncate"
+          style={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: 'var(--color-text)',
+          }}
         />
       </div>
 
       {/* URL Bar */}
-      <div className="flex items-center gap-2 p-3 pt-1.5 bg-gray-900/30">
-        {/* Method selector */}
+      <div
+        className="flex items-center gap-2 p-3"
+        style={{ background: 'var(--color-surface-2)', borderBottom: '1px solid var(--color-border)' }}
+      >
+        {/* Method selector — mono uppercase, hairline border */}
         <div className="relative">
           <button
             onClick={() => setShowMethodDropdown(!showMethodDropdown)}
-            className={`flex items-center gap-1 px-3 py-2.5 rounded-lg bg-gray-800 border border-gray-700 font-mono font-bold text-sm min-w-[100px] justify-between hover:border-gray-600 transition-colors method-${request.method.toLowerCase()}`}
+            className={`flex items-center gap-1.5 px-3 py-2 font-mono text-[13px] min-w-[96px] justify-between method-${request.method.toLowerCase()}`}
+            style={{
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border-strong)',
+              borderRadius: 5,
+              fontWeight: 600,
+              letterSpacing: '0.06em',
+            }}
           >
             {request.method}
-            <ChevronDown size={14} className="text-gray-500" />
+            <ChevronDown size={13} style={{ color: 'var(--color-text-subtle)' }} />
           </button>
           {showMethodDropdown && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setShowMethodDropdown(false)} />
-              <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-20 py-1 min-w-[120px] animate-slide-in">
+              <div
+                className="absolute top-full left-0 mt-1 z-20 py-1 min-w-[120px] animate-slide-in"
+                style={{
+                  background: 'var(--color-surface)',
+                  border: '1px solid var(--color-border-strong)',
+                  borderRadius: 5,
+                }}
+              >
                 {methods.map(m => (
                   <button
                     key={m}
                     onClick={() => { updateRequest({ method: m }); setShowMethodDropdown(false); }}
-                    className={`w-full px-3 py-1.5 text-left text-sm font-mono font-semibold hover:bg-gray-700/50 transition-colors method-${m.toLowerCase()}`}
+                    className={`w-full px-3 py-1.5 text-left text-[13px] font-mono transition-colors method-${m.toLowerCase()} hover:bg-[color:var(--color-surface-3)]`}
+                    style={{ fontWeight: 600, letterSpacing: '0.06em' }}
                   >
                     {m}
                   </button>
@@ -123,20 +161,48 @@ export default function RequestBuilder() {
               if (parsed) updateRequest(parsed);
             }
           }}
-          placeholder="Enter URL or paste cURL command..."
-          className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-gray-100 font-mono placeholder-gray-600 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/20 transition-all"
+          placeholder="https:// or paste cURL command"
+          className="w-full font-mono focus:outline-none transition-colors"
+          style={{
+            background: 'var(--color-input-bg)',
+            border: '1px solid var(--color-border-strong)',
+            borderRadius: 5,
+            padding: '8px 14px',
+            fontSize: 13,
+            color: 'var(--color-text)',
+          }}
         />
 
-        {/* Send button */}
+        {/* Send button — the signature signal-orange action */}
         <button
           onClick={handleSend}
           disabled={isLoading || !request.url}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-brand-600/20"
+          className="flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            padding: '8px 18px',
+            background: 'var(--color-accent)',
+            color: 'var(--color-accent-ink)',
+            borderRadius: 5,
+            fontSize: 13,
+            fontWeight: 600,
+            border: '1px solid var(--color-accent)',
+            transition: 'background-color 200ms cubic-bezier(0.22, 1, 0.36, 1), transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+          onMouseEnter={e => {
+            if (!isLoading && request.url) {
+              e.currentTarget.style.background = 'var(--color-accent-hover)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'var(--color-accent)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
         >
           {isLoading ? (
-            <Loader2 size={16} className="animate-spin" />
+            <Loader2 size={14} className="animate-spin" />
           ) : (
-            <Send size={16} />
+            <Send size={14} />
           )}
           Send
         </button>
@@ -213,33 +279,65 @@ export default function RequestBuilder() {
         <EnvDiff request={request} onClose={() => setShowEnvDiff(false)} />
       )}
 
-      {/* Section tabs */}
-      <div className="flex items-center gap-0 px-1 border-b border-gray-800 overflow-x-auto scrollbar-hide">
+      {/* Section tabs — mono uppercase labels with orange underline scan */}
+      <div
+        className="flex items-center gap-0 px-3 overflow-x-auto scrollbar-hide"
+        style={{ borderBottom: '1px solid var(--color-border)' }}
+      >
         {[
-          { id: 'params' as const, label: 'Params', count: paramCount },
-          { id: 'headers' as const, label: 'Headers', count: headerCount },
-          { id: 'body' as const, label: 'Body' },
-          { id: 'auth' as const, label: 'Auth' },
-          { id: 'scripts' as const, label: 'Scripts' },
+          { id: 'params' as const,      label: 'Params',  count: paramCount },
+          { id: 'headers' as const,     label: 'Headers', count: headerCount },
+          { id: 'body' as const,        label: 'Body' },
+          { id: 'auth' as const,        label: 'Auth' },
+          { id: 'scripts' as const,     label: 'Scripts' },
           { id: 'extractions' as const, label: 'Extract' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveSection(tab.id)}
-            className={`flex items-center gap-1 px-2 py-2 text-[11px] font-medium border-b-2 transition-colors flex-shrink-0 ${
-              activeSection === tab.id
-                ? 'border-brand-400 text-brand-400'
-                : 'border-transparent text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            {tab.label}
-            {tab.count !== undefined && tab.count > 0 && (
-              <span className="px-1 py-0 rounded-full bg-brand-500/20 text-brand-400 text-[9px] font-semibold">
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
+        ].map(tab => {
+          const active = activeSection === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveSection(tab.id)}
+              className="font-mono flex items-center gap-1.5 px-3 py-2.5 flex-shrink-0 relative transition-colors"
+              style={{
+                fontSize: 10.5,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                fontWeight: active ? 600 : 500,
+                color: active ? 'var(--color-text)' : 'var(--color-text-subtle)',
+              }}
+            >
+              {tab.label}
+              {tab.count !== undefined && tab.count > 0 && (
+                <span
+                  style={{
+                    padding: '1px 5px',
+                    background: active ? 'var(--color-accent-soft)' : 'var(--color-surface-3)',
+                    color: active ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                    fontSize: 9,
+                    fontWeight: 600,
+                    borderRadius: 3,
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {tab.count}
+                </span>
+              )}
+              {/* Active underline — orange hairline scan */}
+              <span
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  left: 6, right: 6, bottom: -1,
+                  height: 2,
+                  background: 'var(--color-accent)',
+                  transform: active ? 'scaleX(1)' : 'scaleX(0)',
+                  transformOrigin: 'center',
+                  transition: 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
+              />
+            </button>
+          );
+        })}
       </div>
 
       {/* Section content */}

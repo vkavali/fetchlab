@@ -22,30 +22,57 @@ export default function Sidebar() {
   const { sidebarTab, collections, history, environments, activeEnvironmentId } = state;
 
   return (
-    <div className="flex flex-col h-full bg-gray-900/50 border-r border-gray-800">
-      {/* Sidebar tabs — icon + short label, wraps on narrow sidebar */}
-      <div className="grid grid-cols-5 border-b border-gray-800">
+    <div
+      className="flex flex-col h-full"
+      style={{ background: 'var(--color-surface-2)', borderRight: '1px solid var(--color-border)' }}
+    >
+      {/* Sidebar tabs — mono uppercase labels, accent underline on active */}
+      <div
+        className="grid grid-cols-5"
+        style={{ borderBottom: '1px solid var(--color-border)' }}
+      >
         {[
-          { id: 'collections' as const, icon: FolderOpen, label: 'APIs' },
-          { id: 'history' as const, icon: History, label: 'History' },
-          { id: 'environments' as const, icon: Globe, label: 'Env' },
-          { id: 'tokens' as const, icon: Key, label: 'Auth' },
-          { id: 'snippets' as const, icon: Puzzle, label: 'Snip' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => dispatch({ type: 'SET_SIDEBAR_TAB', tab: tab.id })}
-            title={tab.id === 'collections' ? 'Collections' : tab.id === 'snippets' ? 'Snippets' : tab.id === 'tokens' ? 'Token Profiles' : tab.label}
-            className={`flex flex-col items-center justify-center gap-0.5 py-2 text-[9px] font-medium transition-colors ${
-              sidebarTab === tab.id
-                ? 'text-brand-400 border-b-2 border-brand-400 bg-brand-400/5'
-                : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
-            }`}
-          >
-            <tab.icon size={14} />
-            <span>{tab.label}</span>
-          </button>
-        ))}
+          { id: 'collections' as const,   icon: FolderOpen, label: 'APIs' },
+          { id: 'history' as const,       icon: History,    label: 'Log' },
+          { id: 'environments' as const,  icon: Globe,      label: 'Env' },
+          { id: 'tokens' as const,        icon: Key,        label: 'Auth' },
+          { id: 'snippets' as const,      icon: Puzzle,     label: 'Snip' },
+        ].map(tab => {
+          const active = sidebarTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => dispatch({ type: 'SET_SIDEBAR_TAB', tab: tab.id })}
+              title={tab.id === 'collections' ? 'Collections' : tab.id === 'snippets' ? 'Snippets' : tab.id === 'tokens' ? 'Token Profiles' : tab.id === 'history' ? 'Request log' : tab.label}
+              className="flex flex-col items-center justify-center gap-1 py-2.5 transition-colors relative"
+              style={{
+                color: active ? 'var(--color-text)' : 'var(--color-text-subtle)',
+                background: active ? 'var(--color-surface)' : 'transparent',
+              }}
+            >
+              <tab.icon size={13} style={{ color: active ? 'var(--color-accent)' : 'currentColor' }} />
+              <span
+                className="font-mono"
+                style={{ fontSize: 9.5, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 500 }}
+              >
+                {tab.label}
+              </span>
+              {/* Active underline — signal orange hairline */}
+              <span
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  left: 4, right: 4, bottom: -1,
+                  height: 2,
+                  background: 'var(--color-accent)',
+                  transform: active ? 'scaleX(1)' : 'scaleX(0)',
+                  transformOrigin: 'center',
+                  transition: 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
+              />
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -148,14 +175,28 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
   return (
     <div className="p-2">
       <div className="flex items-center justify-between px-2 py-1.5 mb-1">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Collections</span>
+        <span
+          className="font-mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--color-text-muted)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <span aria-hidden style={{ width: 14, height: 1, background: 'var(--color-border-strong)' }} />
+          Collections
+        </span>
         <div className="flex items-center gap-1">
           <button
             onClick={handleImportCollection}
             className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 text-[10px] font-medium transition-colors border border-gray-700/50"
             title="Import collection from JSON"
           >
-            <Upload size={12} />
+            <Download size={12} />
             Import
           </button>
           <button
@@ -238,7 +279,7 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
                   onClick={e => handleExportCollection(e, col)}
                   className="flex flex-col items-center gap-0.5 px-1 py-1.5 rounded text-[9px] font-medium text-gray-500 hover:text-brand-400 hover:bg-gray-800/50 transition-colors"
                 >
-                  <Download size={12} />
+                  <Upload size={12} />
                   Export
                 </button>
                 <button
@@ -304,7 +345,7 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
                           className="p-1 rounded text-gray-500 hover:text-amber-400 hover:bg-gray-700/50 transition-colors opacity-0 group-hover:opacity-100"
                           title="Export as file"
                         >
-                          <Download size={12} />
+                          <Upload size={12} />
                         </button>
                       </>
                     )}
@@ -368,7 +409,21 @@ function HistoryPanel({ history }: { history: import('../types').HistoryEntry[] 
   return (
     <div className="p-2">
       <div className="flex items-center justify-between px-2 py-1 mb-2">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">History</span>
+        <span
+          className="font-mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--color-text-muted)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <span aria-hidden style={{ width: 14, height: 1, background: 'var(--color-border-strong)' }} />
+          Request log
+        </span>
         {history.length > 0 && (
           <button
             onClick={() => dispatch({ type: 'CLEAR_HISTORY' })}
@@ -478,7 +533,21 @@ function EnvironmentsPanel({ environments, activeId }: { environments: Environme
   return (
     <div className="p-2">
       <div className="flex items-center justify-between px-2 py-1 mb-1">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Environments</span>
+        <span
+          className="font-mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--color-text-muted)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <span aria-hidden style={{ width: 14, height: 1, background: 'var(--color-border-strong)' }} />
+          Environments
+        </span>
         <button onClick={() => setShowNew(true)} className="p-1 rounded hover:bg-gray-700 text-gray-500 hover:text-gray-300 transition-colors">
           <Plus size={14} />
         </button>

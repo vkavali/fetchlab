@@ -35,32 +35,69 @@ export default function ResponseViewer() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4">
-        <div className="relative">
-          <div className="w-12 h-12 rounded-full border-2 border-gray-800 border-t-brand-500 animate-spin" />
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="loading-dot w-1.5 h-1.5 rounded-full bg-brand-400" />
-          <div className="loading-dot w-1.5 h-1.5 rounded-full bg-brand-400" />
-          <div className="loading-dot w-1.5 h-1.5 rounded-full bg-brand-400" />
-        </div>
-        <p className="text-sm text-gray-500">Sending request...</p>
+      <div className="flex flex-col items-center justify-center h-full gap-5" style={{ color: 'var(--color-text-muted)' }}>
+        <div
+          className="animate-spin"
+          style={{
+            width: 36, height: 36, borderRadius: 999,
+            border: '1.5px solid var(--color-border)',
+            borderTopColor: 'var(--color-accent)',
+          }}
+        />
+        <p
+          className="font-mono"
+          style={{
+            fontSize: 10.5,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--color-text-subtle)',
+          }}
+        >
+          Agent dispatching request…
+        </p>
       </div>
     );
   }
 
   if (!response) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-3 px-8">
-        <div className="w-16 h-16 rounded-2xl bg-gray-800/50 flex items-center justify-center">
-          <ArrowDown size={24} className="text-gray-600" />
+      <div className="flex flex-col items-center justify-center h-full gap-4 px-8">
+        <div
+          style={{
+            width: 44, height: 44, borderRadius: 8,
+            background: 'var(--color-surface-2)',
+            border: '1px solid var(--color-border-strong)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <ArrowDown size={18} style={{ color: 'var(--color-text-subtle)' }} />
         </div>
-        <p className="text-sm text-gray-500 text-center">
-          Enter a URL and hit Send to see the response
+        <p
+          className="font-mono"
+          style={{
+            fontSize: 10.5,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--color-text-subtle)',
+            textAlign: 'center',
+          }}
+        >
+          No specimen yet
         </p>
-        <div className="flex items-center gap-4 mt-2 text-[10px] text-gray-700">
-          <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-gray-500">Enter</kbd> to send</span>
-        </div>
+        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', textAlign: 'center', maxWidth: '32ch' }}>
+          Compose a request and press <kbd
+            className="font-mono"
+            style={{
+              padding: '1px 6px',
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border-strong)',
+              borderRadius: 3,
+              fontSize: 11,
+              color: 'var(--color-text)',
+              letterSpacing: '0.04em',
+            }}
+          >Enter</kbd> to fire it.
+        </p>
       </div>
     );
   }
@@ -107,32 +144,60 @@ export default function ResponseViewer() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Status bar */}
-      <div className="flex items-center gap-3 px-3 py-2 border-b border-gray-800 bg-gray-900/30">
+      {/* Status bar — instrument readout */}
+      <div
+        className="flex items-center gap-4 px-3 py-2"
+        style={{ background: 'var(--color-surface-2)', borderBottom: '1px solid var(--color-border)' }}
+      >
         {!isError && (
           <>
-            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-mono text-sm font-bold ${getStatusClass(response.status)} ${
-              response.status < 300 ? 'bg-green-500/10' : response.status < 400 ? 'bg-blue-500/10' : response.status < 500 ? 'bg-amber-500/10' : 'bg-red-500/10'
-            }`}>
-              <div className={`w-2 h-2 rounded-full ${
-                response.status < 300 ? 'bg-green-400' : response.status < 400 ? 'bg-blue-400' : response.status < 500 ? 'bg-amber-400' : 'bg-red-400'
-              }`} />
-              {response.status} {response.statusText}
+            <div
+              className={`flex items-center gap-2 ${getStatusClass(response.status)}`}
+              style={{ fontFamily: 'var(--font-mono)' }}
+            >
+              <span
+                style={{
+                  width: 7, height: 7, borderRadius: 999,
+                  background:
+                    response.status < 300 ? 'var(--color-success)' :
+                    response.status < 400 ? 'var(--color-text-muted)' :
+                    response.status < 500 ? 'var(--color-warning)' :
+                    'var(--color-error)',
+                  boxShadow: response.status < 300
+                    ? '0 0 0 2px color-mix(in oklch, var(--color-success) 18%, transparent)'
+                    : 'none',
+                }}
+              />
+              <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: '0.02em' }}>
+                {response.status} {response.statusText}
+              </span>
             </div>
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <Clock size={12} />
-              <span className="font-mono">{formatTime(response.time)}</span>
+            <div style={{ width: 1, height: 14, background: 'var(--color-border)' }} />
+            <div className="flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
+              <Clock size={11} />
+              <span className="font-mono" style={{ fontSize: 12 }}>{formatTime(response.time)}</span>
             </div>
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <HardDrive size={12} />
-              <span className="font-mono">{formatBytes(response.size)}</span>
+            <div className="flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
+              <HardDrive size={11} />
+              <span className="font-mono" style={{ fontSize: 12 }}>{formatBytes(response.size)}</span>
             </div>
           </>
         )}
         {isError && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-500/10 text-red-400 text-sm font-medium">
-            <div className="w-2 h-2 rounded-full bg-red-400" />
-            Request Failed
+          <div
+            className="flex items-center gap-2"
+            style={{ color: 'var(--color-error)' }}
+          >
+            <span
+              style={{
+                width: 7, height: 7, borderRadius: 999,
+                background: 'var(--color-error)',
+                boxShadow: '0 0 0 2px color-mix(in oklch, var(--color-error) 18%, transparent)',
+              }}
+            />
+            <span className="font-mono" style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.04em' }}>
+              Request failed
+            </span>
           </div>
         )}
 
