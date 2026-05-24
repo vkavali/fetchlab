@@ -1893,7 +1893,8 @@ function PricingCell({ value, highlight, revealed, delay = 0 }: { value: Cell; h
   return <span style={{ color: 'var(--color-text)', fontSize: 13 }}>{value}</span>;
 }
 
-function Pricing() {
+// Exported for a future standalone /pricing route — not rendered on the landing.
+export function Pricing() {
   const [tableRef, tableInView] = useInView<HTMLDivElement>({ threshold: 0.15 });
   return (
     <section id="pricing" style={{ position: 'relative' }}>
@@ -2053,7 +2054,7 @@ function Pricing() {
                 })}
                 <tr>
                   <td style={{ padding: '20px 22px' }} />
-                  {PLAN_COLS.map((c, i) => (
+                  {PLAN_COLS.map(c => (
                     <td
                       key={c.key}
                       style={{

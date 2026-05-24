@@ -8,6 +8,7 @@ interface Props {
   onSubmit: () => void;
   placeholder?: string;
   className?: string;
+  style?: React.CSSProperties;
   onPaste?: (e: React.ClipboardEvent) => void;
 }
 
@@ -19,7 +20,7 @@ interface Suggestion {
   score: number;
 }
 
-export default function UrlAutocomplete({ value, onChange, onSubmit, placeholder, className, onPaste }: Props) {
+export default function UrlAutocomplete({ value, onChange, onSubmit, placeholder, className, style, onPaste }: Props) {
   const { state } = useApp();
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(0);
@@ -140,6 +141,7 @@ export default function UrlAutocomplete({ value, onChange, onSubmit, placeholder
         onPaste={onPaste}
         placeholder={placeholder}
         className={className}
+        style={style}
       />
 
       {/* Environment variable badge */}
