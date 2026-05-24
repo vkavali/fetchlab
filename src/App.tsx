@@ -16,6 +16,7 @@ import { extractSharedData, clearShareHash } from './utils/shareLink';
 import { generateId } from './utils/helpers';
 import type { Collection, RequestConfig } from './types';
 import Landing from './pages/Landing';
+import Pricing from './pages/Pricing';
 import Download from './pages/Download';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -261,6 +262,7 @@ export default function App() {
 
     if (!isTauri) {
       if (path === '/' || path === '') return <ErrorBoundary><Landing /></ErrorBoundary>;
+      if (path === '/pricing') return <ErrorBoundary><Pricing /></ErrorBoundary>;
       if (path === '/download') return <ErrorBoundary><Download /></ErrorBoundary>;
       if (path === '/privacy') return <ErrorBoundary><PrivacyPolicy /></ErrorBoundary>;
       if (path === '/terms') return <ErrorBoundary><TermsOfService /></ErrorBoundary>;

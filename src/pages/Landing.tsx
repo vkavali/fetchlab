@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 
 /* ============================================================================
- * FetchLab — Marketing landing, "Cool Laboratory" register.
+ * FetchLab â€” Marketing landing, "Cool Laboratory" register.
  *
- * Cool ink on warm paper. One accent (signal orange) used at <5% —
+ * Cool ink on warm paper. One accent (signal orange) used at <5% â€”
  * the cursor, status dots, the Send button, leader marks. Restraint is
  * the brand. No gradients, no glows, no floating mockups.
  * ========================================================================== */
@@ -64,7 +64,7 @@ function Reveal({
   );
 }
 
-/* Section rule — gray hairline that gets briefly drawn in signal-orange
+/* Section rule â€” gray hairline that gets briefly drawn in signal-orange
    when it enters the viewport, like a fresh scan completing. */
 function SectionRule() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.4 });
@@ -85,7 +85,7 @@ function SectionRule() {
   );
 }
 
-/* CTA — solid signal-orange button with micro-lift on hover, no bounce. */
+/* CTA â€” solid signal-orange button with micro-lift on hover, no bounce. */
 function CTA({
   href,
   children,
@@ -126,14 +126,14 @@ function CTA({
             transition: `transform 220ms ${EASE}`,
           }}
         >
-          →
+          â†’
         </span>
       )}
     </a>
   );
 }
 
-/* Ghost button — hairline border, subtle text-only hover. */
+/* Ghost button â€” hairline border, subtle text-only hover. */
 function GhostCTA({ href, children }: { href: string; children: React.ReactNode }) {
   const [hover, setHover] = useState(false);
   return (
@@ -159,7 +159,7 @@ function GhostCTA({ href, children }: { href: string; children: React.ReactNode 
   );
 }
 
-/* ---------- Number counter — ticks from a low number up to target ---------- */
+/* ---------- Number counter â€” ticks from a low number up to target ---------- */
 
 function Counter({ target, duration = 700, pad = 0 }: { target: number | string; duration?: number; pad?: number }) {
   const targetN = typeof target === 'string' ? parseInt(target, 10) : target;
@@ -234,7 +234,7 @@ function ScrollProgress() {
   );
 }
 
-/* ---------- Agent-loop meta — the status bar under the hero CTAs ---------- */
+/* ---------- Agent-loop meta â€” the status bar under the hero CTAs ---------- */
 
 const LOOP_STEPS = ['Detect', 'Reproduce', 'Root-cause', 'Propose', 'Verify'];
 
@@ -401,7 +401,7 @@ function Nav() {
 /* ---------- Hero visual: the Postmortem Specimen ----------
  *
  * Not a screenshot of the tool. Not a "look, JSON" hero.
- * The agent's deliverable — a printed-incident-report card. The product
+ * The agent's deliverable â€” a printed-incident-report card. The product
  * is the agent's investigation; we show its output.
  * ------------------------------------------------------------------ */
 
@@ -422,7 +422,7 @@ function PostmortemSpecimen() {
     return () => clearInterval(id);
   }, []);
 
-  // Scanner pass — one-shot forensic line that travels top→bottom
+  // Scanner pass â€” one-shot forensic line that travels topâ†’bottom
   useEffect(() => {
     if (!cardRef.current) return;
     const cardHeight = cardRef.current.offsetHeight;
@@ -507,7 +507,7 @@ function PostmortemSpecimen() {
         overflow: 'hidden',
       }}
     >
-      {/* Scanner pass — a single forensic line travels top→bottom once */}
+      {/* Scanner pass â€” a single forensic line travels topâ†’bottom once */}
       <span
         aria-hidden
         style={{
@@ -522,7 +522,7 @@ function PostmortemSpecimen() {
           willChange: 'transform, opacity',
         }}
       />
-      {/* Plate / sheet header — like the top of a printed form */}
+      {/* Plate / sheet header â€” like the top of a printed form */}
       <div
         className="flex items-center justify-between"
         style={{
@@ -548,7 +548,7 @@ function PostmortemSpecimen() {
             className="font-mono"
             style={{ fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--color-text-subtle)' }}
           >
-            · SPECIMEN <Counter target="0042" pad={4} duration={900} />
+            Â· SPECIMEN <Counter target="0042" pad={4} duration={900} />
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -557,12 +557,12 @@ function PostmortemSpecimen() {
             className="font-mono"
             style={{ fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}
           >
-            Closed · 4m 12s
+            Closed Â· 4m 12s
           </span>
         </div>
       </div>
 
-      {/* Subject — what was hurting */}
+      {/* Subject â€” what was hurting */}
       <div style={{ padding: '20px 18px 14px', borderBottom: border }}>
         <div
           className="font-mono"
@@ -594,7 +594,7 @@ function PostmortemSpecimen() {
           transition: `opacity 360ms ${EASE}, transform 360ms ${EASE}`,
         }}
       >
-        <Row revealed={progress >= 1} k="Detected" v={<>14:02 UTC · validator threw <span className="font-mono">SchemaError</span></>} />
+        <Row revealed={progress >= 1} k="Detected" v={<>14:02 UTC Â· validator threw <span className="font-mono">SchemaError</span></>} />
       </div>
       <div
         style={{
@@ -603,7 +603,7 @@ function PostmortemSpecimen() {
           transition: `opacity 360ms ${EASE}, transform 360ms ${EASE}`,
         }}
       >
-        <Row revealed={progress >= 2} k="Reproduced" v={<>4 of 4 calls · 100% repro · staging mirrored</>} />
+        <Row revealed={progress >= 2} k="Reproduced" v={<>4 of 4 calls Â· 100% repro Â· staging mirrored</>} />
       </div>
       <div
         style={{
@@ -619,7 +619,7 @@ function PostmortemSpecimen() {
         />
       </div>
 
-      {/* The diff — small, instrument-clean */}
+      {/* The diff â€” small, instrument-clean */}
       <div
         style={{
           padding: '14px 18px',
@@ -641,7 +641,7 @@ function PostmortemSpecimen() {
             className="font-mono"
             style={{ fontSize: 10.5, color: 'var(--color-text-subtle)' }}
           >
-            schemas/order.ts · +1 −0
+            schemas/order.ts Â· +1 âˆ’0
           </span>
         </div>
         <div
@@ -698,7 +698,7 @@ function PostmortemSpecimen() {
           <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--color-text-subtle)', marginRight: 10 }}>
             Resolution
           </span>
-          PR <span className="font-mono" style={{ color: 'var(--color-accent)' }}>#1284</span> opened by FetchLab · merged by @ada
+          PR <span className="font-mono" style={{ color: 'var(--color-accent)' }}>#1284</span> opened by FetchLab Â· merged by @ada
         </span>
         <span
           className="font-mono"
@@ -716,7 +716,7 @@ function PostmortemSpecimen() {
 function Hero() {
   return (
     <section style={{ position: 'relative', overflow: 'hidden' }}>
-      {/* Faint engineering-paper backdrop — the whole hero sits on lab paper */}
+      {/* Faint engineering-paper backdrop â€” the whole hero sits on lab paper */}
       <div
         aria-hidden
         className="absolute inset-0 fl-grid-paper"
@@ -731,7 +731,7 @@ function Hero() {
       <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pt-16 pb-20 md:pt-24 md:pb-28 relative">
         <Reveal>
           <div style={{ marginBottom: 32 }}>
-            <Eyebrow index="00">Incident report · Specimen 0042</Eyebrow>
+            <Eyebrow index="00">Incident report Â· Specimen 0042</Eyebrow>
           </div>
         </Reveal>
 
@@ -792,7 +792,7 @@ function Hero() {
   );
 }
 
-/* ---------- Drenched orange declaration — the one big committed color moment ---------- */
+/* ---------- Drenched orange declaration â€” the one big committed color moment ---------- */
 
 function Declaration() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.35 });
@@ -816,7 +816,7 @@ function Declaration() {
           }}
         >
           <span aria-hidden style={{ width: 22, height: 1, background: 'currentColor', opacity: 0.7 }} />
-          Median time to fix · measured live
+          Median time to fix Â· measured live
         </div>
 
         <h2
@@ -872,8 +872,8 @@ function Declaration() {
             }}
           >
             <div>Week ending Nov 21</div>
-            <div>Ops agent v0.6 · Continuous</div>
-            <div>p50 · p95 within 11m 04s</div>
+            <div>Ops agent v0.6 Â· Continuous</div>
+            <div>p50 Â· p95 within 11m 04s</div>
           </div>
         </div>
       </div>
@@ -881,20 +881,20 @@ function Declaration() {
   );
 }
 
-/* ---------- The loop — presented as the agent's actual investigation log ---------- */
+/* ---------- The loop â€” presented as the agent's actual investigation log ---------- */
 
 type LogEntry = { t: string; stage: string; line: string; mark?: 'ok' | 'warn' };
 const LOG_ENTRIES: LogEntry[] = [
-  { t: '02:14:32', stage: 'detect',     line: '/v1/orders 500 · 1 of 12 calls in the last minute' },
-  { t: '02:14:38', stage: 'detect',     line: '/v1/orders 500 · 4 of 28 calls · threshold crossed', mark: 'warn' },
-  { t: '02:14:41', stage: 'reproduce',  line: 'firing the failing call against staging…' },
-  { t: '02:14:43', stage: 'reproduce',  line: '500 confirmed · 4 of 4 calls reproduce the error', mark: 'ok' },
-  { t: '02:14:51', stage: 'rootcause',  line: 'reading deploy diff a3f2c against schemas/order.ts…' },
+  { t: '02:14:32', stage: 'detect',     line: '/v1/orders 500 Â· 1 of 12 calls in the last minute' },
+  { t: '02:14:38', stage: 'detect',     line: '/v1/orders 500 Â· 4 of 28 calls Â· threshold crossed', mark: 'warn' },
+  { t: '02:14:41', stage: 'reproduce',  line: 'firing the failing call against stagingâ€¦' },
+  { t: '02:14:43', stage: 'reproduce',  line: '500 confirmed Â· 4 of 4 calls reproduce the error', mark: 'ok' },
+  { t: '02:14:51', stage: 'rootcause',  line: 'reading deploy diff a3f2c against schemas/order.tsâ€¦' },
   { t: '02:14:58', stage: 'rootcause',  line: 'customer_id removed from the request validator', mark: 'ok' },
   { t: '02:16:02', stage: 'propose',    line: 'drafting PR against feature/order-validation' },
-  { t: '02:16:48', stage: 'propose',    line: 'PR #1284 opened · 1 line · narrowest-fix', mark: 'ok' },
-  { t: '02:18:44', stage: 'verify',     line: 'replaying call after merge…' },
-  { t: '02:18:46', stage: 'verify',     line: '201 returned · specimen closed', mark: 'ok' },
+  { t: '02:16:48', stage: 'propose',    line: 'PR #1284 opened Â· 1 line Â· narrowest-fix', mark: 'ok' },
+  { t: '02:18:44', stage: 'verify',     line: 'replaying call after mergeâ€¦' },
+  { t: '02:18:46', stage: 'verify',     line: '201 returned Â· specimen closed', mark: 'ok' },
 ];
 
 function HowItWorks() {
@@ -923,7 +923,7 @@ function HowItWorks() {
             This is what the agent does, on its own, in four minutes twelve seconds.
           </h2>
           <p style={{ fontSize: 17, maxWidth: '60ch', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
-            The log below is real, in the sense that it's the shape of every investigation —
+            The log below is real, in the sense that it's the shape of every investigation â€”
             timestamp, stage, action, mark. Not a diagram of a loop. The loop itself.
           </p>
         </Reveal>
@@ -938,7 +938,7 @@ function HowItWorks() {
               borderRadius: 8,
             }}
           >
-            {/* Log header — like a terminal session title */}
+            {/* Log header â€” like a terminal session title */}
             <div
               className="flex items-center justify-between font-mono"
               style={{
@@ -952,10 +952,10 @@ function HowItWorks() {
               }}
             >
               <span>
-                <span style={{ color: 'var(--color-accent)', marginRight: 12 }}>●</span>
-                Investigation 0042 · ops-agent v0.6
+                <span style={{ color: 'var(--color-accent)', marginRight: 12 }}>â—</span>
+                Investigation 0042 Â· ops-agent v0.6
               </span>
-              <span>Specimen filed · Form A-7</span>
+              <span>Specimen filed Â· Form A-7</span>
             </div>
 
             {/* The log itself */}
@@ -1019,9 +1019,9 @@ function HowItWorks() {
                 color: 'var(--color-text-subtle)',
               }}
             >
-              <span>Total · 4m 12s</span>
-              <span>Engineer interventions · 0</span>
-              <span>PR · <span style={{ color: 'var(--color-accent)' }}>#1284</span></span>
+              <span>Total Â· 4m 12s</span>
+              <span>Engineer interventions Â· 0</span>
+              <span>PR Â· <span style={{ color: 'var(--color-accent)' }}>#1284</span></span>
             </div>
           </div>
         </Reveal>
@@ -1059,11 +1059,11 @@ function AIBuilderVisual() {
           Generated assertions
         </span>
         <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.06em' }}>
-          tests/orders.fl · +6 lines
+          tests/orders.fl Â· +6 lines
         </span>
       </div>
 
-      {/* Prompt — the human side, terse */}
+      {/* Prompt â€” the human side, terse */}
       <div style={{ padding: '12px 14px', borderBottom: border, background: 'var(--color-surface-2)' }}>
         <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--color-text-subtle)', marginRight: 10 }}>
           Ask
@@ -1073,7 +1073,7 @@ function AIBuilderVisual() {
         </span>
       </div>
 
-      {/* The agent's output — each line stamps in, like the agent is writing */}
+      {/* The agent's output â€” each line stamps in, like the agent is writing */}
       <div className="font-mono" style={{ padding: '14px 14px', fontSize: 12, lineHeight: 1.65 }}>
         {lines.map((line, i) => (
           <div
@@ -1092,7 +1092,7 @@ function AIBuilderVisual() {
         ))}
       </div>
 
-      {/* Result line — the verdict, not the click */}
+      {/* Result line â€” the verdict, not the click */}
       <div
         className="flex items-center justify-between"
         style={{
@@ -1107,7 +1107,7 @@ function AIBuilderVisual() {
           <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-success)', marginRight: 8 }}>
             Passed
           </span>
-          2 of 2 · 184 ms total
+          2 of 2 Â· 184 ms total
         </span>
         <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.06em' }}>
           claude-opus-4-7
@@ -1179,7 +1179,7 @@ function AgentVisual() {
           # api-alerts
         </span>
         <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.06em' }}>
-          14:02 · live
+          14:02 Â· live
         </span>
       </div>
       <div style={{ padding: 14, fontSize: 13.5, color: 'var(--color-text)', lineHeight: 1.6 }}>
@@ -1227,7 +1227,7 @@ function AgentVisual() {
   );
 }
 
-/* ---------- Features — single long-form chapter treatment with inline figures ---------- */
+/* ---------- Features â€” single long-form chapter treatment with inline figures ---------- */
 
 function Chapter({
   num,
@@ -1298,7 +1298,7 @@ function Chapter({
             </div>
           </div>
 
-          {/* Marginalia — a printed-book-style aside */}
+          {/* Marginalia â€” a printed-book-style aside */}
           <aside
             className="hidden lg:block"
             style={{
@@ -1351,7 +1351,7 @@ function Chapter({
           >
             <span aria-hidden style={{ width: 18, height: 1, background: 'var(--color-border-strong)' }} />
             <span style={{ color: 'var(--color-accent)' }}>{figLabel}</span>
-            <span style={{ color: 'var(--color-text-muted)' }}>·</span>
+            <span style={{ color: 'var(--color-text-muted)' }}>Â·</span>
             <span>{figCaption}</span>
           </div>
           {figure}
@@ -1394,14 +1394,14 @@ function Features() {
             <>
               Describe in plain English. FetchLab drafts the request, picks the headers,
               generates a sample body, and writes the assertions. After every response,
-              it can write the tests for you — against the body you actually got back,
+              it can write the tests for you â€” against the body you actually got back,
               not the body the spec promised.
               <br /><br />
               The model is yours. Anthropic, OpenAI, Bedrock, or Vertex. The request and
               the response stay on your machine.
             </>
           }
-          marginalia="The point isn't that AI writes code. The point is that it reads your traffic — the real, shaped-by-production thing — instead of the docs nobody updates."
+          marginalia="The point isn't that AI writes code. The point is that it reads your traffic â€” the real, shaped-by-production thing â€” instead of the docs nobody updates."
           figLabel="Fig. 02.01"
           figCaption="Generated assertions in context"
           figure={<AIBuilderVisual />}
@@ -1412,7 +1412,7 @@ function Features() {
           title="Your keys. Your cloud. Your rules."
           body={
             <>
-              Bring your own key — Anthropic, AWS Bedrock, Google Vertex, OpenAI. Keys
+              Bring your own key â€” Anthropic, AWS Bedrock, Google Vertex, OpenAI. Keys
               are stored encrypted on your machine. Requests, headers, and bodies never
               leave your network unless you tell them to.
               <br /><br />
@@ -1449,18 +1449,18 @@ function Features() {
   );
 }
 
-/* ---------- Orange ticker bar — different rhythm from the Declaration ---------- */
+/* ---------- Orange ticker bar â€” different rhythm from the Declaration ---------- */
 
 function TickerBar() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.4 });
   // Build a marquee string from the specimens; double it so the loop is seamless
   const tickerItems = [
-    'SPEC 0042 · POST /v1/orders · 4M 12S',
-    'SPEC 0041 · POST /v1/billing/invoice · 6M 41S',
-    'SPEC 0040 · POST /v1/auth/refresh · 2M 03S',
-    'SPEC 0039 · GET /v1/search · 8M 19S',
-    'SPEC 0038 · PUT /v1/files/upload · 3M 47S',
-    'SPEC 0037 · POST /v1/notifications · 12M',
+    'SPEC 0042 Â· POST /v1/orders Â· 4M 12S',
+    'SPEC 0041 Â· POST /v1/billing/invoice Â· 6M 41S',
+    'SPEC 0040 Â· POST /v1/auth/refresh Â· 2M 03S',
+    'SPEC 0039 Â· GET /v1/search Â· 8M 19S',
+    'SPEC 0038 Â· PUT /v1/files/upload Â· 3M 47S',
+    'SPEC 0037 Â· POST /v1/notifications Â· 12M',
   ];
   const seq = [...tickerItems, ...tickerItems];
 
@@ -1513,7 +1513,7 @@ function TickerBar() {
         </h2>
       </div>
 
-      {/* Live ticker bar — continuous scroll, seamless loop */}
+      {/* Live ticker bar â€” continuous scroll, seamless loop */}
       <div
         aria-hidden
         style={{
@@ -1554,7 +1554,7 @@ function TickerBar() {
   );
 }
 
-/* ---------- Specimens archive — horizontal strip of real-feeling incidents ---------- */
+/* ---------- Specimens archive â€” horizontal strip of real-feeling incidents ---------- */
 
 const SPECIMENS = [
   { num: '0042', time: 'Sat 02:14', service: 'POST /v1/orders',           cause: 'customer_id removed from validator in deploy a3f2c',     pr: '#1284', fix: '4m 12s', status: 'closed' },
@@ -1562,7 +1562,7 @@ const SPECIMENS = [
   { num: '0040', time: 'Fri 09:11', service: 'POST /v1/auth/refresh',     cause: 'JWT clock skew on staging, NTP drift past tolerance',     pr: '#1278', fix: '2m 03s', status: 'closed' },
   { num: '0039', time: 'Thu 21:50', service: 'GET /v1/search',            cause: 'Elastic timeout on unindexed query branch',               pr: '#1275', fix: '8m 19s', status: 'closed' },
   { num: '0038', time: 'Thu 14:22', service: 'PUT /v1/files/upload',      cause: 'S3 region misroute on multipart finalize',                pr: '#1271', fix: '3m 47s', status: 'closed' },
-  { num: '0037', time: 'Wed 23:08', service: 'POST /v1/notifications',    cause: 'Twilio rate limit (200 rps) breached on burst',           pr: '—',     fix: '12m',    status: 'no-pr'  },
+  { num: '0037', time: 'Wed 23:08', service: 'POST /v1/notifications',    cause: 'Twilio rate limit (200 rps) breached on burst',           pr: 'â€”',     fix: '12m',    status: 'no-pr'  },
 ];
 
 function SpecimenCard({ s, index, revealed }: { s: typeof SPECIMENS[number]; index: number; revealed: boolean }) {
@@ -1649,7 +1649,7 @@ function SpecimensArchive() {
         <Reveal>
           <div className="flex items-end justify-between flex-wrap gap-6" style={{ marginBottom: 28 }}>
             <div>
-              <Eyebrow index="05">Archive · last 7 days</Eyebrow>
+              <Eyebrow index="05">Archive Â· last 7 days</Eyebrow>
               <h2
                 style={{
                   fontFamily: 'var(--font-display)',
@@ -1719,14 +1719,14 @@ function ChapterMarker({ num, label }: { num: string; label: string }) {
         userSelect: 'none',
       }}
     >
-      <span style={{ color: 'var(--color-accent)' }}>§ {num}</span>
+      <span style={{ color: 'var(--color-accent)' }}>Â§ {num}</span>
       <span aria-hidden style={{ width: 28, height: 1, background: 'var(--color-border-strong)' }} />
       <span>{label}</span>
     </div>
   );
 }
 
-/* ---------- Pull-quote — one editorial moment, no logo wall ---------- */
+/* ---------- Pull-quote â€” one editorial moment, no logo wall ---------- */
 
 function PullQuote() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.4 });
@@ -1745,7 +1745,7 @@ function PullQuote() {
                 transition: `opacity 600ms ${EASE}, transform 600ms ${EASE}`,
               }}
             >
-              <Eyebrow index="*">Field note · forwarded</Eyebrow>
+              <Eyebrow index="*">Field note Â· forwarded</Eyebrow>
             </div>
             <blockquote
               style={{
@@ -1762,10 +1762,10 @@ function PullQuote() {
                 transition: `opacity 700ms ${EASE} 120ms, transform 700ms ${EASE} 120ms`,
               }}
             >
-              <span style={{ color: 'var(--color-accent)', display: 'inline-block', marginRight: 8 }}>“</span>
+              <span style={{ color: 'var(--color-accent)', display: 'inline-block', marginRight: 8 }}>â€œ</span>
               Caught a regression at 3am we wouldn't have seen until standup.
               The PR was already drafted when I logged in.
-              <span style={{ color: 'var(--color-accent)', display: 'inline-block', marginLeft: 4 }}>”</span>
+              <span style={{ color: 'var(--color-accent)', display: 'inline-block', marginLeft: 4 }}>â€</span>
             </blockquote>
             <div
               style={{
@@ -1783,12 +1783,12 @@ function PullQuote() {
                 className="font-mono"
                 style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}
               >
-                Engineering lead · series-B fintech
+                Engineering lead Â· series-B fintech
               </span>
             </div>
           </div>
 
-          {/* Right column — small "specimen receipt" with the actual fix metadata */}
+          {/* Right column â€” small "specimen receipt" with the actual fix metadata */}
           <div
             className="hidden lg:block"
             style={{
@@ -1810,7 +1810,7 @@ function PullQuote() {
               }}
             >
               <div style={{ fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-accent)', marginBottom: 12 }}>
-                The incident · receipt
+                The incident Â· receipt
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', rowGap: 6, color: 'var(--color-text-muted)' }}>
                 <span>Detected</span> <span style={{ color: 'var(--color-text)' }}>02:51 UTC</span>
@@ -1826,269 +1826,6 @@ function PullQuote() {
   );
 }
 
-/* ---------- Pricing — instrument data sheet, one table, four columns ---------- */
-
-interface PlanCol {
-  key: string;
-  name: string;
-  price: string;
-  period?: string;
-  cta: string;
-  highlight?: boolean;
-}
-
-const PLAN_COLS: PlanCol[] = [
-  { key: 'free',   name: 'Free',       price: '$0',      cta: 'Start free' },
-  { key: 'pro',    name: 'Pro',        price: '$12',     period: '/ month',         cta: 'Start trial', highlight: true },
-  { key: 'team',   name: 'Team',       price: '$15',     period: '/ user / month',  cta: 'Start trial' },
-  { key: 'ent',    name: 'Enterprise', price: 'Custom',  cta: 'Contact sales' },
-];
-
-type Cell = string | boolean | null; // string = label, true = ✓, null = —
-const PLAN_ROWS: { label: string; cells: [Cell, Cell, Cell, Cell] }[] = [
-  { label: 'Local requests',         cells: ['unlimited', 'unlimited', 'unlimited', 'unlimited'] },
-  { label: 'Collections',            cells: ['3', 'unlimited', 'unlimited', 'unlimited'] },
-  { label: 'AI request builder',     cells: [null, true, true, true] },
-  { label: 'Test generation',        cells: [null, true, true, true] },
-  { label: 'Error diagnosis (AI)',   cells: [null, true, true, true] },
-  { label: 'Shared workspaces',      cells: [null, null, true, true] },
-  { label: 'Role-based access',      cells: [null, null, true, true] },
-  { label: 'Audit log',              cells: [null, null, true, true] },
-  { label: 'Slack ops agent',        cells: [null, null, true, true] },
-  { label: 'SAML SSO',               cells: [null, null, null, true] },
-  { label: 'Custom data residency',  cells: [null, null, null, true] },
-  { label: 'Support',                cells: ['community', 'email', 'email', 'priority'] },
-];
-
-function PricingCell({ value, highlight, revealed, delay = 0 }: { value: Cell; highlight?: boolean; revealed: boolean; delay?: number }) {
-  if (value === true) {
-    // Total path length of M2,6.5 L5,9.5 L10,3 is ~12.45 — round up so the draw covers it.
-    const pathLen = 13;
-    return (
-      <span
-        aria-label="included"
-        style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          width: 18, height: 18,
-        }}
-      >
-        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
-          <path
-            d="M2 6.5 L5 9.5 L10 3"
-            fill="none"
-            stroke={highlight ? 'var(--color-accent)' : 'var(--color-text)'}
-            strokeWidth="1.7"
-            strokeLinecap="square"
-            strokeDasharray={pathLen}
-            strokeDashoffset={revealed ? 0 : pathLen}
-            style={{ transition: `stroke-dashoffset 520ms ${EASE} ${delay + 80}ms` }}
-          />
-        </svg>
-      </span>
-    );
-  }
-  if (value === null) {
-    return <span style={{ color: 'var(--color-text-subtle)' }}>—</span>;
-  }
-  return <span style={{ color: 'var(--color-text)', fontSize: 13 }}>{value}</span>;
-}
-
-// Exported for a future standalone /pricing route — not rendered on the landing.
-export function Pricing() {
-  const [tableRef, tableInView] = useInView<HTMLDivElement>({ threshold: 0.15 });
-  return (
-    <section id="pricing" style={{ position: 'relative' }}>
-      <SectionRule />
-      <ChapterMarker num="06" label="Pricing" />
-      <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-24 md:py-32">
-        <Reveal>
-          <Eyebrow index="06">Pricing</Eyebrow>
-          <h2
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(28px, 3.8vw, 44px)',
-              lineHeight: 1.08,
-              letterSpacing: '-0.02em',
-              fontWeight: 600,
-              color: 'var(--color-text)',
-              marginTop: 18,
-              marginBottom: 16,
-              maxWidth: '20ch',
-            }}
-          >
-            Start free. Scale when ready.
-          </h2>
-          <p style={{ fontSize: 16.5, maxWidth: '52ch', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
-            No credit card to start. Every tier includes the full request client; AI features
-            require a key (yours or ours).
-          </p>
-        </Reveal>
-
-        <Reveal delay={120}>
-          <div
-            ref={tableRef}
-            className="mt-12 overflow-x-auto"
-            style={{
-              border: '1px solid var(--color-border-strong)',
-              borderRadius: 8,
-              background: 'var(--color-surface)',
-            }}
-          >
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                minWidth: 820,
-                tableLayout: 'fixed',
-              }}
-            >
-              <colgroup>
-                <col style={{ width: '32%' }} />
-                <col style={{ width: '17%' }} />
-                <col style={{ width: '17%' }} />
-                <col style={{ width: '17%' }} />
-                <col style={{ width: '17%' }} />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th style={{ borderBottom: '1px solid var(--color-border)', padding: '20px 22px', textAlign: 'left', verticalAlign: 'top' }}>
-                    <div className="font-mono" style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}>
-                      Plan
-                    </div>
-                  </th>
-                  {PLAN_COLS.map((c, i) => (
-                    <th
-                      key={c.key}
-                      style={{
-                        borderBottom: '1px solid var(--color-border)',
-                        borderLeft: i === 0 ? '1px solid var(--color-border)' : '1px solid var(--color-border)',
-                        padding: '20px 18px',
-                        textAlign: 'left',
-                        verticalAlign: 'top',
-                        position: 'relative',
-                        background: c.highlight ? 'var(--color-accent-soft)' : 'transparent',
-                      }}
-                    >
-                      {c.highlight && (
-                        <div
-                          aria-hidden
-                          style={{
-                            position: 'absolute',
-                            top: -1, left: 0, right: 0,
-                            height: 2,
-                            background: 'var(--color-accent)',
-                            transform: tableInView ? 'scaleX(1)' : 'scaleX(0)',
-                            transformOrigin: 'left',
-                            transition: `transform 820ms ${EASE} 120ms`,
-                          }}
-                        />
-                      )}
-                      <div className="font-mono" style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: c.highlight ? 'var(--color-accent)' : 'var(--color-text-subtle)' }}>
-                        {c.highlight ? 'Recommended' : c.name}
-                      </div>
-                      <div
-                        style={{
-                          marginTop: 8,
-                          fontFamily: 'var(--font-display)',
-                          fontSize: 28,
-                          letterSpacing: '-0.02em',
-                          fontWeight: 600,
-                          color: 'var(--color-text)',
-                        }}
-                      >
-                        {c.price}
-                      </div>
-                      {c.period && (
-                        <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 2 }}>
-                          {c.period}
-                        </div>
-                      )}
-                      {!c.highlight && c.key !== 'free' && (
-                        <div style={{ fontSize: 12, color: 'var(--color-text-subtle)', marginTop: 2, visibility: c.period ? 'hidden' : 'visible' }}>
-                          {c.name}
-                        </div>
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {PLAN_ROWS.map((row, r) => {
-                  const rowDelay = r * 36;
-                  const rowStyle = {
-                    opacity: tableInView ? 1 : 0,
-                    transform: tableInView ? 'translateY(0)' : 'translateY(6px)',
-                    transition: `opacity 460ms ${EASE} ${rowDelay}ms, transform 460ms ${EASE} ${rowDelay}ms`,
-                  } as const;
-                  return (
-                    <tr key={row.label}>
-                      <td
-                        style={{
-                          padding: '12px 22px',
-                          borderBottom: r < PLAN_ROWS.length - 1 ? '1px solid var(--color-border)' : 'none',
-                          fontSize: 13.5,
-                          color: 'var(--color-text)',
-                          ...rowStyle,
-                        }}
-                      >
-                        {row.label}
-                      </td>
-                      {row.cells.map((cell, i) => (
-                        <td
-                          key={i}
-                          style={{
-                            padding: '12px 18px',
-                            borderBottom: r < PLAN_ROWS.length - 1 ? '1px solid var(--color-border)' : 'none',
-                            borderLeft: '1px solid var(--color-border)',
-                            fontSize: 13,
-                            color: 'var(--color-text-muted)',
-                            background: PLAN_COLS[i].highlight ? 'var(--color-accent-soft)' : 'transparent',
-                            ...rowStyle,
-                          }}
-                        >
-                          <PricingCell value={cell} highlight={PLAN_COLS[i].highlight} revealed={tableInView} delay={rowDelay} />
-                        </td>
-                      ))}
-                    </tr>
-                  );
-                })}
-                <tr>
-                  <td style={{ padding: '20px 22px' }} />
-                  {PLAN_COLS.map(c => (
-                    <td
-                      key={c.key}
-                      style={{
-                        padding: '20px 18px',
-                        borderLeft: '1px solid var(--color-border)',
-                        background: c.highlight ? 'var(--color-accent-soft)' : 'transparent',
-                      }}
-                    >
-                      <a
-                        href={c.key === 'ent' ? 'mailto:hello@fetchlab.dev' : '/app'}
-                        className="inline-flex items-center justify-center w-full"
-                        style={{
-                          fontSize: 13,
-                          fontWeight: c.highlight ? 600 : 500,
-                          color: c.highlight ? 'var(--color-accent-ink)' : 'var(--color-text)',
-                          background: c.highlight ? 'var(--color-accent)' : 'transparent',
-                          border: c.highlight ? '1px solid var(--color-accent)' : '1px solid var(--color-border-strong)',
-                          padding: '8px 12px',
-                          borderRadius: 5,
-                        }}
-                      >
-                        {c.cta}
-                      </a>
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
 
 /* ---------- Closing ---------- */
 
@@ -2128,8 +1865,8 @@ function Closing() {
                   lineHeight: 1.6,
                 }}
               >
-                <div>Free for 30 days · No credit card</div>
-                <div>Pro from $12/mo · <a href="/pricing" style={{ color: 'var(--color-text-muted)', textDecoration: 'underline', textUnderlineOffset: 3 }}>full pricing</a></div>
+                <div>Free for 30 days Â· No credit card</div>
+                <div>Pro from $12/mo Â· <a href="/pricing" style={{ color: 'var(--color-text-muted)', textDecoration: 'underline', textUnderlineOffset: 3 }}>full pricing</a></div>
               </div>
             </div>
           </div>
@@ -2162,7 +1899,7 @@ function Footer() {
             className="font-mono"
             style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}
           >
-            Model 0001 · Continuous API diagnostics · © 2026
+            Model 0001 Â· Continuous API diagnostics Â· Â© 2026
           </div>
         </div>
       </div>

@@ -14,7 +14,7 @@
           // Marketing surfaces are always light (brand-led, "cool laboratory").
           // The in-app routes respect localStorage, falling back to system preference.
           var path = (location.pathname || '/').toLowerCase();
-          var marketing = path === '/' || path === '' || path === '/download' || path === '/privacy' || path === '/terms';
+          var marketing = path === '/' || path === '' || path === '/pricing' || path === '/download' || path === '/privacy' || path === '/terms';
           if (marketing) return;
           var saved = localStorage.getItem('fetchlab-theme');
           var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
