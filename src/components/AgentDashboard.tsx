@@ -208,13 +208,15 @@ export default function AgentDashboard({ onClose }: { onClose: () => void }) {
 
         <div className="flex-1 overflow-hidden flex">
           {tab === 'feed' && (
-            <>
-              <div className="w-1/2 overflow-y-auto border-r border-gray-800">
-                {issues.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">
-                    No issues detected yet. The agent will populate this feed as messages flow through monitored channels.
-                  </div>
-                ) : (
+            issues.length === 0 ? (
+              <EmptyFeed
+                onOpenTest={() => setTab('test')}
+                onOpenConfig={() => setTab('config')}
+                slackConfigured={configs.length > 0}
+              />
+            ) : (
+              <>
+                <div className="w-1/2 overflow-y-auto" style={{ borderRight: '1px solid var(--color-border)' }}>
                   <div className="divide-y divide-gray-800">
                     {issues.map(issue => (
                       <button
@@ -245,18 +247,28 @@ export default function AgentDashboard({ onClose }: { onClose: () => void }) {
                       </button>
                     ))}
                   </div>
-                )}
-              </div>
-              <div className="w-1/2 overflow-y-auto p-4">
-                {selectedIssue ? (
-                  <IssueDetail issue={selectedIssue} onAct={act} />
-                ) : (
-                  <div className="text-center text-gray-500 text-sm mt-12">
-                    Select an issue to see the agent's investigation
-                  </div>
-                )}
-              </div>
-            </>
+                </div>
+                <div className="w-1/2 overflow-y-auto p-4">
+                  {selectedIssue ? (
+                    <IssueDetail issue={selectedIssue} onAct={act} />
+                  ) : (
+                    <div
+                      className="font-mono"
+                      style={{
+                        textAlign: 'center',
+                        fontSize: 10.5,
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        color: 'var(--color-text-subtle)',
+                        marginTop: 48,
+                      }}
+                    >
+                      Pick a specimen on the left
+                    </div>
+                  )}
+                </div>
+              </>
+            )
           )}
 
           {tab === 'config' && (
@@ -395,6 +407,190 @@ export default function AgentDashboard({ onClose }: { onClose: () => void }) {
               )}
             </div>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Empty-state for the Activity Feed.
+ * Replaces the old two-line 'No issues detected yet / Select an issue' pair
+ * which left the user with no idea what an 'issue' was or how one got created.
+ *
+ * Reads as a specimen plate in the laboratory direction: mono leader rule,
+ * a clear explanation, and two inline CTAs that point the user at the two
+ * paths that actually create issues — Slack channel monitoring or the
+ * Test Detection tab.
+ * ------------------------------------------------------------------- */
+
+function EmptyFeed({
+  onOpenTest,
+  onOpenConfig,
+  slackConfigured,
+}: {
+  onOpenTest: () => void;
+  onOpenConfig: () => void;
+  slackConfigured: boolean;
+}) {
+  return (
+    <div className="flex-1 overflow-y-auto" style={{ background: 'var(--color-surface)' }}>
+      <div className="max-w-[600px] mx-auto px-8 py-14">
+        {/* Lab plate */}
+        <div
+          style={{
+            border: '1px solid var(--color-border-strong)',
+            borderRadius: 8,
+            background: 'var(--color-bg)',
+            padding: '28px 28px 24px',
+            position: 'relative',
+          }}
+        >
+          {/* Eyebrow */}
+          <div
+            className="font-mono"
+            style={{
+              fontSize: 10.5,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--color-text-muted)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              marginBottom: 18,
+            }}
+          >
+            <span style={{ color: 'var(--color-accent)' }}>00</span>
+            <span aria-hidden style={{ width: 28, height: 1, background: 'var(--color-border-strong)' }} />
+            Empty · activity feed
+          </div>
+
+          <h3
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 28,
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              fontWeight: 600,
+              color: 'var(--color-text)',
+              margin: 0,
+              marginBottom: 14,
+            }}
+          >
+            No specimens yet.
+          </h3>
+
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-muted)', margin: 0, marginBottom: 6 }}>
+            An <strong style={{ color: 'var(--color-text)' }}>issue</strong> is an API
+            failure the agent has caught and is ready to investigate. The agent files
+            them automatically — you don't create them by hand.
+          </p>
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-muted)', margin: 0, marginBottom: 22 }}>
+            Today there are two ways an issue gets filed:
+          </p>
+
+          {/* Numbered list — lab forms style */}
+          <ol style={{ listStyle: 'none', padding: 0, margin: 0, marginBottom: 24 }}>
+            <li
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '34px 1fr',
+                gap: 14,
+                padding: '14px 0',
+                borderTop: '1px solid var(--color-border)',
+                alignItems: 'baseline',
+              }}
+            >
+              <span
+                className="font-mono"
+                style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-accent)' }}
+              >
+                01
+              </span>
+              <div>
+                <div style={{ fontSize: 14, color: 'var(--color-text)', fontWeight: 500, marginBottom: 4 }}>
+                  The Slack bot spots an API-error message.
+                </div>
+                <div style={{ fontSize: 12.5, color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
+                  When someone posts "/v1/orders is throwing 500s" in a monitored channel,
+                  the bot files it here as a specimen.
+                </div>
+              </div>
+            </li>
+            <li
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '34px 1fr',
+                gap: 14,
+                padding: '14px 0',
+                borderTop: '1px solid var(--color-border)',
+                alignItems: 'baseline',
+              }}
+            >
+              <span
+                className="font-mono"
+                style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-accent)' }}
+              >
+                02
+              </span>
+              <div>
+                <div style={{ fontSize: 14, color: 'var(--color-text)', fontWeight: 500, marginBottom: 4 }}>
+                  You paste a sample error into Test Detection.
+                </div>
+                <div style={{ fontSize: 12.5, color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
+                  Drop a message in the Test Detection tab and watch the agent run the
+                  detection + diagnosis loop end-to-end. Good first run.
+                </div>
+              </div>
+            </li>
+          </ol>
+
+          {/* CTAs */}
+          <div className="flex flex-wrap items-center gap-2" style={{ borderTop: '1px solid var(--color-border)', paddingTop: 18 }}>
+            <button
+              onClick={onOpenTest}
+              className="inline-flex items-center gap-2"
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'var(--color-accent-ink)',
+                background: 'var(--color-accent)',
+                padding: '9px 14px',
+                borderRadius: 5,
+                cursor: 'pointer',
+              }}
+            >
+              Try test detection
+              <span aria-hidden style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>→</span>
+            </button>
+            <button
+              onClick={onOpenConfig}
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: 'var(--color-text)',
+                background: 'transparent',
+                border: '1px solid var(--color-border-strong)',
+                padding: '8px 14px',
+                borderRadius: 5,
+                cursor: 'pointer',
+              }}
+            >
+              {slackConfigured ? 'Review Slack channels' : 'Configure Slack channels'}
+            </button>
+          </div>
+
+          <div
+            className="font-mono"
+            style={{
+              marginTop: 18,
+              fontSize: 10.5,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--color-text-subtle)',
+            }}
+          >
+            First time? Skip Slack — start with test detection.
+          </div>
         </div>
       </div>
     </div>
