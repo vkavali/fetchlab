@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useCountry, type Currency } from '../utils/useCountry';
 
 /* ============================================================================
  * FetchLab — /pricing
@@ -7,31 +8,14 @@ import React, { useEffect, useRef, useState } from 'react';
  * of the marketing surface: cool ink on warm paper, signal-orange accent,
  * hairline borders, mono labels, instrument table.
  *
- * Two currencies (USD / INR) with locale-auto-detect + manual toggle persisted
- * in localStorage. Pro / Team CTAs open a small modal explaining payments
- * aren't live yet, capturing an email for the waitlist and offering a direct
- * free-trial start.
+ * Currency is derived from the visitor's country (see useCountry — server
+ * geo on /api/geo, with ?country= override for QA). India gets INR by
+ * default; everyone else gets USD. A tiny 'Change' link below the plate
+ * lets the user flip if detection misfires. No tab UI, no settings page.
  * ========================================================================== */
 
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
-const STORAGE_CURRENCY = 'fetchlab_pricing_currency';
 const STORAGE_WAITLIST = 'fetchlab_payment_waitlist';
-
-type Currency = 'USD' | 'INR';
-
-function readInitialCurrency(): Currency {
-  try {
-    const saved = localStorage.getItem(STORAGE_CURRENCY);
-    if (saved === 'USD' || saved === 'INR') return saved;
-  } catch { /* ignore */ }
-  try {
-    const langs = (navigator.languages?.length ? navigator.languages : [navigator.language]);
-    const isIN = langs.some(l => /(^|-)IN$/i.test(l || ''));
-    return isIN ? 'INR' : 'USD';
-  } catch {
-    return 'USD';
-  }
-}
 
 /* ---------- Reveal on scroll ---------- */
 
@@ -127,46 +111,37 @@ function Nav() {
   );
 }
 
-/* ---------- Currency toggle ---------- */
+/* ---------- 'Change' link — tiny fallback when detection is wrong ---------- */
 
-function CurrencyToggle({ value, onChange }: { value: Currency; onChange: (c: Currency) => void }) {
+function CurrencyChange({ currency, onToggle }: { currency: Currency; onToggle: () => void }) {
   return (
-    <div
+    <button
+      onClick={onToggle}
+      className="font-mono"
       style={{
+        background: 'transparent',
+        border: 'none',
+        padding: 0,
+        fontSize: 11,
+        letterSpacing: '0.16em',
+        textTransform: 'uppercase',
+        color: 'var(--color-text-subtle)',
+        cursor: 'pointer',
         display: 'inline-flex',
-        border: '1px solid var(--color-border-strong)',
-        borderRadius: 5,
-        overflow: 'hidden',
-        background: 'var(--color-surface)',
+        alignItems: 'center',
+        gap: 8,
+        transition: `color 200ms ${EASE}`,
       }}
-      role="radiogroup"
-      aria-label="Currency"
+      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-subtle)'; }}
+      title={currency === 'INR' ? 'Switch to USD pricing' : 'Switch to INR pricing'}
     >
-      {(['USD', 'INR'] as const).map((c, i) => {
-        const active = value === c;
-        return (
-          <button
-            key={c}
-            role="radio"
-            aria-checked={active}
-            onClick={() => onChange(c)}
-            className="font-mono"
-            style={{
-              fontSize: 11,
-              letterSpacing: '0.16em',
-              padding: '7px 14px',
-              background: active ? 'var(--color-accent)' : 'transparent',
-              color: active ? 'var(--color-accent-ink)' : 'var(--color-text-muted)',
-              borderLeft: i > 0 ? '1px solid var(--color-border-strong)' : 'none',
-              fontWeight: active ? 600 : 500,
-              transition: `background-color 200ms ${EASE}, color 200ms ${EASE}`,
-            }}
-          >
-            {c === 'USD' ? '$  USD' : '₹  INR'}
-          </button>
-        );
-      })}
-    </div>
+      Showing prices in {currency === 'INR' ? '₹' : '$'}
+      <span aria-hidden style={{ opacity: 0.5 }}>·</span>
+      <span style={{ textDecoration: 'underline', textUnderlineOffset: 3 }}>
+        Change
+      </span>
+    </button>
   );
 }
 
@@ -186,8 +161,8 @@ interface PlanCol {
 
 const PLAN_COLS: PlanCol[] = [
   { key: 'free', name: 'Free',       price: { USD: '$0',     INR: '₹0' },      cta: 'Start free',     href: '/app' },
-  { key: 'pro',  name: 'Pro',        price: { USD: '$12',    INR: '₹599' },    period: { USD: '/ month', INR: '/ month' },          cta: 'Start trial', highlight: true, waitlist: true },
-  { key: 'team', name: 'Team',       price: { USD: '$15',    INR: '₹999' },    period: { USD: '/ user / month', INR: '/ user / month' }, cta: 'Start trial', waitlist: true },
+  { key: 'pro',  name: 'Pro',        price: { USD: '$12',    INR: '₹999' },    period: { USD: '/ month', INR: '/ month' },          cta: 'Start trial', highlight: true, waitlist: true },
+  { key: 'team', name: 'Team',       price: { USD: '$15',    INR: '₹2,499' },  period: { USD: '/ user / month', INR: '/ user / month' }, cta: 'Start trial', waitlist: true },
   { key: 'ent',  name: 'Enterprise', price: { USD: 'Custom', INR: 'Custom' },  cta: 'Contact sales',  href: 'mailto:hello@fetchlab.dev' },
 ];
 
@@ -585,12 +560,8 @@ function Footer() {
 /* ---------- Page ---------- */
 
 export default function Pricing() {
-  const [currency, setCurrency] = useState<Currency>(() => readInitialCurrency());
+  const { currency, toggleCurrency } = useCountry();
   const [modalPlan, setModalPlan] = useState<PlanCol | null>(null);
-
-  useEffect(() => {
-    try { localStorage.setItem(STORAGE_CURRENCY, currency); } catch { /* ignore */ }
-  }, [currency]);
 
   // Marketing is always light, same as the landing.
   useEffect(() => {
@@ -653,7 +624,7 @@ export default function Pricing() {
             </p>
           </Reveal>
 
-          {/* Specimen plate — currency toggle */}
+          {/* Specimen plate — geo-derived locale strip */}
           <Reveal delay={120}>
             <div
               className="mt-10 flex flex-wrap items-center justify-between gap-4"
@@ -677,9 +648,11 @@ export default function Pricing() {
                 }}
               >
                 <span aria-hidden style={{ width: 18, height: 1, background: 'var(--color-border-strong)' }} />
-                {currency === 'INR' ? 'India · INR · PPP-adjusted' : 'Global · USD · billed monthly'}
+                {currency === 'INR'
+                  ? 'India · INR · PPP-adjusted · GST at invoice'
+                  : 'Global · USD · billed monthly'}
               </div>
-              <CurrencyToggle value={currency} onChange={setCurrency} />
+              <CurrencyChange currency={currency} onToggle={toggleCurrency} />
             </div>
           </Reveal>
         </div>
@@ -845,7 +818,7 @@ export default function Pricing() {
             </div>
           </Reveal>
 
-          {/* Footer note about payments */}
+          {/* Footer note about payments — adapts to the visitor's currency */}
           <Reveal delay={180}>
             <div
               className="mt-8 grid lg:grid-cols-2 gap-6 lg:gap-12 items-start"
@@ -863,17 +836,38 @@ export default function Pricing() {
                   Note · payments in flight
                 </div>
                 <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--color-text)', margin: 0 }}>
-                  Razorpay (India) and Stripe (rest of world) are being wired up. Until then,
-                  every tier opens the full free 30-day trial. No card needed; no auto-upgrade.
+                  {currency === 'INR' ? (
+                    <>
+                      Razorpay is being wired up for India (UPI, cards, netbanking).
+                      Until then, every tier opens the full free 30-day trial.
+                      No card needed, no auto-upgrade.
+                    </>
+                  ) : (
+                    <>
+                      Stripe is being wired up. Until then, every tier opens the full free
+                      30-day trial. No card needed, no auto-upgrade.
+                    </>
+                  )}
                 </p>
               </div>
               <div
                 className="font-mono"
                 style={{ fontSize: 11.5, letterSpacing: '0.10em', color: 'var(--color-text-muted)', lineHeight: 1.85 }}
               >
-                <div>· INR pricing is PPP-adjusted, not a USD multiplication.</div>
-                <div>· GST handled at invoice when Razorpay is live.</div>
-                <div>· Annual billing (20% off) when we ship payments.</div>
+                {currency === 'INR' ? (
+                  <>
+                    <div>· INR pricing is PPP-adjusted, not a USD multiplication.</div>
+                    <div>· GST handled at invoice when Razorpay ships.</div>
+                    <div>· UPI, cards, and netbanking on launch.</div>
+                    <div>· Annual billing — 20% off — coming with payments.</div>
+                  </>
+                ) : (
+                  <>
+                    <div>· Pricing in USD, billed monthly.</div>
+                    <div>· Cards via Stripe at launch.</div>
+                    <div>· Annual billing — 20% off — coming with payments.</div>
+                  </>
+                )}
               </div>
             </div>
           </Reveal>

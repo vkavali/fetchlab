@@ -1,11 +1,16 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
+import { useCountry } from '../utils/useCountry';
 
 /* ============================================================================
- * FetchLab â€” Marketing landing, "Cool Laboratory" register.
+ * FetchLab — Marketing landing, "Cool Laboratory" register.
  *
- * Cool ink on warm paper. One accent (signal orange) used at <5% â€”
+ * Cool ink on warm paper. One accent (signal orange) used at <5% —
  * the cursor, status dots, the Send button, leader marks. Restraint is
  * the brand. No gradients, no glows, no floating mockups.
+ *
+ * Localizes for India when the visitor's country (via /api/geo) is IN —
+ * INR pricing references, Bangalore-flavored attribution, Razorpay mention,
+ * IST timestamp suffix in the investigation log. Otherwise USD / generic.
  * ========================================================================== */
 
 /* ---------- Motion primitives (ease-out-quint, no bounce) ---------- */
@@ -410,6 +415,8 @@ function PostmortemSpecimen() {
   const cardRef = useRef<HTMLDivElement>(null);
   const [scanY, setScanY] = useState(0);
   const [scanOpacity, setScanOpacity] = useState(0);
+  const { country } = useCountry();
+  const tz = country === 'IN' ? 'IST' : 'UTC';
 
   // Progressive row reveal
   useEffect(() => {
@@ -594,7 +601,7 @@ function PostmortemSpecimen() {
           transition: `opacity 360ms ${EASE}, transform 360ms ${EASE}`,
         }}
       >
-        <Row revealed={progress >= 1} k="Detected" v={<>14:02 UTC Â· validator threw <span className="font-mono">SchemaError</span></>} />
+        <Row revealed={progress >= 1} k="Detected" v={<>14:02 {tz} · validator threw <span className="font-mono">SchemaError</span></>} />
       </div>
       <div
         style={{
@@ -1730,6 +1737,12 @@ function ChapterMarker({ num, label }: { num: string; label: string }) {
 
 function PullQuote() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.4 });
+  const { country } = useCountry();
+  const isIN = country === 'IN';
+  const tz = isIN ? 'IST' : 'UTC';
+  const attribution = isIN
+    ? 'Engineering lead · Bangalore fintech'
+    : 'Engineering lead · series-B fintech';
   return (
     <section style={{ position: 'relative' }}>
       <SectionRule />
@@ -1783,7 +1796,7 @@ function PullQuote() {
                 className="font-mono"
                 style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}
               >
-                Engineering lead Â· series-B fintech
+                {attribution}
               </span>
             </div>
           </div>
@@ -1813,8 +1826,8 @@ function PullQuote() {
                 The incident Â· receipt
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', rowGap: 6, color: 'var(--color-text-muted)' }}>
-                <span>Detected</span> <span style={{ color: 'var(--color-text)' }}>02:51 UTC</span>
-                <span>Filed</span>    <span style={{ color: 'var(--color-text)' }}>02:53 UTC</span>
+                <span>Detected</span> <span style={{ color: 'var(--color-text)' }}>02:51 {tz}</span>
+                <span>Filed</span>    <span style={{ color: 'var(--color-text)' }}>02:53 {tz}</span>
                 <span>PR</span>       <span style={{ color: 'var(--color-accent)' }}>#<Counter target={982} duration={900} /></span>
                 <span>Fix</span>      <span style={{ color: 'var(--color-text)' }}><Counter target={3} duration={700} />m <Counter target={4} pad={2} duration={700} />s</span>
               </div>
@@ -1830,6 +1843,8 @@ function PullQuote() {
 /* ---------- Closing ---------- */
 
 function Closing() {
+  const { country } = useCountry();
+  const isIN = country === 'IN';
   return (
     <section style={{ position: 'relative' }}>
       <SectionRule />
@@ -1865,8 +1880,16 @@ function Closing() {
                   lineHeight: 1.6,
                 }}
               >
-                <div>Free for 30 days Â· No credit card</div>
-                <div>Pro from $12/mo Â· <a href="/pricing" style={{ color: 'var(--color-text-muted)', textDecoration: 'underline', textUnderlineOffset: 3 }}>full pricing</a></div>
+                <div>Free for 30 days · No credit card</div>
+                <div>
+                  Pro from {isIN ? '₹999/mo · Razorpay coming soon' : '$12/mo'} ·{' '}
+                  <a href="/pricing" style={{ color: 'var(--color-text-muted)', textDecoration: 'underline', textUnderlineOffset: 3 }}>full pricing</a>
+                </div>
+                {isIN && (
+                  <div style={{ color: 'var(--color-text-subtle)', marginTop: 4 }}>
+                    Made for engineering teams from Bangalore to Berlin
+                  </div>
+                )}
               </div>
             </div>
           </div>
