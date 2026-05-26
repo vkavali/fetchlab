@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useApp } from '../store/AppContext';
 import AuthEditor from './AuthEditor';
 import ResizeHandle from './ResizeHandle';
@@ -10,11 +10,27 @@ import EnvDiff from './EnvDiff';
 import type { HttpMethod, KeyValue, ResponseExtraction } from '../types';
 import { generateId } from '../utils/helpers';
 import { parseCurl } from '../utils/curlParser';
+import { buildHeaderSuggestions, type HeaderSuggestion } from '../utils/headerSuggestions';
 import {
   Send, Loader2, Plus, Trash2, Save, ChevronDown,
   FileJson, AlignLeft, FormInput, Code, Share2, X, Zap, GitCompare,
   FolderPlus, Check, Braces, Play, RefreshCw
 } from 'lucide-react';
+
+const SUGGEST_DISMISS_KEY = 'fetchlab_suggest_dismissed';
+
+function loadDismissed(): Set<string> {
+  try {
+    const raw = localStorage.getItem(SUGGEST_DISMISS_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch { return new Set(); }
+}
+
+function persistDismissed(set: ReadonlySet<string>) {
+  try { localStorage.setItem(SUGGEST_DISMISS_KEY, JSON.stringify(Array.from(set))); } catch { /* noop */ }
+}
 
 export default function RequestBuilder() {
   const { state, dispatch, sendRequest } = useApp();
@@ -353,12 +369,11 @@ export default function RequestBuilder() {
         )}
 
         {activeSection === 'headers' && (
-          <KeyValueEditor
-            items={request.headers}
+          <HeadersSection
+            request={request}
+            history={state.history}
             onChange={values => updateKeyValues('headers', values)}
             onAdd={() => addKeyValue('headers')}
-            keyPlaceholder="Header name"
-            valuePlaceholder="Value"
           />
         )}
 
@@ -402,12 +417,18 @@ function KeyValueEditor({
   onAdd,
   keyPlaceholder,
   valuePlaceholder,
+  suggestions,
+  onActivateSuggestion,
+  onClearSuggestions,
 }: {
   items: KeyValue[];
   onChange: (items: KeyValue[]) => void;
   onAdd: () => void;
   keyPlaceholder: string;
   valuePlaceholder: string;
+  suggestions?: HeaderSuggestion[];
+  onActivateSuggestion?: (s: HeaderSuggestion) => void;
+  onClearSuggestions?: () => void;
 }) {
   const update = (id: string, field: keyof KeyValue, value: string | boolean) => {
     onChange(items.map(item => item.id === id ? { ...item, [field]: value } : item));
@@ -467,6 +488,16 @@ function KeyValueEditor({
         <Plus size={12} />
         Add parameter
       </button>
+
+      {suggestions && suggestions.length > 0 && (
+        <SuggestionsGroup
+          suggestions={suggestions}
+          onActivate={onActivateSuggestion}
+          onClear={onClearSuggestions}
+          keyPlaceholder={keyPlaceholder}
+          valuePlaceholder={valuePlaceholder}
+        />
+      )}
     </div>
   );
 }
@@ -919,5 +950,213 @@ function SaveDialog({ request, collections, onSave, onCreateCollection, onClose 
         </div>
       </div>
     </>
+  );
+}
+
+/* ============================================================================
+ * HeadersSection — KeyValueEditor + opt-in suggestion strip.
+ *
+ * Computes header suggestions on every render from the current method, URL,
+ * recent history, and the headers the user already has. When the user activates
+ * a suggestion (checks the box) it becomes a real KeyValue row above; the
+ * suggestion vanishes from the strip. "Clear suggestions" dismisses the
+ * current batch (per suggestion id) so they don't reappear on next load.
+ * ========================================================================== */
+
+function HeadersSection({
+  request,
+  history,
+  onChange,
+  onAdd,
+}: {
+  request: { method: HttpMethod; url: string; headers: KeyValue[] };
+  history: import('../types').HistoryEntry[];
+  onChange: (items: KeyValue[]) => void;
+  onAdd: () => void;
+}) {
+  const [dismissed, setDismissed] = useState<Set<string>>(() => loadDismissed());
+
+  const suggestions = useMemo(
+    () => buildHeaderSuggestions(request.method, request.url, request.headers, history, dismissed),
+    [request.method, request.url, request.headers, history, dismissed]
+  );
+
+  const activate = (s: HeaderSuggestion) => {
+    onChange([
+      ...request.headers,
+      { id: generateId(), key: s.key, value: s.value, enabled: true },
+    ]);
+  };
+
+  const clearAll = () => {
+    const next = new Set(dismissed);
+    suggestions.forEach((s) => next.add(s.id));
+    setDismissed(next);
+    persistDismissed(next);
+  };
+
+  return (
+    <KeyValueEditor
+      items={request.headers}
+      onChange={onChange}
+      onAdd={onAdd}
+      keyPlaceholder="Header name"
+      valuePlaceholder="Value"
+      suggestions={suggestions}
+      onActivateSuggestion={activate}
+      onClearSuggestions={clearAll}
+    />
+  );
+}
+
+/* ---------- Suggestion strip ---------- */
+
+function SuggestionsGroup({
+  suggestions,
+  onActivate,
+  onClear,
+}: {
+  suggestions: HeaderSuggestion[];
+  onActivate?: (s: HeaderSuggestion) => void;
+  onClear?: () => void;
+  keyPlaceholder: string;
+  valuePlaceholder: string;
+}) {
+  return (
+    <div
+      style={{
+        marginTop: 14,
+        borderTop: '1px dashed var(--color-border-strong)',
+        paddingTop: 10,
+      }}
+    >
+      {/* Group eyebrow */}
+      <div
+        className="flex items-baseline justify-between"
+        style={{
+          padding: '0 4px 8px',
+        }}
+      >
+        <span
+          className="font-mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--color-text-subtle)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <span aria-hidden style={{ width: 14, height: 1, background: 'var(--color-border-strong)' }} />
+          Suggested · {suggestions.length}
+        </span>
+        {onClear && (
+          <button
+            onClick={onClear}
+            className="font-mono"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              fontSize: 10,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: 'var(--color-text-subtle)',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              textUnderlineOffset: 3,
+            }}
+            title="Hide every suggestion in this batch"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+      {suggestions.map((s) => (
+        <SuggestionRow key={s.id} s={s} onActivate={() => onActivate?.(s)} />
+      ))}
+    </div>
+  );
+}
+
+function SuggestionRow({ s, onActivate }: { s: HeaderSuggestion; onActivate: () => void }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <div
+      className="flex items-center gap-2"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        padding: '4px 4px',
+        opacity: hover ? 1 : 0.78,
+        transition: 'opacity 180ms cubic-bezier(0.22, 1, 0.36, 1)',
+      }}
+    >
+      {/* 14px square checkbox with hairline border */}
+      <button
+        onClick={onActivate}
+        aria-label={`Activate ${s.key}`}
+        title={s.why}
+        style={{
+          width: 14,
+          height: 14,
+          padding: 0,
+          background: 'transparent',
+          border: '1px solid var(--color-border-strong)',
+          borderRadius: 3,
+          cursor: 'pointer',
+          flexShrink: 0,
+          transition: 'border-color 180ms cubic-bezier(0.22, 1, 0.36, 1), background-color 180ms cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-strong)'; }}
+      />
+      {/* Key (ghost) */}
+      <span
+        className="flex-1 font-mono truncate"
+        style={{
+          fontSize: 11.5,
+          color: 'var(--color-text-subtle)',
+          padding: '2px 4px',
+        }}
+        title={s.why}
+      >
+        {s.key}
+      </span>
+      {/* Value (ghost) */}
+      <span
+        className="flex-1 font-mono truncate"
+        style={{
+          fontSize: 11.5,
+          color: 'var(--color-text-subtle)',
+          fontStyle: s.value ? 'normal' : 'italic',
+          padding: '2px 4px',
+        }}
+        title={s.why}
+      >
+        {s.value || '(empty — fill on activate)'}
+      </span>
+      {/* Source tag — visible on hover */}
+      <span
+        className="font-mono"
+        style={{
+          fontSize: 9.5,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--color-text-subtle)',
+          padding: '2px 6px',
+          border: '1px solid var(--color-border)',
+          borderRadius: 3,
+          opacity: hover ? 0.9 : 0,
+          transition: 'opacity 180ms cubic-bezier(0.22, 1, 0.36, 1)',
+          flexShrink: 0,
+        }}
+      >
+        {s.source === 'method' ? 'METHOD' : s.source === 'host' ? 'HOST' : 'HISTORY'}
+      </span>
+    </div>
   );
 }
