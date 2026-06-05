@@ -1,12 +1,12 @@
 /* ============================================================================
- * useCountry — single source of truth for the visitor's country and currency.
+ * useCountry - single source of truth for the visitor's country and currency.
  *
  * Precedence on first read (synchronous, so the first paint is correct
  * for repeat visitors):
  *   1. ?country=XX URL param  (testing / share-from-India link)
  *   2. localStorage override  (user clicked 'Change' on the pricing page)
  *   3. sessionStorage cache   (already detected this tab)
- *   4. navigator.language     (en-IN, hi-IN, etc. → IN as an optimistic guess)
+ *   4. navigator.language     (en-IN, hi-IN, etc. -> IN as an optimistic guess)
  *   5. 'US' default
  *
  * After mount, hits /api/geo (Cloudflare / Vercel headers, accept-language,
@@ -101,7 +101,7 @@ export function useCountry() {
   ));
 
   useEffect(() => {
-    // URL or localStorage override wins — never re-detect over them.
+    // URL or localStorage override wins - never re-detect over them.
     const ovr = readUrlCountry() || readStorageOverride();
     if (ovr || moduleCache) {
       const nextCountry = ovr || moduleCache!.country;
@@ -134,7 +134,7 @@ export function useCountry() {
     }
   }, []);
 
-  // Used by the tiny 'Change' link on /pricing — flips between INR and USD.
+  // Used by the tiny 'Change' link on /pricing - flips between INR and USD.
   const toggleCurrency = useCallback(() => {
     setOverride(country === 'IN' ? 'US' : 'IN');
   }, [country, setOverride]);
@@ -148,7 +148,7 @@ export function useCountry() {
 export function formatPrice(amount: number, currency: Currency): string {
   if (currency === 'INR') {
     // Indian grouping: 1,00,000 (1 lakh), 10,00,000 (10 lakh), 1,00,00,000 (1 crore)
-    return '₹' + new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(amount);
+    return 'INR ' + new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(amount);
   }
   return '$' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(amount);
 }

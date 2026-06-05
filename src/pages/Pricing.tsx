@@ -2,13 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useCountry, type Currency } from '../utils/useCountry';
 
 /* ============================================================================
- * FetchLab — /pricing
+ * FetchLab - /pricing
  *
  * Standalone pricing data sheet. Same 'Cool Laboratory' register as the rest
  * of the marketing surface: cool ink on warm paper, signal-orange accent,
  * hairline borders, mono labels, instrument table.
  *
- * Currency is derived from the visitor's country (see useCountry — server
+ * Currency is derived from the visitor's country (see useCountry - server
  * geo on /api/geo, with ?country= override for QA). India gets INR by
  * default; everyone else gets USD. A tiny 'Change' link below the plate
  * lets the user flip if detection misfires. No tab UI, no settings page.
@@ -111,7 +111,7 @@ function Nav() {
   );
 }
 
-/* ---------- 'Change' link — tiny fallback when detection is wrong ---------- */
+/* ---------- 'Change' link - tiny fallback when detection is wrong ---------- */
 
 function CurrencyChange({ currency, onToggle }: { currency: Currency; onToggle: () => void }) {
   return (
@@ -136,8 +136,8 @@ function CurrencyChange({ currency, onToggle }: { currency: Currency; onToggle: 
       onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-subtle)'; }}
       title={currency === 'INR' ? 'Switch to USD pricing' : 'Switch to INR pricing'}
     >
-      Showing prices in {currency === 'INR' ? '₹' : '$'}
-      <span aria-hidden style={{ opacity: 0.5 }}>·</span>
+      Showing prices in {currency === 'INR' ? 'INR' : '$'}
+      <span aria-hidden style={{ opacity: 0.5 }}>-</span>
       <span style={{ textDecoration: 'underline', textUnderlineOffset: 3 }}>
         Change
       </span>
@@ -160,9 +160,9 @@ interface PlanCol {
 }
 
 const PLAN_COLS: PlanCol[] = [
-  { key: 'free', name: 'Free',       price: { USD: '$0',     INR: '₹0' },      cta: 'Start free',     href: '/app' },
-  { key: 'pro',  name: 'Pro',        price: { USD: '$12',    INR: '₹999' },    period: { USD: '/ month', INR: '/ month' },          cta: 'Start trial', highlight: true, waitlist: true },
-  { key: 'team', name: 'Team',       price: { USD: '$15',    INR: '₹2,499' },  period: { USD: '/ user / month', INR: '/ user / month' }, cta: 'Start trial', waitlist: true },
+  { key: 'free', name: 'Free',       price: { USD: '$0',     INR: 'INR 0' },      cta: 'Start free',     href: '/app' },
+  { key: 'pro',  name: 'Pro',        price: { USD: '$12',    INR: 'INR 999' },    period: { USD: '/ month', INR: '/ month' },          cta: 'Start trial', highlight: true, waitlist: true },
+  { key: 'team', name: 'Team',       price: { USD: '$15',    INR: 'INR 2,499' },  period: { USD: '/ user / month', INR: '/ user / month' }, cta: 'Start trial', waitlist: true },
   { key: 'ent',  name: 'Enterprise', price: { USD: 'Custom', INR: 'Custom' },  cta: 'Contact sales',  href: 'mailto:hello@fetchlab.dev' },
 ];
 
@@ -193,7 +193,7 @@ function PricingCell({ value, highlight }: { value: Cell; highlight?: boolean })
       </span>
     );
   }
-  if (value === null) return <span style={{ color: 'var(--color-text-subtle)' }}>—</span>;
+  if (value === null) return <span style={{ color: 'var(--color-text-subtle)' }}>-</span>;
   return <span style={{ color: 'var(--color-text)', fontSize: 13 }}>{value as string}</span>;
 }
 
@@ -293,7 +293,7 @@ function WaitlistModal({
             }}
           >
             <span style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--color-accent)' }} />
-            Notice · {planLabel} tier
+            Notice - {planLabel} tier
           </div>
           <button
             onClick={onClose}
@@ -437,7 +437,7 @@ function WaitlistModal({
                 }}
               >
                 Start the 30-day free trial today
-                <span aria-hidden style={{ fontFamily: 'var(--font-mono)', fontSize: 12, marginLeft: 8 }}>→</span>
+                <span aria-hidden style={{ fontFamily: 'var(--font-mono)', fontSize: 12, marginLeft: 8 }}>{'->'}</span>
               </a>
 
               <div
@@ -451,7 +451,7 @@ function WaitlistModal({
                   textAlign: 'center',
                 }}
               >
-                Free for 30 days · no payment information
+                Free for 30 days - no payment information
               </div>
             </div>
           </form>
@@ -471,7 +471,7 @@ function WaitlistModal({
               }}
             >
               <span aria-hidden style={{ width: 18, height: 1, background: 'currentColor', opacity: 0.6 }} />
-              Filed · waitlist
+              Filed - waitlist
             </div>
             <h2
               style={{
@@ -507,7 +507,7 @@ function WaitlistModal({
                 }}
               >
                 Open the lab
-                <span aria-hidden style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>→</span>
+                <span aria-hidden style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>{'->'}</span>
               </a>
               <button
                 onClick={onClose}
@@ -549,7 +549,7 @@ function Footer() {
             </div>
           </div>
           <div className="font-mono" style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}>
-            Model 0001 · Continuous API diagnostics · © 2026
+            Model 0001 - Continuous API diagnostics - (c) 2026
           </div>
         </div>
       </div>
@@ -588,7 +588,7 @@ export default function Pricing() {
         fontFamily: 'var(--font-sans)',
       }}
     >
-      {/* Local keyframes — the modal entrance */}
+      {/* Local keyframes - the modal entrance */}
       <style>{`
         @keyframes wl-modal-in {
           from { opacity: 0; transform: translateY(8px) scale(0.985); }
@@ -624,7 +624,7 @@ export default function Pricing() {
             </p>
           </Reveal>
 
-          {/* Specimen plate — geo-derived locale strip */}
+          {/* Specimen plate - geo-derived locale strip */}
           <Reveal delay={120}>
             <div
               className="mt-10 flex flex-wrap items-center justify-between gap-4"
@@ -649,8 +649,8 @@ export default function Pricing() {
               >
                 <span aria-hidden style={{ width: 18, height: 1, background: 'var(--color-border-strong)' }} />
                 {currency === 'INR'
-                  ? 'India · INR · PPP-adjusted · GST at invoice'
-                  : 'Global · USD · billed monthly'}
+                  ? 'India - INR - PPP-adjusted - GST at invoice'
+                  : 'Global - USD - billed monthly'}
               </div>
               <CurrencyChange currency={currency} onToggle={toggleCurrency} />
             </div>
@@ -806,7 +806,7 @@ export default function Pricing() {
                               className="font-mono"
                               style={{ marginLeft: 8, fontSize: 9.5, letterSpacing: '0.16em', color: c.highlight ? 'var(--color-accent-ink)' : 'var(--color-text-subtle)', opacity: 0.85 }}
                             >
-                              · NOTIFY
+                              - NOTIFY
                             </span>
                           )}
                         </button>
@@ -818,7 +818,7 @@ export default function Pricing() {
             </div>
           </Reveal>
 
-          {/* Footer note about payments — adapts to the visitor's currency */}
+          {/* Footer note about payments - adapts to the visitor's currency */}
           <Reveal delay={180}>
             <div
               className="mt-8 grid lg:grid-cols-2 gap-6 lg:gap-12 items-start"
@@ -833,7 +833,7 @@ export default function Pricing() {
                   className="font-mono"
                   style={{ fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-subtle)', marginBottom: 8 }}
                 >
-                  Note · payments in flight
+                  Note - payments in flight
                 </div>
                 <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--color-text)', margin: 0 }}>
                   {currency === 'INR' ? (
@@ -856,16 +856,16 @@ export default function Pricing() {
               >
                 {currency === 'INR' ? (
                   <>
-                    <div>· INR pricing is PPP-adjusted, not a USD multiplication.</div>
-                    <div>· GST handled at invoice when Razorpay ships.</div>
-                    <div>· UPI, cards, and netbanking on launch.</div>
-                    <div>· Annual billing — 20% off — coming with payments.</div>
+                    <div>- INR pricing is PPP-adjusted, not a USD multiplication.</div>
+                    <div>- GST handled at invoice when Razorpay ships.</div>
+                    <div>- UPI, cards, and netbanking on launch.</div>
+                    <div>- Annual billing - 20% off - coming with payments.</div>
                   </>
                 ) : (
                   <>
-                    <div>· Pricing in USD, billed monthly.</div>
-                    <div>· Cards via Stripe at launch.</div>
-                    <div>· Annual billing — 20% off — coming with payments.</div>
+                    <div>- Pricing in USD, billed monthly.</div>
+                    <div>- Cards via Stripe at launch.</div>
+                    <div>- Annual billing - 20% off - coming with payments.</div>
                   </>
                 )}
               </div>

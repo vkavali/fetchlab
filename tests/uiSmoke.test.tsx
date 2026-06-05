@@ -44,6 +44,7 @@ describe('client route smoke', () => {
     renderAt('/');
     expect(screen.getByText('Your APIs broke at 2am.')).toBeTruthy();
     expect(screen.getAllByText('Start free').length).toBeGreaterThan(0);
+    expect(document.body.textContent).not.toMatch(/[\u00e2\u00c2\u00c3\ufffd]/);
   });
 
   it('renders the download page', () => {
