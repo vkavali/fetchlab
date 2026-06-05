@@ -100,7 +100,7 @@ function generateHtmlDocs(col: Collection, history: HistoryEntry[], opts: DocOpt
     let exampleHtml = '';
     if (example) {
       let exBody = example.body;
-      try { exBody = JSON.stringify(JSON.parse(example.body), null, 2); } catch {}
+      try { exBody = JSON.stringify(JSON.parse(example.body), null, 2); } catch { /* keep original body */ }
       exampleHtml = `<div class="section"><h4>Example Response <span class="badge" style="background:${example.status < 400 ? '#166534' : '#991b1b'};color:${example.status < 400 ? '#86efac' : '#fca5a5'}">${example.status}</span></h4><pre>${escapeHtml(exBody.substring(0, 3000))}</pre></div>`;
     }
 
@@ -115,7 +115,7 @@ function generateHtmlDocs(col: Collection, history: HistoryEntry[], opts: DocOpt
       </div>`;
   });
 
-  let navItems = col.requests.map((r, i) =>
+  const navItems = col.requests.map((r, i) =>
     `<a href="#endpoint-${i}" class="nav-item"><span class="nav-method" style="color:${methodColors[r.method] || '#6b7280'}">${r.method}</span><span class="nav-name">${escapeHtml(r.name || r.url)}</span></a>`
   ).join('');
 

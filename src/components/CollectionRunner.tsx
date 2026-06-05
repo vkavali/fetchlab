@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { Collection, RequestConfig, ResponseData } from '../types';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import {
   Play, Square, CheckCircle2, XCircle, Loader2, Clock,
   X, ChevronDown, ChevronRight, BarChart3

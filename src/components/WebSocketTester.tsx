@@ -54,6 +54,7 @@ export default function WebSocketTester({ onClose }: { onClose: () => void }) {
   const connectStartRef = useRef<number>(0);
   const pingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoReconnectRef = useRef(autoReconnect);
+  const connectRef = useRef<() => void>(() => undefined);
 
   // Keep ref in sync so the close handler always reads the latest value
   useEffect(() => {
@@ -151,7 +152,7 @@ export default function WebSocketTester({ onClose }: { onClose: () => void }) {
 
         if (autoReconnectRef.current && event.code !== 1000) {
           reconnectTimerRef.current = setTimeout(() => {
-            connect();
+            connectRef.current();
           }, 3000);
         }
       };
@@ -160,6 +161,10 @@ export default function WebSocketTester({ onClose }: { onClose: () => void }) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to connect');
     }
   }, [url, subprotocol, addMessage, startPingMeasure]);
+
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimerRef.current) {

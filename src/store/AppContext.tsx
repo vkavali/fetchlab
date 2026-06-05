@@ -1,7 +1,8 @@
-import { createContext, useContext, useReducer, useCallback, useEffect, type ReactNode } from 'react';
+import { useReducer, useCallback, useEffect, type ReactNode } from 'react';
 import type { RequestConfig, ResponseData, HistoryEntry, Collection, Environment, Tab, TokenProfile, RequestSnippet, TestResult, ScriptConsoleEntry, ResponseSnapshot } from '../types';
 import { runPreRequestScript, runTestScript } from '../utils/scriptRunner';
 import { generateId, createDefaultRequest } from '../utils/helpers';
+import { AppContext } from './useApp';
 
 const STORAGE_KEY = 'fetchlab_state';
 
@@ -62,9 +63,9 @@ function extractByPath(obj: unknown, path: string): unknown {
   }, obj);
 }
 
-type SidebarTab = 'collections' | 'history' | 'environments' | 'tokens' | 'snippets';
+export type SidebarTab = 'collections' | 'history' | 'environments' | 'tokens' | 'snippets';
 
-interface AppState {
+export interface AppState {
   tabs: Tab[];
   activeTabId: string | null;
   requests: Record<string, RequestConfig>;
@@ -84,7 +85,7 @@ interface AppState {
   chainVariables: Record<string, string>;
 }
 
-type Action =
+export type Action =
   | { type: 'NEW_TAB' }
   | { type: 'CLOSE_TAB'; tabId: string }
   | { type: 'SET_ACTIVE_TAB'; tabId: string }
@@ -387,17 +388,6 @@ function reducer(state: AppState, action: Action): AppState {
       return state;
   }
 }
-
-interface AppContextValue {
-  state: AppState;
-  dispatch: React.Dispatch<Action>;
-  sendRequest: (requestId: string) => Promise<void>;
-  fetchOAuth2Token: (requestId: string) => Promise<void>;
-  fetchTokenProfile: (profileId: string) => Promise<void>;
-  getEnvVariables: () => Record<string, string>;
-}
-
-const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -756,17 +746,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', requestId, loading: false });
     }
-  }, [state.requests, state.tokenProfiles, getEnvVariables, fetchOAuth2Token, fetchTokenProfile]);
+  }, [state.requests, state.tokenProfiles, state.chainVariables, getEnvVariables, fetchOAuth2Token, fetchTokenProfile]);
 
   return (
     <AppContext.Provider value={{ state, dispatch, sendRequest, fetchOAuth2Token, fetchTokenProfile, getEnvVariables }}>
       {children}
     </AppContext.Provider>
   );
-}
-
-export function useApp() {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp must be used within AppProvider');
-  return ctx;
 }

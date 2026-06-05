@@ -103,8 +103,14 @@ export function useCountry() {
   useEffect(() => {
     // URL or localStorage override wins — never re-detect over them.
     const ovr = readUrlCountry() || readStorageOverride();
-    if (ovr) { setCountry(ovr); setReady(true); return; }
-    if (moduleCache) { setCountry(moduleCache.country); setReady(true); return; }
+    if (ovr || moduleCache) {
+      const nextCountry = ovr || moduleCache!.country;
+      const timer = window.setTimeout(() => {
+        setCountry(nextCountry);
+        setReady(true);
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
 
     let cancelled = false;
     fetchCountry().then((c) => {

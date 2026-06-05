@@ -128,7 +128,7 @@ export default function SchemaValidator({ responseBody }: Props) {
 
   const saveRules = (newRules: SchemaRule[]) => {
     setRules(newRules);
-    try { localStorage.setItem('fetchlab_schema_rules', JSON.stringify(newRules)); } catch {}
+    try { localStorage.setItem('fetchlab_schema_rules', JSON.stringify(newRules)); } catch { /* ignore storage failures */ }
   };
 
   const parsed = useMemo(() => {

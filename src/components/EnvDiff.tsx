@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { useApp } from '../store/AppContext';
+import { useState } from 'react';
+import { useApp } from '../store/useApp';
 import type { RequestConfig } from '../types';
 import { formatTime, formatBytes } from '../utils/helpers';
 import { computeJsonDiff, diffSummary } from '../utils/jsonDiff';
@@ -62,7 +62,7 @@ export default function EnvDiff({ request, onClose }: Props) {
     }
   };
 
-  const runComparison = useCallback(async () => {
+  const runComparison = async () => {
     setIsRunning(true);
     setLeftResult(null);
     setRightResult(null);
@@ -70,7 +70,7 @@ export default function EnvDiff({ request, onClose }: Props) {
     setLeftResult(left);
     setRightResult(right);
     setIsRunning(false);
-  }, [leftEnvId, rightEnvId]);
+  };
 
   let diffEntries: ReturnType<typeof computeJsonDiff> = [];
   let summary = { added: 0, removed: 0, changed: 0, total: 0 };

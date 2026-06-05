@@ -1,0 +1,71 @@
+import React from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import App from '../src/App';
+
+class MockIntersectionObserver {
+  private callback: IntersectionObserverCallback;
+
+  constructor(callback: IntersectionObserverCallback) {
+    this.callback = callback;
+  }
+
+  observe(target: Element) {
+    this.callback([
+      {
+        isIntersecting: true,
+        target,
+      } as IntersectionObserverEntry,
+    ], this as unknown as IntersectionObserver);
+  }
+
+  disconnect() {}
+  unobserve() {}
+  takeRecords() { return []; }
+}
+
+function renderAt(path: string) {
+  window.history.pushState({}, '', path);
+  return render(<App />);
+}
+
+describe('client route smoke', () => {
+  beforeEach(() => {
+    vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  it('renders the landing page', () => {
+    renderAt('/');
+    expect(screen.getByText('Your APIs broke at 2am.')).toBeTruthy();
+    expect(screen.getAllByText('Start free').length).toBeGreaterThan(0);
+  });
+
+  it('renders the download page', () => {
+    renderAt('/download');
+    expect(screen.getByText('Download FetchLab')).toBeTruthy();
+    expect(screen.getByText('Windows Installer')).toBeTruthy();
+  });
+
+  it('renders legal pages', () => {
+    const { unmount } = renderAt('/privacy');
+    expect(screen.getByText('Privacy Policy')).toBeTruthy();
+    unmount();
+
+    renderAt('/terms');
+    expect(screen.getByText('Terms of Service')).toBeTruthy();
+  });
+
+  it('renders the app shell', async () => {
+    renderAt('/app');
+    await waitFor(() => {
+      expect(screen.getAllByText('New Request').length).toBeGreaterThan(0);
+    });
+    expect(screen.getByText('Send')).toBeTruthy();
+  });
+});

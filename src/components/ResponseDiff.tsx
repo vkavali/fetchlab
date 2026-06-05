@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import type { ResponseData } from '../types';
 import { computeJsonDiff, diffSummary, type DiffEntry } from '../utils/jsonDiff';
 import { X, GitCompare, Plus, Minus, RefreshCw, Sparkles, Loader2, AlertTriangle, ShieldCheck } from 'lucide-react';

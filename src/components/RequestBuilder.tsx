@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import AuthEditor from './AuthEditor';
 import ResizeHandle from './ResizeHandle';
 import ExportDialog from './ExportDialog';

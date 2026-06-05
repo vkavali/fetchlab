@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import {
   generateId, importFromJsonFile, copyToClipboard, generateCodeSnippet, requestToShareableJson
 } from '../utils/helpers';
@@ -226,27 +226,33 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
 
       {collections.map(col => (
         <div key={col.id} className="mb-1">
-          <button
-            onClick={() => toggleExpand(col.id)}
-            className="flex items-center gap-1.5 w-full px-2 py-1.5 rounded text-left text-sm text-gray-300 hover:bg-gray-800/70 transition-colors group"
-          >
-            {expanded[col.id] ? <ChevronDown size={14} className="text-gray-600" /> : <ChevronRight size={14} className="text-gray-600" />}
-            <FolderOpen size={14} className="text-brand-400/70" />
+          <div className="flex items-center gap-1.5 w-full px-2 py-1.5 rounded text-left text-sm text-gray-300 hover:bg-gray-800/70 transition-colors group">
             {renamingColId === col.id ? (
-              <input
-                autoFocus
-                value={renameValue}
-                onChange={e => setRenameValue(e.target.value)}
-                onBlur={() => { dispatch({ type: 'UPDATE_COLLECTION', id: col.id, updates: { name: renameValue } }); setRenamingColId(null); }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') { dispatch({ type: 'UPDATE_COLLECTION', id: col.id, updates: { name: renameValue } }); setRenamingColId(null); }
-                  if (e.key === 'Escape') setRenamingColId(null);
-                }}
-                onClick={e => e.stopPropagation()}
-                className="flex-1 bg-gray-800 border border-brand-500 rounded px-1.5 py-0.5 text-sm text-gray-200 focus:outline-none"
-              />
+              <>
+                {expanded[col.id] ? <ChevronDown size={14} className="text-gray-600" /> : <ChevronRight size={14} className="text-gray-600" />}
+                <FolderOpen size={14} className="text-brand-400/70" />
+                <input
+                  autoFocus
+                  value={renameValue}
+                  onChange={e => setRenameValue(e.target.value)}
+                  onBlur={() => { dispatch({ type: 'UPDATE_COLLECTION', id: col.id, updates: { name: renameValue } }); setRenamingColId(null); }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') { dispatch({ type: 'UPDATE_COLLECTION', id: col.id, updates: { name: renameValue } }); setRenamingColId(null); }
+                    if (e.key === 'Escape') setRenamingColId(null);
+                  }}
+                  className="flex-1 bg-gray-800 border border-brand-500 rounded px-1.5 py-0.5 text-sm text-gray-200 focus:outline-none"
+                />
+              </>
             ) : (
-              <span className="flex-1 truncate">{col.name}</span>
+              <button
+                type="button"
+                onClick={() => toggleExpand(col.id)}
+                className="flex items-center gap-1.5 flex-1 min-w-0 text-left"
+              >
+                {expanded[col.id] ? <ChevronDown size={14} className="text-gray-600" /> : <ChevronRight size={14} className="text-gray-600" />}
+                <FolderOpen size={14} className="text-brand-400/70" />
+                <span className="flex-1 truncate">{col.name}</span>
+              </button>
             )}
             <span className="text-xs text-gray-600">{col.requests.length}</span>
             <button
@@ -262,7 +268,7 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
             >
               <Trash2 size={12} />
             </button>
-          </button>
+          </div>
 
           {expanded[col.id] && (
             <div className="ml-4 border-l border-gray-800 pl-2 animate-slide-in">

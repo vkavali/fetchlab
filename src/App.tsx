@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { AppProvider } from './store/AppContext';
-import { AuthProvider, useAuth } from './auth/AuthContext';
+import { useApp } from './store/useApp';
+import { AuthProvider } from './auth/AuthContext';
+import { useAuth } from './auth/useAuth';
 import LoginPage from './auth/LoginPage';
 import TrialBanner from './auth/TrialBanner';
 import Header from './components/Header';
@@ -11,7 +13,6 @@ import ResponseViewer from './components/ResponseViewer';
 import ResizeHandle from './components/ResizeHandle';
 import PrivacyPolicy from './components/legal/PrivacyPolicy';
 import TermsOfService from './components/legal/TermsOfService';
-import { useApp } from './store/AppContext';
 import { extractSharedData, clearShareHash } from './utils/shareLink';
 import { generateId } from './utils/helpers';
 import type { Collection, RequestConfig } from './types';
@@ -99,6 +100,16 @@ function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
   useEffect(() => {
     const shared = extractSharedData();
     if (!shared) return;
+    let showTimer: ReturnType<typeof setTimeout> | undefined;
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const showImport = (nextImport: { type: string; name: string }) => {
+      clearShareHash();
+      showTimer = setTimeout(() => {
+        setShareImport(nextImport);
+        hideTimer = setTimeout(() => setShareImport(null), 5000);
+      }, 0);
+    };
 
     const data = shared.data as Record<string, unknown>;
     if (shared.type === 'collection' && data.name && Array.isArray(data.requests)) {
@@ -109,15 +120,16 @@ function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
         requests: (data.requests as RequestConfig[]).map((r: RequestConfig) => ({ ...r, id: generateId() })),
       };
       dispatch({ type: 'ADD_COLLECTION', collection: col });
-      setShareImport({ type: 'collection', name: col.name });
-      clearShareHash();
-      setTimeout(() => setShareImport(null), 5000);
+      showImport({ type: 'collection', name: col.name });
     } else if (shared.type === 'request' && data.name) {
       dispatch({ type: 'OPEN_REQUEST', request: data as unknown as RequestConfig });
-      setShareImport({ type: 'request', name: data.name as string });
-      clearShareHash();
-      setTimeout(() => setShareImport(null), 5000);
+      showImport({ type: 'request', name: data.name as string });
     }
+
+    return () => {
+      if (showTimer) clearTimeout(showTimer);
+      if (hideTimer) clearTimeout(hideTimer);
+    };
   }, [dispatch]);
 
   return (
@@ -284,7 +296,6 @@ export default function App() {
       </ErrorBoundary>
     );
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error('[App] render error', err);
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-950 text-gray-100 p-4">

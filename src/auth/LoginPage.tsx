@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from './useAuth';
 
 interface SsoConfig { id: string; name: string }
 

@@ -108,7 +108,17 @@ export default function FlowBuilder({ onClose, collections }: { onClose: () => v
   const saveFlow = () => {
     const flow: SavedFlow = {
       name: flowName,
-      nodes: nodes.map(({ status, response, error, ...rest }) => rest),
+      nodes: nodes.map(node => ({
+        id: node.id,
+        name: node.name,
+        method: node.method,
+        url: node.url,
+        headers: node.headers,
+        body: node.body,
+        extractions: node.extractions,
+        condition: node.condition,
+        delayMs: node.delayMs,
+      })),
     };
     const updated = [...savedFlows.filter(f => f.name !== flowName), flow];
     setSavedFlows(updated);

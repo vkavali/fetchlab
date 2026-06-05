@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import type { AuthConfig, RequestConfig } from '../types';
 import {
   Shield, RefreshCw, Zap, Key, Lock, Globe, Link2,

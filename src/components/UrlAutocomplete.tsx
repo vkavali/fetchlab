@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import { Clock, FolderOpen, Zap } from 'lucide-react';
 
 interface Props {
@@ -86,7 +86,8 @@ export default function UrlAutocomplete({ value, onChange, onSubmit, placeholder
   })();
 
   useEffect(() => {
-    setSelectedIdx(0);
+    const timer = setTimeout(() => setSelectedIdx(0), 0);
+    return () => clearTimeout(timer);
   }, [value]);
 
   useEffect(() => {

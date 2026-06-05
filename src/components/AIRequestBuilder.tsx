@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import { parseCurl } from '../utils/curlParser';
 import { aiPost, getAiStatus, type AiRequestSpec } from '../utils/aiClient';
 import { generateId } from '../utils/helpers';

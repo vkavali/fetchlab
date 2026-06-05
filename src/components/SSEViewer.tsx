@@ -27,6 +27,7 @@ export default function SSEViewer({ onClose }: { onClose: () => void }) {
   const [mode, setMode] = useState<'eventsource' | 'fetch'>('eventsource');
   const [customHeaders, setCustomHeaders] = useState<{ key: string; value: string }[]>([]);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [eventsPerSec, setEventsPerSec] = useState(0);
 
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -43,11 +44,19 @@ export default function SSEViewer({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     if (!startTime) return;
-    const iv = setInterval(() => {
+    const updateStats = () => {
       const elapsed = (Date.now() - startTime) / 1000;
+      setElapsedSeconds(Math.floor(elapsed));
       if (elapsed > 0) setEventsPerSec(Math.round((eventCountRef.current / elapsed) * 10) / 10);
+    };
+    const initial = setTimeout(updateStats, 0);
+    const iv = setInterval(() => {
+      updateStats();
     }, 1000);
-    return () => clearInterval(iv);
+    return () => {
+      clearTimeout(initial);
+      clearInterval(iv);
+    };
   }, [startTime]);
 
   const addEvent = useCallback((evt: Omit<SSEEvent, 'id' | 'timestamp'>) => {
@@ -63,6 +72,8 @@ export default function SSEViewer({ onClose }: { onClose: () => void }) {
     setError(null);
     setEvents([]);
     eventCountRef.current = 0;
+    setElapsedSeconds(0);
+    setEventsPerSec(0);
     setStartTime(Date.now());
 
     if (mode === 'eventsource') {
@@ -133,6 +144,8 @@ export default function SSEViewer({ onClose }: { onClose: () => void }) {
     abortRef.current = null;
     setConnected(false);
     setConnecting(false);
+    setElapsedSeconds(0);
+    setEventsPerSec(0);
     setStartTime(null);
   }, []);
 
@@ -152,7 +165,7 @@ export default function SSEViewer({ onClose }: { onClose: () => void }) {
   });
 
   const totalSize = events.reduce((s, e) => s + e.data.length, 0);
-  const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+  const elapsed = startTime ? elapsedSeconds : 0;
 
   const formatJson = (s: string) => {
     try { return JSON.stringify(JSON.parse(s), null, 2); } catch { return s; }

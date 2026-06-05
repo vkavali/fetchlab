@@ -575,7 +575,7 @@ export default function Pricing() {
     if (plan.waitlist) {
       setModalPlan(plan);
     } else if (plan.href) {
-      window.location.href = plan.href;
+      window.location.assign(plan.href);
     }
   };
 

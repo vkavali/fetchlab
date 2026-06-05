@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useApp } from '../store/AppContext';
-import { useAuth } from '../auth/AuthContext';
+import { useApp } from '../store/useApp';
+import { useAuth } from '../auth/useAuth';
 import { PanelLeftClose, PanelLeft, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, LogIn, User as UserIcon, Users, Bot, Shield, Cpu } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';

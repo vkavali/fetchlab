@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import { syntaxHighlightJson, formatBytes, formatTime, getStatusClass, generateCodeSnippet, generateId } from '../utils/helpers';
 import { aiPost } from '../utils/aiClient';
 import TestResults from './TestResults';

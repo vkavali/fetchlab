@@ -25,13 +25,11 @@ function showFatalFallback(message: string) {
 
 // Global handlers — last line of defense against a blank screen.
 window.addEventListener('error', (e) => {
-  // eslint-disable-next-line no-console
   console.error('[FetchLab fatal]', e.error || e.message);
   showFatalFallback(String(e.error?.message || e.message || 'Unknown error'));
 });
 
 window.addEventListener('unhandledrejection', (e) => {
-  // eslint-disable-next-line no-console
   console.error('[FetchLab unhandled rejection]', e.reason);
   const reason = e.reason;
   const msg = reason instanceof Error ? reason.message : String(reason ?? 'Unknown rejection');

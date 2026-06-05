@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import type { Collection } from '../types';
 import { generateTeamSyncFile } from '../utils/shareLink';
 import { collectionToShareableJson } from '../utils/helpers';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import type { Collection, RequestConfig } from '../types';
 import { aiPost, getAiStatus } from '../utils/aiClient';
 import {

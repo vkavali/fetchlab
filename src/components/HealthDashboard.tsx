@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import {
   Activity, Play, Square, RefreshCw,
   TrendingUp, TrendingDown, Minus, X, Wifi, WifiOff

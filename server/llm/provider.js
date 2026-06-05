@@ -24,7 +24,6 @@ export class LlmProvider {
     this.config = config;
   }
 
-  // eslint-disable-next-line no-unused-vars
   async chat(_messages, _options = {}) {
     throw new LlmError('chat() not implemented', { provider: this.name });
   }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import type { TokenProfile, KeyValue } from '../types';
 import { generateId } from '../utils/helpers';
 import {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import { Plus, X, Copy, Trash2, XCircle } from 'lucide-react';
 
 export default function TabBar() {
@@ -33,11 +33,10 @@ export default function TabBar() {
           {tabs.map(tab => {
             const active = activeTabId === tab.id;
             return (
-              <button
+              <div
                 key={tab.id}
-                onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tabId: tab.id })}
                 onContextMenu={e => handleContextMenu(e, tab.id)}
-                className="group flex items-center gap-2 px-4 py-2.5 text-xs min-w-0 max-w-[220px] transition-colors relative"
+                className="group flex items-center text-xs min-w-0 max-w-[220px] transition-colors relative"
                 style={{
                   borderRight: '1px solid var(--color-border)',
                   background: active ? 'var(--color-surface)' : 'transparent',
@@ -45,30 +44,36 @@ export default function TabBar() {
                   fontWeight: active ? 500 : 400,
                 }}
               >
-                <span
-                  className={`font-mono method-${tab.method.toLowerCase()}`}
-                  style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em' }}
-                >
-                  {tab.method}
-                </span>
-                <span className="truncate">{tab.name || 'New Request'}</span>
-                {tab.isDirty && (
-                  <span
-                    className="flex-shrink-0"
-                    style={{
-                      width: 6, height: 6, borderRadius: 999,
-                      background: 'var(--color-warning)',
-                    }}
-                  />
-                )}
                 <button
-                  onClick={e => { e.stopPropagation(); dispatch({ type: 'CLOSE_TAB', tabId: tab.id }); }}
-                  className="p-0.5 rounded opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
+                  onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tabId: tab.id })}
+                  className="flex items-center gap-2 min-w-0 flex-1 px-4 py-2.5 text-left"
+                  style={{ color: 'inherit' }}
+                >
+                  <span
+                    className={`font-mono method-${tab.method.toLowerCase()}`}
+                    style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em' }}
+                  >
+                    {tab.method}
+                  </span>
+                  <span className="truncate">{tab.name || 'New Request'}</span>
+                  {tab.isDirty && (
+                    <span
+                      className="flex-shrink-0"
+                      style={{
+                        width: 6, height: 6, borderRadius: 999,
+                        background: 'var(--color-warning)',
+                      }}
+                    />
+                  )}
+                </button>
+                <button
+                  onClick={() => dispatch({ type: 'CLOSE_TAB', tabId: tab.id })}
+                  className="mr-2 p-0.5 rounded opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
                   style={{ color: 'var(--color-text-subtle)' }}
+                  title="Close tab"
                 >
                   <X size={12} />
                 </button>
-                {/* Active underline — orange hairline that slides in */}
                 <span
                   aria-hidden
                   style={{
@@ -81,7 +86,7 @@ export default function TabBar() {
                     transition: 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)',
                   }}
                 />
-              </button>
+              </div>
             );
           })}
         </div>
@@ -95,7 +100,6 @@ export default function TabBar() {
         </button>
       </div>
 
-      {/* Right-click context menu */}
       {contextMenu && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setContextMenu(null)} />

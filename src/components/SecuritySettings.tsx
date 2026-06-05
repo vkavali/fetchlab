@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Shield, ShieldCheck, KeyRound, Monitor, X, Check, AlertTriangle, RefreshCw, LogOut } from 'lucide-react';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../auth/useAuth';
 import { authJson } from '../utils/apiClient';
 
 interface SessionRow {

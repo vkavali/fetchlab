@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../auth/useAuth';
 import {
   X, Bot, RefreshCw, AlertTriangle, CheckCircle2, Clock, GitPullRequest,
   Power, Hash, PlayCircle, Pause,

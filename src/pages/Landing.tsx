@@ -466,7 +466,7 @@ function PostmortemSpecimen() {
   const border = '1px solid var(--color-border)';
   const borderStrong = '1px solid var(--color-border-strong)';
 
-  const Row = ({ k, v, mono = false, valueColor, revealed }: { k: string; v: React.ReactNode; mono?: boolean; valueColor?: string; revealed: boolean }) => (
+  const renderRow = ({ k, v, mono = false, valueColor, revealed }: { k: string; v: React.ReactNode; mono?: boolean; valueColor?: string; revealed: boolean }) => (
     <div className="grid" style={{ gridTemplateColumns: '108px 1fr', padding: '10px 18px', borderBottom: border, alignItems: 'baseline', gap: 18 }}>
       <span
         className="font-mono"
@@ -606,7 +606,7 @@ function PostmortemSpecimen() {
           transition: `opacity 360ms ${EASE}, transform 360ms ${EASE}`,
         }}
       >
-        <Row revealed={progress >= 1} k="Detected" v={<>14:02 {tz} · validator threw <span className="font-mono">SchemaError</span></>} />
+        {renderRow({ revealed: progress >= 1, k: 'Detected', v: <>14:02 {tz} · validator threw <span className="font-mono">SchemaError</span></> })}
       </div>
       <div
         style={{
@@ -615,7 +615,7 @@ function PostmortemSpecimen() {
           transition: `opacity 360ms ${EASE}, transform 360ms ${EASE}`,
         }}
       >
-        <Row revealed={progress >= 2} k="Reproduced" v={<>4 of 4 calls · 100% repro · staging mirrored</>} />
+        {renderRow({ revealed: progress >= 2, k: 'Reproduced', v: <>4 of 4 calls · 100% repro · staging mirrored</> })}
       </div>
       <div
         style={{
@@ -624,11 +624,11 @@ function PostmortemSpecimen() {
           transition: `opacity 360ms ${EASE}, transform 360ms ${EASE}`,
         }}
       >
-        <Row
-          revealed={progress >= 3}
-          k="Root cause"
-          v={<>deploy <span className="font-mono">a3f2c</span> removed <span className="font-mono">customer_id</span> from the request validator</>}
-        />
+        {renderRow({
+          revealed: progress >= 3,
+          k: 'Root cause',
+          v: <>deploy <span className="font-mono">a3f2c</span> removed <span className="font-mono">customer_id</span> from the request validator</>,
+        })}
       </div>
 
       {/* The diff — small, instrument-clean */}
