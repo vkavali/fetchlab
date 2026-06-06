@@ -21,6 +21,48 @@ const SETUP_STEPS = [
   },
 ];
 
+const SCOPE_COLUMNS = [
+  {
+    title: 'AI can assist with',
+    items: [
+      'Drafting API requests from plain English.',
+      'Converting cURL commands into FetchLab requests.',
+      'Suggesting headers, params, auth shape, and JSON bodies.',
+      'Explaining failed responses and likely root causes.',
+      'Suggesting fixes for auth, validation, rate limit, timeout, and server errors.',
+      'Helping generate tests, schemas, docs, and OpenAPI-style descriptions from known requests.',
+      'Triage of Slack incident messages through the AI Ops Agent.',
+      'Summarizing agent findings and proposed next steps.',
+    ],
+  },
+  {
+    title: 'AI does not do automatically',
+    items: [
+      'It does not send production requests without the user pressing Send.',
+      'It does not guarantee that generated payloads match your real API contract.',
+      'It does not bypass authentication, permissions, rate limits, or network restrictions.',
+      'It does not make a backend fix by itself unless your team enables and approves an agent action.',
+      'It does not replace backend logs, observability, code review, or incident ownership.',
+      'It does not make unsafe secrets safe if they are included in request bodies or prompts.',
+      'It does not train a model inside FetchLab. Provider retention depends on the configured provider.',
+      'It does not certify enterprise compliance or security readiness by itself.',
+    ],
+  },
+  {
+    title: 'Human approval required',
+    items: [
+      'Review generated method, URL, auth, headers, params, and body before sending.',
+      'Confirm the active environment before running destructive calls.',
+      'Remove secrets before sharing requests, collections, prompts, or exported data.',
+      'Validate AI diagnosis against backend logs and API documentation.',
+      'Approve PR creation or auto-fix behavior only after testing in non-production.',
+      'Choose provider, retention posture, and BYOK setup with your security requirements in mind.',
+      'Run the request or collection tests after applying an AI suggestion.',
+      'Decide whether AI output is acceptable for customer-facing docs.',
+    ],
+  },
+];
+
 const WORKFLOWS = [
   {
     id: 'request-builder',
@@ -159,6 +201,52 @@ function NumberedList({ steps }: { steps: string[] }) {
   );
 }
 
+function ScopeMatrix() {
+  return (
+    <section
+      id="scope"
+      className="scroll-mt-20"
+      style={{
+        background: 'var(--color-border)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 8,
+        overflow: 'hidden',
+        marginBottom: 42,
+      }}
+      aria-label="AI assistance scope"
+    >
+      <div className="p-5 md:p-6" style={{ background: 'var(--color-surface-2)', borderBottom: '1px solid var(--color-border)' }}>
+        <div className="font-mono uppercase" style={{ fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--color-accent)', marginBottom: 10 }}>
+          Scope of AI assistance
+        </div>
+        <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.04em', margin: 0 }}>
+          What AI can and cannot do
+        </h2>
+      </div>
+      <div className="grid lg:grid-cols-3 gap-px">
+        {SCOPE_COLUMNS.map((column) => (
+          <div key={column.title} className="p-5 md:p-6" style={{ background: 'var(--color-surface)' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 650, margin: '0 0 16px' }}>{column.title}</h3>
+            <ul className="space-y-3" style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+              {column.items.map((item, index) => (
+                <li key={item} className="grid gap-3" style={{ gridTemplateColumns: '28px 1fr', alignItems: 'start' }}>
+                  <span
+                    className="font-mono"
+                    style={{ color: 'var(--color-accent)', fontSize: 10.5, letterSpacing: '0.10em', paddingTop: 2 }}
+                  >
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <span style={{ color: 'var(--color-text-muted)', lineHeight: 1.65 }}>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function WorkflowCard({ workflow, index }: { workflow: (typeof WORKFLOWS)[number]; index: number }) {
   return (
     <article
@@ -225,6 +313,8 @@ export default function AIHowTo() {
             and avoid sending secrets unless your retention and provider setup allow it.
           </p>
         </section>
+
+        <ScopeMatrix />
 
         <section
           className="grid md:grid-cols-5 gap-px"

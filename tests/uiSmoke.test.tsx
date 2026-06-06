@@ -63,6 +63,9 @@ describe('client route smoke', () => {
   it('renders the AI how-to page', () => {
     renderAt('/ai-how-to');
     expect(screen.getByText('How to use AI in FetchLab.')).toBeTruthy();
+    expect(screen.getByText('What AI can and cannot do')).toBeTruthy();
+    expect(screen.getByText('AI can assist with')).toBeTruthy();
+    expect(screen.getByText('Human approval required')).toBeTruthy();
     expect(screen.getByText('Generate a request from plain English')).toBeTruthy();
     expect(screen.getByText('Use the AI Ops Agent for incident triage')).toBeTruthy();
   });
