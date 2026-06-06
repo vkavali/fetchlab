@@ -184,9 +184,9 @@ export default function SSEViewer({ onClose }: { onClose: () => void }) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-800">
           <div className="flex items-center gap-2">
-            <Radio size={16} className="text-orange-400" />
+            <Radio size={16} className="text-brand-400" />
             <h2 className="text-sm font-bold text-gray-200">SSE / Event Stream Viewer</h2>
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-orange-500/20 text-orange-400 uppercase">Live</span>
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-brand-500/20 text-brand-400 uppercase">Live</span>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors">
             <X size={16} />
@@ -197,10 +197,10 @@ export default function SSEViewer({ onClose }: { onClose: () => void }) {
         <div className="px-5 py-3 border-b border-gray-800 space-y-2">
           <div className="flex items-center gap-2">
             <div className="flex gap-1 bg-gray-800/50 rounded-lg p-0.5">
-              <button onClick={() => setMode('eventsource')} className={`px-2 py-1 rounded text-[10px] font-medium ${mode === 'eventsource' ? 'bg-orange-500/20 text-orange-400' : 'text-gray-500'}`}>
+              <button onClick={() => setMode('eventsource')} className={`px-2 py-1 rounded text-[10px] font-medium ${mode === 'eventsource' ? 'bg-brand-500/20 text-brand-400' : 'text-gray-500'}`}>
                 EventSource
               </button>
-              <button onClick={() => setMode('fetch')} className={`px-2 py-1 rounded text-[10px] font-medium ${mode === 'fetch' ? 'bg-orange-500/20 text-orange-400' : 'text-gray-500'}`}>
+              <button onClick={() => setMode('fetch')} className={`px-2 py-1 rounded text-[10px] font-medium ${mode === 'fetch' ? 'bg-brand-500/20 text-brand-400' : 'text-gray-500'}`}>
                 Fetch Stream
               </button>
             </div>
@@ -209,13 +209,13 @@ export default function SSEViewer({ onClose }: { onClose: () => void }) {
               onChange={e => setUrl(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !connected && connect()}
               placeholder="https://api.example.com/events"
-              className="flex-1 bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 font-mono placeholder-gray-600 focus:outline-none focus:border-orange-500/50"
+              className="flex-1 bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 font-mono placeholder-gray-600 focus:outline-none focus:border-brand-500"
             />
             {!connected ? (
               <button
                 onClick={connect}
                 disabled={!url || connecting}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-600 text-white text-sm font-semibold hover:bg-orange-500 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 disabled:opacity-50 transition-colors"
               >
                 {connecting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Wifi size={14} />}
                 Connect
@@ -243,7 +243,7 @@ export default function SSEViewer({ onClose }: { onClose: () => void }) {
                   <button onClick={() => setCustomHeaders(prev => prev.filter((_, j) => j !== i))} className="text-gray-600 hover:text-red-400"><X size={12} /></button>
                 </div>
               ))}
-              <button onClick={() => setCustomHeaders(prev => [...prev, { key: '', value: '' }])} className="text-[10px] text-gray-500 hover:text-orange-400">+ Add header</button>
+              <button onClick={() => setCustomHeaders(prev => [...prev, { key: '', value: '' }])} className="text-[10px] text-gray-500 hover:text-brand-400">+ Add header</button>
             </div>
           )}
         </div>
@@ -273,13 +273,13 @@ export default function SSEViewer({ onClose }: { onClose: () => void }) {
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Filter..."
                 className="bg-transparent text-[10px] text-gray-300 w-20 focus:outline-none" />
             </div>
-            <button onClick={() => setRawMode(!rawMode)} className={`px-1.5 py-0.5 rounded text-[10px] ${rawMode ? 'bg-orange-500/20 text-orange-400' : 'text-gray-500 hover:text-gray-300'}`}>
+            <button onClick={() => setRawMode(!rawMode)} className={`px-1.5 py-0.5 rounded text-[10px] ${rawMode ? 'bg-brand-500/20 text-brand-400' : 'text-gray-500 hover:text-gray-300'}`}>
               Raw
             </button>
             <button onClick={() => setPaused(!paused)} className={`p-1 rounded ${paused ? 'text-amber-400' : 'text-gray-500 hover:text-gray-300'}`} title={paused ? 'Resume' : 'Pause'}>
               {paused ? <Play size={12} /> : <Pause size={12} />}
             </button>
-            <button onClick={() => setAutoScroll(!autoScroll)} className={`p-1 rounded ${autoScroll ? 'text-orange-400' : 'text-gray-500'}`} title="Auto-scroll">
+            <button onClick={() => setAutoScroll(!autoScroll)} className={`p-1 rounded ${autoScroll ? 'text-brand-400' : 'text-gray-500'}`} title="Auto-scroll">
               <ArrowDown size={12} />
             </button>
             <button onClick={() => { setEvents([]); eventCountRef.current = 0; }} className="p-1 rounded text-gray-500 hover:text-red-400" title="Clear">

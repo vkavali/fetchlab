@@ -4,7 +4,7 @@ import { useCountry } from '../utils/useCountry';
 /* ============================================================================
  * FetchLab - Marketing landing, "Cool Laboratory" register.
  *
- * Cool ink on warm paper. One accent (signal orange) used at <5% -
+ * Cool ink on warm paper. One accent (volt teal) used at <5% -
  * the cursor, status dots, the Send button, leader marks. Restraint is
  * the brand. No gradients, no glows, no floating mockups.
  *
@@ -69,7 +69,7 @@ function Reveal({
   );
 }
 
-/* Section rule - gray hairline that gets briefly drawn in signal-orange
+/* Section rule - gray hairline that gets briefly drawn in volt-teal
    when it enters the viewport, like a fresh scan completing. */
 function SectionRule() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.4 });
@@ -90,7 +90,7 @@ function SectionRule() {
   );
 }
 
-/* CTA - solid signal-orange button with micro-lift on hover, no bounce. */
+/* CTA - solid volt-teal button with micro-lift on hover, no bounce. */
 function CTA({
   href,
   children,
@@ -804,7 +804,7 @@ function Hero() {
   );
 }
 
-/* ---------- Drenched orange declaration - the one big committed color moment ---------- */
+/* ---------- Drenched teal declaration - the one big committed color moment ---------- */
 
 function Declaration() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.35 });
@@ -1461,7 +1461,7 @@ function Features() {
   );
 }
 
-/* ---------- Orange ticker bar - different rhythm from the Declaration ---------- */
+/* ---------- Teal ticker bar - different rhythm from the Declaration ---------- */
 
 function TickerBar() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.4 });

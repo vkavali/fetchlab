@@ -26,7 +26,7 @@ export default function Sidebar() {
       className="flex flex-col h-full"
       style={{ background: 'var(--color-surface-2)', borderRight: '1px solid var(--color-border)' }}
     >
-      {/* Sidebar tabs — mono uppercase labels, accent underline on active */}
+      {/* Sidebar tabs - mono uppercase labels, accent underline on active */}
       <div
         className="grid grid-cols-5"
         style={{ borderBottom: '1px solid var(--color-border)' }}
@@ -57,7 +57,7 @@ export default function Sidebar() {
               >
                 {tab.label}
               </span>
-              {/* Active underline — signal orange hairline */}
+              {/* Active underline - volt teal hairline */}
               <span
                 aria-hidden
                 style={{
@@ -145,7 +145,7 @@ function CollectionsPanel({ collections }: { collections: Collection[] }) {
         };
         dispatch({ type: 'ADD_COLLECTION', collection: col });
       } else if (data._type === 'request' && data.name) {
-        // Single request — open it directly
+        // Single request - open it directly
         dispatch({ type: 'OPEN_REQUEST', request: data as unknown as RequestConfig });
       }
     } catch { /* user cancelled or invalid file */ }

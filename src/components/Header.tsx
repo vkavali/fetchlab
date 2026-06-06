@@ -70,7 +70,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
           </button>
 
           <div className="flex items-center gap-2.5">
-            {/* The accent dot — instrument power-on light, not a logo */}
+            {/* The accent dot - instrument power-on light, not a logo */}
             <span
               aria-hidden
               style={{
@@ -103,13 +103,13 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
         </div>
 
         <div className="flex items-center gap-0.5" style={{ color: 'var(--color-text-muted)' }}>
-          {/* AI Request Builder — requires server-side auth, hidden for guests */}
+          {/* AI Request Builder - requires server-side auth, hidden for guests */}
           {!isGuest && (
             <button
               onClick={() => setShowAi(true)}
               className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
               style={{ color: 'var(--color-text-muted)' }}
-              title="AI Request Builder — describe in natural language or paste cURL"
+              title="AI Request Builder - describe in natural language or paste cURL"
             >
               <Sparkles size={13} />
               <span className="hidden sm:inline">AI</span>
@@ -121,7 +121,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
             onClick={() => setShowAgent(true)}
             className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
             style={{ color: 'var(--color-text-muted)' }}
-            title="AI Ops Agent — monitors Slack, detects API issues, reproduces & diagnoses"
+            title="AI Ops Agent - monitors Slack, detects API issues, reproduces & diagnoses"
           >
             <Bot size={13} />
             <span className="hidden sm:inline">Agent</span>
@@ -198,7 +198,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
             {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
           </button>
 
-          {/* Environment selector — mono label, accent dot only when active */}
+          {/* Environment selector - mono label, accent dot only when active */}
           <button
             onClick={() => dispatch({ type: 'SET_SIDEBAR_TAB', tab: 'environments' })}
             className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
@@ -251,7 +251,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
             </div>
           )}
 
-          {/* Sign-in entry (guests only) — solid signal-orange, mirrors landing CTA */}
+          {/* Sign-in entry (guests only) - solid volt-teal, mirrors landing CTA */}
           {isGuest && onSignIn && (
             <button
               onClick={() => onSignIn()}
@@ -316,7 +316,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
         </div>
       </header>
 
-      {/* Welcome guide — shown on first launch */}
+      {/* Welcome guide - shown on first launch */}
       {showGuide && (
         <WelcomeGuide onClose={() => setShowGuide(false)} />
       )}

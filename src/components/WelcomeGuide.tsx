@@ -110,7 +110,7 @@ const STEPS = [
     title: 'Auto-Token & Authentication',
     subtitle: 'Never copy-paste a token again',
     icon: Key,
-    iconColor: 'from-amber-500 to-orange-500',
+    iconColor: 'from-brand-500 to-accent-500',
     content: (
       <div className="space-y-4">
         <p className="text-sm text-gray-400 leading-relaxed">

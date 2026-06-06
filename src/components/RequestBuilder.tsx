@@ -116,7 +116,7 @@ export default function RequestBuilder() {
         className="flex items-center gap-2 p-3"
         style={{ background: 'var(--color-surface-2)', borderBottom: '1px solid var(--color-border)' }}
       >
-        {/* Method selector — mono uppercase, hairline border */}
+        {/* Method selector - mono uppercase, hairline border */}
         <div className="relative">
           <button
             onClick={() => setShowMethodDropdown(!showMethodDropdown)}
@@ -189,7 +189,7 @@ export default function RequestBuilder() {
           }}
         />
 
-        {/* Send button — the signature signal-orange action */}
+        {/* Send button - the signature volt-teal action */}
         <button
           onClick={handleSend}
           disabled={isLoading || !request.url}
@@ -257,7 +257,7 @@ export default function RequestBuilder() {
         <button
           onClick={() => setShowBenchmark(true)}
           className="p-2.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-amber-400 hover:border-amber-500/30 transition-colors"
-          title="Performance benchmark — run N times"
+          title="Performance benchmark - run N times"
         >
           <Zap size={16} />
         </button>
@@ -266,7 +266,7 @@ export default function RequestBuilder() {
         <button
           onClick={() => setShowEnvDiff(true)}
           className="p-2.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors"
-          title="Environment diff — compare dev vs prod"
+          title="Environment diff - compare dev vs prod"
         >
           <GitCompare size={16} />
         </button>
@@ -295,7 +295,7 @@ export default function RequestBuilder() {
         <EnvDiff request={request} onClose={() => setShowEnvDiff(false)} />
       )}
 
-      {/* Section tabs — mono uppercase labels with orange underline scan */}
+      {/* Section tabs - mono uppercase labels with teal underline scan */}
       <div
         className="flex items-center gap-0 px-3 overflow-x-auto scrollbar-hide"
         style={{ borderBottom: '1px solid var(--color-border)' }}
@@ -338,7 +338,7 @@ export default function RequestBuilder() {
                   {tab.count}
                 </span>
               )}
-              {/* Active underline — orange hairline scan */}
+              {/* Active underline - teal hairline scan */}
               <span
                 aria-hidden
                 style={{
@@ -954,7 +954,7 @@ function SaveDialog({ request, collections, onSave, onCreateCollection, onClose 
 }
 
 /* ============================================================================
- * HeadersSection — KeyValueEditor + opt-in suggestion strip.
+ * HeadersSection - KeyValueEditor + opt-in suggestion strip.
  *
  * Computes header suggestions on every render from the current method, URL,
  * recent history, and the headers the user already has. When the user activates
@@ -1137,9 +1137,9 @@ function SuggestionRow({ s, onActivate }: { s: HeaderSuggestion; onActivate: () 
         }}
         title={s.why}
       >
-        {s.value || '(empty — fill on activate)'}
+        {s.value || '(empty - fill on activate)'}
       </span>
-      {/* Source tag — visible on hover */}
+      {/* Source tag - visible on hover */}
       <span
         className="font-mono"
         style={{

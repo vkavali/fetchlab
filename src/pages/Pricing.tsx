@@ -5,7 +5,7 @@ import { useCountry, type Currency } from '../utils/useCountry';
  * FetchLab - /pricing
  *
  * Standalone pricing data sheet. Same 'Cool Laboratory' register as the rest
- * of the marketing surface: cool ink on warm paper, signal-orange accent,
+ * of the marketing surface: cool ink on warm paper, volt-teal accent,
  * hairline borders, mono labels, instrument table.
  *
  * Currency is derived from the visitor's country (see useCountry - server

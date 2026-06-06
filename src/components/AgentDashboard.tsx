@@ -47,7 +47,7 @@ const STATUS_COLORS: Record<string, string> = {
   applied: 'text-green-500 bg-green-500/15',
   pr_opened: 'text-cyan-400 bg-cyan-500/10',
   ignored: 'text-gray-500 bg-gray-500/10',
-  snoozed: 'text-orange-400 bg-orange-500/10',
+  snoozed: 'text-brand-400 bg-brand-500/10',
   transient: 'text-gray-400 bg-gray-500/10',
 };
 
@@ -679,7 +679,7 @@ function IssueDetail({ issue, onAct }: { issue: AgentIssue; onAct: (id: string, 
         <button onClick={() => onAct(issue.id, 'open-pr')} className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 rounded text-[11px] font-medium flex items-center gap-1">
           <GitPullRequest size={12} /> Open PR
         </button>
-        <button onClick={() => onAct(issue.id, 'snooze')} className="px-2.5 py-1 bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 rounded text-[11px] font-medium flex items-center gap-1">
+        <button onClick={() => onAct(issue.id, 'snooze')} className="px-2.5 py-1 bg-brand-500/20 hover:bg-brand-500/20 text-brand-400 rounded text-[11px] font-medium flex items-center gap-1">
           <Clock size={12} /> Snooze
         </button>
         <button onClick={() => onAct(issue.id, 'ignore')} className="px-2.5 py-1 bg-gray-600/20 hover:bg-gray-600/30 text-gray-400 rounded text-[11px] font-medium flex items-center gap-1">
