@@ -60,6 +60,13 @@ describe('client route smoke', () => {
     expect(screen.getByText('Configure authentication')).toBeTruthy();
   });
 
+  it('renders the AI how-to page', () => {
+    renderAt('/ai-how-to');
+    expect(screen.getByText('How to use AI in FetchLab.')).toBeTruthy();
+    expect(screen.getByText('Generate a request from plain English')).toBeTruthy();
+    expect(screen.getByText('Use the AI Ops Agent for incident triage')).toBeTruthy();
+  });
+
   it('renders legal pages', () => {
     const { unmount } = renderAt('/privacy');
     expect(screen.getByText('Privacy Policy')).toBeTruthy();

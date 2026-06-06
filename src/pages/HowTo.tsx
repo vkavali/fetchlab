@@ -198,6 +198,7 @@ function Nav() {
         <a href="/" className="fl-wordmark" style={{ fontSize: 13, color: 'var(--color-text)' }}>FETCHLAB</a>
         <div className="hidden md:flex items-center gap-9" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
           <a href="/how-to" style={{ opacity: 1, color: 'var(--color-text)' }}>How-to</a>
+          <a href="/ai-how-to" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">AI guide</a>
           <a href="/download" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">Download</a>
           <a href="/pricing" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">Pricing</a>
         </div>
@@ -330,6 +331,10 @@ export default function HowTo() {
             A practical walkthrough for the full product: requests, collections, environments,
             auth, AI-assisted setup, tests, schema validation, runners, diffs, realtime APIs,
             docs, sharing, and security controls.
+            {' '}
+            <a href="/ai-how-to" style={{ color: 'var(--color-accent)', textDecoration: 'underline', textUnderlineOffset: 4 }}>
+              Use the dedicated AI guide for provider setup and agent workflows.
+            </a>
           </p>
         </section>
 
