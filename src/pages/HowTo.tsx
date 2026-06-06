@@ -1,3 +1,5 @@
+import { FetchLabLogo } from '../components/FetchLabLogo';
+
 const FEATURES = [
   {
     id: 'requests',
@@ -195,7 +197,9 @@ function Nav() {
       }}
     >
       <div className="max-w-[1180px] mx-auto px-6 lg:px-8 h-14 flex items-center justify-between">
-        <a href="/" className="fl-wordmark" style={{ fontSize: 13, color: 'var(--color-text)' }}>FETCHLAB</a>
+        <a href="/" aria-label="FetchLab home">
+          <FetchLabLogo markSize={22} wordmarkSize={13} />
+        </a>
         <div className="hidden md:flex items-center gap-9" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
           <a href="/how-to" style={{ opacity: 1, color: 'var(--color-text)' }}>How-to</a>
           <a href="/ai-how-to" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">AI guide</a>

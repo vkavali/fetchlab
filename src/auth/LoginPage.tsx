@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { FetchLabLogo } from '../components/FetchLabLogo';
 import { useAuth } from './useAuth';
 
 interface SsoConfig { id: string; name: string }
@@ -78,8 +79,8 @@ export default function LoginPage({ trialEnded = false, initialMode = 'login' }:
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-[#e5e5e5] px-6">
         <div className="w-full max-w-[360px]">
           <div className="flex flex-col items-center mb-8">
-            <div className="w-9 h-9 rounded bg-[#10b981] flex items-center justify-center mb-4">
-              <span className="text-black text-base font-semibold">F</span>
+            <div className="mb-4">
+              <FetchLabLogo markSize={42} showWordmark={false} />
             </div>
             <h1 className="text-[18px] font-medium text-white tracking-tight">Two-factor authentication</h1>
             <p className="text-[12px] text-[#737373] mt-1 text-center">
@@ -139,10 +140,7 @@ export default function LoginPage({ trialEnded = false, initialMode = 'login' }:
         <div className="w-full max-w-[360px]">
           {/* Logo */}
           <div className="flex flex-col items-center mb-10">
-            <div className="w-9 h-9 rounded bg-[#10b981] flex items-center justify-center mb-4">
-              <span className="text-black text-base font-semibold">F</span>
-            </div>
-            <h1 className="text-[18px] font-medium text-white tracking-tight">FetchLab</h1>
+            <FetchLabLogo markSize={42} wordmarkSize={16} />
             <p className="text-[12px] text-[#737373] mt-1">
               {mode === 'login' ? 'Sign in to your account' : 'Create your account'}
             </p>

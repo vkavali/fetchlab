@@ -3,6 +3,7 @@ import {
   X, BookOpen, MessageCircleQuestion, Keyboard, Zap, ExternalLink,
   ChevronDown, ChevronRight
 } from 'lucide-react';
+import { FetchLabLogo } from './FetchLabLogo';
 
 interface Props {
   onClose: () => void;
@@ -168,11 +169,8 @@ export default function HelpMenu({ onClose, onShowGuide }: Props) {
           {activeTab === 'about' && (
             <div className="p-5 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center shadow-lg">
-                  <Zap size={22} className="text-white" />
-                </div>
                 <div>
-                  <h3 className="text-base font-bold bg-gradient-to-r from-brand-400 to-accent-400 bg-clip-text text-transparent">FetchLab</h3>
+                  <FetchLabLogo markSize={36} wordmarkSize={14} />
                   <p className="text-xs text-gray-500">Version 1.0.0</p>
                 </div>
               </div>

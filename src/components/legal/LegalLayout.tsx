@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { FetchLabLogo } from '../FetchLabLogo';
 
 interface LegalLayoutProps {
   title: string;
@@ -11,9 +12,8 @@ export default function LegalLayout({ title, effective, children }: LegalLayoutP
     <div className="min-h-screen bg-[#0a0a0a] text-[#e5e5e5] font-sans">
       <header className="border-b border-[#262626]">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 text-sm text-[#e5e5e5] hover:text-white">
-            <span className="w-5 h-5 rounded bg-[#10b981] flex items-center justify-center text-[10px] font-semibold text-black">F</span>
-            <span className="font-medium">FetchLab</span>
+          <a href="/" className="flex items-center gap-2 text-sm text-[#e5e5e5] hover:text-white" aria-label="FetchLab home">
+            <FetchLabLogo markSize={20} wordmarkSize={11.5} />
           </a>
           <nav className="flex items-center gap-5 text-xs text-[#737373]">
             <a href="/privacy" className="hover:text-[#e5e5e5]">Privacy</a>

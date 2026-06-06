@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { FetchLabLogo } from '../components/FetchLabLogo';
 import { useCountry } from '../utils/useCountry';
 
 /* ============================================================================
@@ -360,12 +361,8 @@ function Nav() {
       }}
     >
       <div className="max-w-[1180px] mx-auto px-6 lg:px-8 h-14 flex items-center justify-between">
-        <a
-          href="/"
-          className="fl-wordmark"
-          style={{ fontSize: 13, color: 'var(--color-text)' }}
-        >
-          FETCHLAB
+        <a href="/" aria-label="FetchLab home">
+          <FetchLabLogo markSize={22} wordmarkSize={13} />
         </a>
         <div className="hidden md:flex items-center gap-9" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
           <a href="#how" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>The loop</a>
@@ -1915,8 +1912,8 @@ function Footer() {
       <div className="max-w-[1180px] mx-auto px-6 lg:px-8 py-10">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center gap-6">
-            <a href="/" className="fl-wordmark" style={{ fontSize: 13, color: 'var(--color-text)' }}>
-              FETCHLAB
+            <a href="/" aria-label="FetchLab home">
+              <FetchLabLogo markSize={22} wordmarkSize={13} />
             </a>
             <div className="hidden md:flex items-center gap-5" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
               <a href="/pricing" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Pricing</a>

@@ -1,3 +1,5 @@
+import { FetchLabLogo } from '../components/FetchLabLogo';
+
 const INDIGO = '#6366F1';
 const INDIGO_HOVER = '#4F46E5';
 const TEXT_DARK = '#111827';
@@ -15,8 +17,8 @@ function Nav() {
       style={{ borderBottom: `1px solid ${BORDER}` }}
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-8 h-14 flex items-center justify-between">
-        <a href="/" className="text-[15px] font-semibold tracking-tight" style={{ color: TEXT_DARK }}>
-          FetchLab
+        <a href="/" aria-label="FetchLab home">
+          <FetchLabLogo markSize={22} wordmarkSize={13} />
         </a>
         <div className="hidden md:flex items-center gap-9 text-[13px]" style={{ color: TEXT_DARK }}>
           <a href="/#how" className="hover:opacity-60 transition-opacity">How it works</a>

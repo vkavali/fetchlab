@@ -13,6 +13,7 @@ import AIRequestBuilder from './AIRequestBuilder';
 import AgentDashboard from './AgentDashboard';
 import SecuritySettings from './SecuritySettings';
 import LLMSettings from './LLMSettings';
+import { FetchLabLogo } from './FetchLabLogo';
 
 export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
   const { state, dispatch } = useApp();
@@ -70,21 +71,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
           </button>
 
           <div className="flex items-center gap-2.5">
-            {/* The accent dot - instrument power-on light, not a logo */}
-            <span
-              aria-hidden
-              style={{
-                width: 7, height: 7, borderRadius: 999,
-                background: 'var(--color-accent)',
-                boxShadow: '0 0 0 3px color-mix(in oklch, var(--color-accent) 14%, transparent)',
-              }}
-            />
-            <span
-              className="fl-wordmark"
-              style={{ fontSize: 11.5, color: 'var(--color-text)' }}
-            >
-              FETCHLAB
-            </span>
+            <FetchLabLogo markSize={22} wordmarkSize={11.5} />
             <span
               className="font-mono"
               style={{
