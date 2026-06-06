@@ -53,6 +53,13 @@ describe('client route smoke', () => {
     expect(screen.getByText('Windows Installer')).toBeTruthy();
   });
 
+  it('renders the how-to page', () => {
+    renderAt('/how-to');
+    expect(screen.getByText('How to use FetchLab.')).toBeTruthy();
+    expect(screen.getByText('Send an API request')).toBeTruthy();
+    expect(screen.getByText('Configure authentication')).toBeTruthy();
+  });
+
   it('renders legal pages', () => {
     const { unmount } = renderAt('/privacy');
     expect(screen.getByText('Privacy Policy')).toBeTruthy();

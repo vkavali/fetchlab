@@ -19,6 +19,7 @@ import type { Collection, RequestConfig } from './types';
 import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
 import Download from './pages/Download';
+import HowTo from './pages/HowTo';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const SIDEBAR_MIN = 180;
@@ -274,6 +275,7 @@ export default function App() {
 
     if (!isTauri) {
       if (path === '/' || path === '') return <ErrorBoundary><Landing /></ErrorBoundary>;
+      if (path === '/how-to') return <ErrorBoundary><HowTo /></ErrorBoundary>;
       if (path === '/pricing') return <ErrorBoundary><Pricing /></ErrorBoundary>;
       if (path === '/download') return <ErrorBoundary><Download /></ErrorBoundary>;
       if (path === '/privacy') return <ErrorBoundary><PrivacyPolicy /></ErrorBoundary>;

@@ -20,6 +20,7 @@ function Nav() {
         </a>
         <div className="hidden md:flex items-center gap-9 text-[13px]" style={{ color: TEXT_DARK }}>
           <a href="/#how" className="hover:opacity-60 transition-opacity">How it works</a>
+          <a href="/how-to" className="hover:opacity-60 transition-opacity">How-to</a>
           <a href="/download" className="hover:opacity-60 transition-opacity">Download</a>
           <a href="/#pricing" className="hover:opacity-60 transition-opacity">Pricing</a>
         </div>

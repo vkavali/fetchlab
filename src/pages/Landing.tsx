@@ -370,6 +370,7 @@ function Nav() {
         <div className="hidden md:flex items-center gap-9" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
           <a href="#how" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>The loop</a>
           <a href="#features" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Field manual</a>
+          <a href="/how-to" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>How-to</a>
           <a href="/download" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Download</a>
           <a href="/pricing" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Pricing</a>
         </div>
