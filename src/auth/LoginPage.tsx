@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FetchLabLogo } from '../components/FetchLabLogo';
+import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 import { useAuth } from './useAuth';
 
 interface SsoConfig { id: string; name: string }
@@ -10,6 +11,8 @@ interface LoginPageProps {
 }
 
 export default function LoginPage({ trialEnded = false, initialMode = 'login' }: LoginPageProps = {}) {
+  usePublicLightTheme();
+
   const { login, loginVerify2fa, register } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>(trialEnded ? 'register' : initialMode);
   const [email, setEmail] = useState('');

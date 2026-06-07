@@ -71,7 +71,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
           </button>
 
           <div className="flex items-center gap-2.5">
-            <FetchLabLogo markSize={22} wordmarkSize={11.5} />
+            <FetchLabLogo markSize={26} wordmarkSize={12} />
             <span
               className="font-mono"
               style={{
@@ -271,7 +271,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
                 <div className="absolute right-0 mt-1 w-56 bg-gray-900 border border-gray-800 rounded z-50 py-1">
                   <div className="px-3 py-2 border-b border-gray-800">
                     <div className="text-[12px] font-medium text-gray-200 truncate">{user.name || user.email}</div>
-                    <div className="text-[10px] text-gray-500 truncate">{user.email} · {user.role}</div>
+                    <div className="text-[10px] text-gray-500 truncate">{user.email} - {user.role}</div>
                     {user.totp_enabled && (
                       <div className="text-[9px] text-green-400 mt-1 flex items-center gap-1">
                         <Shield size={10} /> 2FA enabled

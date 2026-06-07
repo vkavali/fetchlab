@@ -1,10 +1,5 @@
 import { FetchLabLogo } from '../components/FetchLabLogo';
-
-const INDIGO = '#6366F1';
-const INDIGO_HOVER = '#4F46E5';
-const TEXT_DARK = '#111827';
-const TEXT_BODY = '#6B7280';
-const BORDER = '#E5E7EB';
+import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 
 const VERSION = '1.2.0';
 const EXE_HREF = '/downloads/FetchLab_1.2.0_x64-setup.exe';
@@ -13,28 +8,38 @@ const MSI_HREF = '/downloads/FetchLab_1.2.0_x64_en-US.msi';
 function Nav() {
   return (
     <nav
-      className="sticky top-0 z-50 bg-white/85 backdrop-blur-md"
-      style={{ borderBottom: `1px solid ${BORDER}` }}
+      className="sticky top-0 z-50"
+      style={{
+        background: 'color-mix(in oklch, var(--color-bg) 90%, transparent)',
+        backdropFilter: 'saturate(140%) blur(6px)',
+        WebkitBackdropFilter: 'saturate(140%) blur(6px)',
+        borderBottom: '1px solid var(--color-border)',
+      }}
     >
-      <div className="max-w-6xl mx-auto px-6 lg:px-8 h-14 flex items-center justify-between">
+      <div className="max-w-[1180px] mx-auto px-6 lg:px-8 h-14 flex items-center justify-between">
         <a href="/" aria-label="FetchLab home">
-          <FetchLabLogo markSize={22} wordmarkSize={13} />
+          <FetchLabLogo markSize={28} wordmarkSize={13.5} />
         </a>
-        <div className="hidden md:flex items-center gap-9 text-[13px]" style={{ color: TEXT_DARK }}>
-          <a href="/#how" className="hover:opacity-60 transition-opacity">How it works</a>
-          <a href="/how-to" className="hover:opacity-60 transition-opacity">How-to</a>
-          <a href="/ai-how-to" className="hover:opacity-60 transition-opacity">AI guide</a>
-          <a href="/download" className="hover:opacity-60 transition-opacity">Download</a>
-          <a href="/#pricing" className="hover:opacity-60 transition-opacity">Pricing</a>
+        <div className="hidden md:flex items-center gap-9" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+          <a href="/#how" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>The loop</a>
+          <a href="/how-to" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>How-to</a>
+          <a href="/ai-how-to" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>AI guide</a>
+          <a href="/download" style={{ opacity: 1, color: 'var(--color-text)' }}>Download</a>
+          <a href="/pricing" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Pricing</a>
         </div>
         <a
           href="/app"
-          className="text-[13px] px-4 py-1.5 rounded-full text-white font-medium transition-colors"
-          style={{ backgroundColor: INDIGO }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = INDIGO_HOVER)}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = INDIGO)}
+          className="inline-flex items-center"
+          style={{
+            fontSize: 12.5,
+            fontWeight: 600,
+            color: 'var(--color-accent-ink)',
+            background: 'var(--color-accent)',
+            padding: '6px 12px',
+            borderRadius: 5,
+          }}
         >
-          Get Started
+          Open app
         </a>
       </div>
     </nav>
@@ -56,40 +61,46 @@ function DownloadCard({
 }) {
   return (
     <div
-      className="rounded-2xl p-6 bg-white flex flex-col"
-      style={{ border: `1px solid ${BORDER}` }}
+      className="flex flex-col"
+      style={{
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 8,
+        padding: 24,
+      }}
     >
-      <div className="text-[12px] uppercase tracking-wider mb-2" style={{ color: TEXT_BODY }}>
-        Windows · {VERSION}
+      <div className="font-mono uppercase" style={{ color: 'var(--color-text-subtle)', fontSize: 10.5, letterSpacing: '0.14em', marginBottom: 10 }}>
+        Windows - {VERSION}
       </div>
-      <h3 className="text-xl font-semibold mb-1" style={{ color: TEXT_DARK }}>
+      <h3 className="text-xl" style={{ color: 'var(--color-text)', fontWeight: 650, margin: '0 0 6px' }}>
         {title}
       </h3>
-      <p className="text-[14px] mb-5" style={{ color: TEXT_BODY }}>
+      <p style={{ color: 'var(--color-text-muted)', fontSize: 14, lineHeight: 1.6, margin: '0 0 22px' }}>
         {subtitle}
       </p>
       <a
         href={href}
         download={filename}
-        className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-[14px] font-semibold transition-colors"
-        style={
-          primary
-            ? { backgroundColor: INDIGO, color: '#fff' }
-            : { backgroundColor: '#fff', color: TEXT_DARK, border: `1px solid ${BORDER}` }
-        }
+        className="inline-flex items-center justify-center transition-colors"
+        style={{
+          background: primary ? 'var(--color-accent)' : 'var(--color-surface-2)',
+          color: primary ? 'var(--color-accent-ink)' : 'var(--color-text)',
+          border: primary ? '1px solid var(--color-accent)' : '1px solid var(--color-border-strong)',
+          borderRadius: 5,
+          fontSize: 13.5,
+          fontWeight: 650,
+          padding: '10px 14px',
+        }}
         onMouseEnter={(e) => {
-          if (primary) e.currentTarget.style.backgroundColor = INDIGO_HOVER;
-          else e.currentTarget.style.backgroundColor = '#F9FAFB';
+          e.currentTarget.style.background = primary ? 'var(--color-accent-hover)' : 'var(--color-surface-3)';
         }}
         onMouseLeave={(e) => {
-          if (primary) e.currentTarget.style.backgroundColor = INDIGO;
-          else e.currentTarget.style.backgroundColor = '#fff';
+          e.currentTarget.style.background = primary ? 'var(--color-accent)' : 'var(--color-surface-2)';
         }}
       >
         Download {filename.endsWith('.msi') ? 'MSI' : 'Installer'}
-        <span aria-hidden>↓</span>
       </a>
-      <div className="text-[11px] mt-3 font-mono" style={{ color: TEXT_BODY }}>
+      <div className="font-mono" style={{ color: 'var(--color-text-subtle)', fontSize: 11, marginTop: 12 }}>
         {filename}
       </div>
     </div>
@@ -97,19 +108,37 @@ function DownloadCard({
 }
 
 export default function Download() {
-  return (
-    <div className="min-h-screen bg-white" style={{ color: TEXT_DARK }}>
-      <Nav />
-      <main className="max-w-4xl mx-auto px-6 lg:px-8 py-16 md:py-24">
-        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
-          Download FetchLab
-        </h1>
-        <p className="text-base md:text-lg max-w-xl mb-12" style={{ color: TEXT_BODY }}>
-          The FetchLab desktop app for Windows. Free during the public beta.
-          Version {VERSION}.
-        </p>
+  usePublicLightTheme();
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+  return (
+    <div className="min-h-screen" style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <Nav />
+      <main className="max-w-[1180px] mx-auto px-6 lg:px-8 py-14 md:py-20">
+        <section className="grid lg:grid-cols-[0.95fr_1.05fr] gap-10 lg:gap-16 items-end" style={{ marginBottom: 42 }}>
+          <div>
+            <div className="font-mono uppercase" style={{ color: 'var(--color-accent)', fontSize: 11, letterSpacing: '0.16em', marginBottom: 18 }}>
+              Desktop build
+            </div>
+            <h1
+              className="text-4xl md:text-6xl"
+              style={{
+                fontFamily: 'var(--font-display)',
+                letterSpacing: '-0.07em',
+                lineHeight: 0.92,
+                margin: 0,
+                maxWidth: '10ch',
+              }}
+            >
+              Download FetchLab
+            </h1>
+          </div>
+          <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 620, margin: 0 }}>
+            The FetchLab desktop app for Windows. Free during the public beta.
+            Version {VERSION}. macOS and Linux builds are planned next.
+          </p>
+        </section>
+
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-px" style={{ background: 'var(--color-border)', border: '1px solid var(--color-border)', marginBottom: 34 }}>
           <DownloadCard
             title="Windows Installer"
             subtitle="Recommended for most users. Standard setup wizard."
@@ -123,15 +152,14 @@ export default function Download() {
             href={MSI_HREF}
             filename="FetchLab_1.2.0_x64_en-US.msi"
           />
-        </div>
+        </section>
 
-        <div className="mt-12 text-[13px]" style={{ color: TEXT_BODY }}>
-          macOS and Linux builds are coming soon.
-          {' '}
-          <a href="/app" className="underline" style={{ color: INDIGO }}>
+        <div style={{ color: 'var(--color-text-muted)', fontSize: 13.5 }}>
+          Browser version is available now.{' '}
+          <a href="/app" style={{ color: 'var(--color-accent)', textDecoration: 'underline', textUnderlineOffset: 4 }}>
             Use FetchLab in the browser
-          </a>{' '}
-          in the meantime.
+          </a>
+          {' '}while desktop builds catch up.
         </div>
       </main>
     </div>

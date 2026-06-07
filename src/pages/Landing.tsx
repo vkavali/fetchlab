@@ -362,7 +362,7 @@ function Nav() {
     >
       <div className="max-w-[1180px] mx-auto px-6 lg:px-8 h-14 flex items-center justify-between">
         <a href="/" aria-label="FetchLab home">
-          <FetchLabLogo markSize={22} wordmarkSize={13} />
+          <FetchLabLogo markSize={28} wordmarkSize={13.5} />
         </a>
         <div className="hidden md:flex items-center gap-9" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
           <a href="#how" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>The loop</a>
@@ -741,12 +741,34 @@ function Hero() {
       />
       <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pt-16 pb-20 md:pt-24 md:pb-28 relative">
         <Reveal>
+          <div
+            className="flex flex-wrap items-center gap-4"
+            style={{ marginBottom: 28 }}
+          >
+            <FetchLabLogo markSize={58} wordmarkSize={20} />
+            <span
+              className="font-mono"
+              style={{
+                fontSize: 11,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                color: 'var(--color-text-muted)',
+                borderLeft: '1px solid var(--color-border-strong)',
+                paddingLeft: 16,
+              }}
+            >
+              Agent-ready API lab
+            </span>
+          </div>
+        </Reveal>
+
+        <Reveal delay={40}>
           <div style={{ marginBottom: 32 }}>
             <Eyebrow index="00">Incident report - Specimen 0042</Eyebrow>
           </div>
         </Reveal>
 
-        <Reveal delay={80}>
+        <Reveal delay={100}>
           <h1
             style={{
               fontFamily: 'var(--font-display)',
@@ -769,7 +791,7 @@ function Hero() {
           className="grid lg:grid-cols-[1fr_1.05fr] gap-12 lg:gap-16 items-end"
           style={{ marginTop: 56 }}
         >
-          <Reveal delay={160}>
+          <Reveal delay={180}>
             <div>
               <p
                 style={{
@@ -794,7 +816,7 @@ function Hero() {
             </div>
           </Reveal>
 
-          <Reveal delay={220}>
+          <Reveal delay={240}>
             <PostmortemSpecimen />
           </Reveal>
         </div>
@@ -1913,7 +1935,7 @@ function Footer() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center gap-6">
             <a href="/" aria-label="FetchLab home">
-              <FetchLabLogo markSize={22} wordmarkSize={13} />
+              <FetchLabLogo markSize={28} wordmarkSize={13.5} />
             </a>
             <div className="hidden md:flex items-center gap-5" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
               <a href="/pricing" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Pricing</a>

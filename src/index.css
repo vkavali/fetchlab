@@ -1,12 +1,11 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
- * FetchLab - "Cool Laboratory" theme.
+ * FetchLab - "Field Notebook" theme.
  *
- * Signature: graphite ink on glacial paper (light) / frost ink on deep navy
- * paper (dark).
- * One accent: volt-teal, used at <5% - Send, the cursor, status dots,
- * eyebrow leader marks. Restraint is the brand. No gradients. No glows.
+ * Signature: deep botanical ink on warm notebook paper.
+ * One main accent: moss green, with brass for small status markers.
+ * No Postman orange. No AI purple/blue. No cold gray identity.
  * Tuned for 8-hour engineering sessions.
  * ------------------------------------------------------------------------- */
 
@@ -16,96 +15,96 @@
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-/* ===== Light mode (DEFAULT) - graphite ink on glacial paper ===== */
+/* ===== Light mode (DEFAULT) - botanical ink on warm paper ===== */
 :root {
-  /* Surfaces: cool paper, faintly tinted toward the teal accent hue */
-  --color-bg:            oklch(0.976 0.007 205);  /* glacial paper */
-  --color-surface:       oklch(0.990 0.004 205);  /* card / panel */
-  --color-surface-2:     oklch(0.954 0.008 205);  /* sidebar / secondary */
-  --color-surface-3:     oklch(0.918 0.011 205);  /* hover / active subtle */
-  --color-border:        oklch(0.878 0.012 205);  /* hairline */
-  --color-border-strong: oklch(0.790 0.016 205);  /* visible rule */
+  /* Surfaces: warm notebook paper and tea-stained panels. */
+  --color-bg:            oklch(0.975 0.035 88);
+  --color-surface:       oklch(0.992 0.026 88);
+  --color-surface-2:     oklch(0.940 0.048 82);
+  --color-surface-3:     oklch(0.895 0.058 78);
+  --color-border:        oklch(0.815 0.052 76);
+  --color-border-strong: oklch(0.680 0.070 74);
 
-  /* Ink: cool deep graphite. The contrast against glacial paper is the signature. */
-  --color-text:          oklch(0.205 0.020 235);
-  --color-text-muted:    oklch(0.455 0.018 235);
-  --color-text-subtle:   oklch(0.630 0.015 235);
+  /* Ink: deep green-brown, not gray. */
+  --color-text:          oklch(0.245 0.055 132);
+  --color-text-muted:    oklch(0.420 0.055 118);
+  --color-text-subtle:   oklch(0.570 0.054 96);
 
-  /* Volt teal - <5% use. Distinct from Postman orange. */
-  --color-accent:        oklch(0.565 0.155 190);
-  --color-accent-hover:  oklch(0.500 0.155 190);
-  --color-accent-soft:   oklch(0.565 0.155 190 / 0.12);
-  --color-accent-ink:    oklch(0.990 0.004 205);  /* text on accent button */
+  /* Moss green - used for action and the arrow mark. */
+  --color-accent:        oklch(0.410 0.125 145);
+  --color-accent-hover:  oklch(0.350 0.130 145);
+  --color-accent-soft:   oklch(0.410 0.125 145 / 0.12);
+  --color-accent-ink:    oklch(0.990 0.030 88);
 
-  /* Status - desaturated so they don't compete with the accent */
-  --color-success:       oklch(0.555 0.130 165);
-  --color-success-soft:  oklch(0.555 0.130 165 / 0.10);
-  --color-warning:       oklch(0.670 0.135 105);
-  --color-warning-soft:  oklch(0.670 0.135 105 / 0.12);
+  /* Status - brass and oxide tones, never neon. */
+  --color-success:       oklch(0.455 0.125 145);
+  --color-success-soft:  oklch(0.455 0.125 145 / 0.11);
+  --color-warning:       oklch(0.610 0.125 78);
+  --color-warning-soft:  oklch(0.610 0.125 78 / 0.14);
   --color-error:         oklch(0.560 0.215 27);
   --color-error-soft:    oklch(0.560 0.215 27 / 0.10);
 
-  --color-input-bg:      oklch(0.993 0.003 205);
-  --color-input-border:  oklch(0.872 0.010 205);
+  --color-input-bg:      oklch(0.988 0.024 88);
+  --color-input-border:  oklch(0.805 0.050 76);
   --color-input-focus:   var(--color-accent);
 
   /* Legacy brand tokens - all collapse to accent so nothing slips through */
-  --color-brand-50:  oklch(0.958 0.028 190);
-  --color-brand-100: oklch(0.920 0.050 190);
-  --color-brand-200: oklch(0.830 0.085 190);
-  --color-brand-300: oklch(0.725 0.120 190);
-  --color-brand-400: oklch(0.635 0.145 190);
-  --color-brand-500: oklch(0.565 0.155 190);
-  --color-brand-600: oklch(0.500 0.155 190);
-  --color-brand-700: oklch(0.430 0.140 190);
+  --color-brand-50:  oklch(0.940 0.042 100);
+  --color-brand-100: oklch(0.885 0.060 112);
+  --color-brand-200: oklch(0.780 0.078 126);
+  --color-brand-300: oklch(0.655 0.105 138);
+  --color-brand-400: oklch(0.520 0.125 145);
+  --color-brand-500: oklch(0.410 0.125 145);
+  --color-brand-600: oklch(0.350 0.130 145);
+  --color-brand-700: oklch(0.300 0.115 145);
   --color-accent-400: var(--color-brand-400);
   --color-accent-500: var(--color-brand-500);
   --color-accent-600: var(--color-brand-600);
 
-  --shadow-card: 0 1px 0 oklch(0.878 0.012 205); /* hairline, not blur */
+  --shadow-card: 0 1px 0 oklch(0.815 0.052 76); /* hairline, not blur */
 
   color-scheme: light;
 }
 
-/* ===== Dark mode - frost ink on deep navy paper ===== */
+/* ===== Dark mode - kept for app users who explicitly toggle it ===== */
 html.dark {
-  --color-bg:            oklch(0.145 0.018 235);
-  --color-surface:       oklch(0.180 0.018 235);
-  --color-surface-2:     oklch(0.215 0.018 235);
-  --color-surface-3:     oklch(0.252 0.020 235);
-  --color-border:        oklch(0.292 0.020 235);
-  --color-border-strong: oklch(0.390 0.024 235);
+  --color-bg:            oklch(0.175 0.030 132);
+  --color-surface:       oklch(0.215 0.032 132);
+  --color-surface-2:     oklch(0.255 0.034 128);
+  --color-surface-3:     oklch(0.300 0.038 124);
+  --color-border:        oklch(0.360 0.040 118);
+  --color-border-strong: oklch(0.455 0.050 105);
 
-  --color-text:          oklch(0.940 0.010 205);
-  --color-text-muted:    oklch(0.720 0.014 205);
-  --color-text-subtle:   oklch(0.535 0.014 205);
+  --color-text:          oklch(0.935 0.030 88);
+  --color-text-muted:    oklch(0.760 0.040 88);
+  --color-text-subtle:   oklch(0.620 0.046 92);
 
-  --color-accent:        oklch(0.710 0.160 188);
-  --color-accent-hover:  oklch(0.780 0.135 188);
-  --color-accent-soft:   oklch(0.710 0.160 188 / 0.17);
-  --color-accent-ink:    oklch(0.145 0.018 235);
+  --color-accent:        oklch(0.650 0.130 145);
+  --color-accent-hover:  oklch(0.720 0.120 145);
+  --color-accent-soft:   oklch(0.650 0.130 145 / 0.18);
+  --color-accent-ink:    oklch(0.175 0.030 132);
 
-  --color-success:       oklch(0.700 0.150 165);
-  --color-success-soft:  oklch(0.700 0.150 165 / 0.16);
-  --color-warning:       oklch(0.790 0.135 105);
-  --color-warning-soft:  oklch(0.790 0.135 105 / 0.16);
+  --color-success:       oklch(0.680 0.130 145);
+  --color-success-soft:  oklch(0.680 0.130 145 / 0.17);
+  --color-warning:       oklch(0.740 0.130 78);
+  --color-warning-soft:  oklch(0.740 0.130 78 / 0.18);
   --color-error:         oklch(0.680 0.200 27);
   --color-error-soft:    oklch(0.680 0.200 27 / 0.14);
 
-  --color-input-bg:      oklch(0.195 0.018 235);
-  --color-input-border:  oklch(0.320 0.020 235);
+  --color-input-bg:      oklch(0.235 0.032 132);
+  --color-input-border:  oklch(0.390 0.040 118);
   --color-input-focus:   var(--color-accent);
 
-  --color-brand-50:  oklch(0.250 0.045 188);
-  --color-brand-100: oklch(0.315 0.065 188);
-  --color-brand-200: oklch(0.425 0.095 188);
-  --color-brand-300: oklch(0.555 0.125 188);
-  --color-brand-400: oklch(0.710 0.160 188);
-  --color-brand-500: oklch(0.710 0.160 188);
-  --color-brand-600: oklch(0.780 0.135 188);
-  --color-brand-700: oklch(0.835 0.105 188);
+  --color-brand-50:  oklch(0.275 0.050 132);
+  --color-brand-100: oklch(0.340 0.065 135);
+  --color-brand-200: oklch(0.455 0.085 140);
+  --color-brand-300: oklch(0.560 0.105 145);
+  --color-brand-400: oklch(0.650 0.130 145);
+  --color-brand-500: oklch(0.650 0.130 145);
+  --color-brand-600: oklch(0.720 0.120 145);
+  --color-brand-700: oklch(0.785 0.100 145);
 
-  --shadow-card: 0 1px 0 oklch(0.292 0.020 235);
+  --shadow-card: 0 1px 0 oklch(0.360 0.040 118);
 
   color-scheme: dark;
 }
@@ -413,19 +412,18 @@ pre, code {
 .status-4xx { color: var(--color-warning); }
 .status-5xx { color: var(--color-error); }
 
-/* JSON syntax - quiet, instrument-readable. Keys / strings carry tone,
-   the rest sits back. Avoids the rainbow look. */
-.json-key     { color: oklch(0.380 0.090 235); }   /* deep slate-blue */
-.json-string  { color: oklch(0.470 0.110 170); }   /* desaturated jade */
-.json-number  { color: oklch(0.500 0.130 190); }   /* volt-teal family */
-.json-boolean { color: oklch(0.500 0.120 265); }   /* muted indigo */
+/* JSON syntax - quiet and brand-aligned, not rainbow editor colors. */
+.json-key     { color: var(--color-accent); }
+.json-string  { color: oklch(0.470 0.110 145); }
+.json-number  { color: var(--color-warning); }
+.json-boolean { color: var(--color-warning); }
 .json-null    { color: var(--color-text-subtle); font-style: italic; }
 .json-bracket { color: var(--color-text-subtle); }
 
-html.dark .json-key     { color: oklch(0.760 0.110 235); }
-html.dark .json-string  { color: oklch(0.780 0.110 170); }
-html.dark .json-number  { color: oklch(0.760 0.125 188); }
-html.dark .json-boolean { color: oklch(0.760 0.115 265); }
+html.dark .json-key     { color: var(--color-accent); }
+html.dark .json-string  { color: oklch(0.740 0.105 145); }
+html.dark .json-number  { color: var(--color-warning); }
+html.dark .json-boolean { color: var(--color-warning); }
 html.dark .json-null    { color: var(--color-text-subtle); }
 html.dark .json-bracket { color: var(--color-text-subtle); }
 
@@ -463,7 +461,7 @@ button, a, input, textarea, select {
  * to reinforce the 'instrument' identity without coupling components.
  * ------------------------------------------------------------------------- */
 
-/* Wordmark - 'FETCHLAB' set as a model-number plate, not a logo. */
+/* Wordmark - paired with the request/response arrow mark. */
 .fl-wordmark {
   font-family: var(--font-mono);
   font-weight: 500;

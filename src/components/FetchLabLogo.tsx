@@ -23,43 +23,38 @@ export function FetchLabMark({ size = 28, title = 'FetchLab' }: FetchLabMarkProp
       style={{ display: 'block', flexShrink: 0 }}
     >
       <rect
-        x="4"
-        y="4"
-        width="40"
-        height="40"
-        rx="10"
-        fill="var(--color-surface)"
-        stroke="var(--color-border-strong)"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M18 11H30M21 11V18L14 31C13.05 32.76 14.32 35 16.32 35H31.68C33.68 35 34.95 32.76 34 31L27 18V11"
+        x="3"
+        y="3"
+        width="42"
+        height="42"
+        rx="12"
+        fill="var(--color-accent)"
         stroke="var(--color-text)"
+        strokeOpacity="0.18"
         strokeWidth="2"
+      />
+      <path
+        d="M14 17H31M26 12L31 17L26 22"
+        stroke="var(--color-accent-ink)"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M18 28H30"
-        stroke="var(--color-border-strong)"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M16 32L23 25H29"
-        stroke="var(--color-accent)"
-        strokeWidth="2.4"
+        d="M34 31H17M22 26L17 31L22 36"
+        stroke="var(--color-accent-ink)"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="16" cy="32" r="2.5" fill="var(--color-accent)" />
-      <circle cx="29" cy="25" r="2.5" fill="var(--color-accent)" />
       <path
-        d="M23 18H27"
-        stroke="var(--color-accent)"
+        d="M22 24H30"
+        stroke="var(--color-accent-ink)"
+        strokeOpacity="0.45"
         strokeWidth="2"
         strokeLinecap="round"
       />
+      <circle cx="24" cy="24" r="3.2" fill="var(--color-warning)" />
     </svg>
   );
 }

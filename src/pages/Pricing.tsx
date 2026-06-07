@@ -97,7 +97,7 @@ function Nav() {
     >
       <div className="max-w-[1180px] mx-auto px-6 lg:px-8 h-14 flex items-center justify-between">
         <a href="/" aria-label="FetchLab home">
-          <FetchLabLogo markSize={22} wordmarkSize={13} />
+          <FetchLabLogo markSize={28} wordmarkSize={13.5} />
         </a>
         <div className="hidden md:flex items-center gap-9" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
           <a href="/#how" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">The loop</a>
@@ -546,7 +546,7 @@ function Footer() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center gap-6">
             <a href="/" aria-label="FetchLab home">
-              <FetchLabLogo markSize={22} wordmarkSize={13} />
+              <FetchLabLogo markSize={28} wordmarkSize={13.5} />
             </a>
             <div className="hidden md:flex items-center gap-5" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
               <a href="/pricing" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">Pricing</a>
