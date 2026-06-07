@@ -370,6 +370,7 @@ function Nav() {
           <a href="/how-to" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>How-to</a>
           <a href="/ai-how-to" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>AI guide</a>
           <a href="/download" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Download</a>
+          <a href="/enterprise" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Enterprise</a>
           <a href="/pricing" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Pricing</a>
         </div>
         <div className="flex items-center gap-2">
@@ -1939,6 +1940,7 @@ function Footer() {
             </a>
             <div className="hidden md:flex items-center gap-5" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
               <a href="/pricing" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Pricing</a>
+              <a href="/enterprise" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Enterprise</a>
               <a href="/privacy" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Privacy</a>
               <a href="/terms" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Terms</a>
               <a href="https://github.com/vkavali/fetchlab" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>GitHub</a>

@@ -2,6 +2,14 @@ import { useState } from 'react';
 import { useApp } from '../store/useApp';
 import { syntaxHighlightJson, formatBytes, formatTime, getStatusClass, generateCodeSnippet, generateId } from '../utils/helpers';
 import { aiPost } from '../utils/aiClient';
+import {
+  buildAiReadyJson,
+  buildAiReadyMarkdown,
+  generateAgentFrameworkSnippet,
+  summarizeAiArtifact,
+  type AgentFramework,
+} from '../utils/aiArtifacts';
+import type { RequestConfig, ResponseData } from '../types';
 import TestResults from './TestResults';
 import ResponseDiff from './ResponseDiff';
 import JsonExplorer from './JsonExplorer';
@@ -11,7 +19,7 @@ import ResponseTimeline from './ResponseTimeline';
 import {
   FileJson, Table, Code, Copy, Check, Download,
   Clock, HardDrive, ArrowDown, ChevronDown, FlaskConical, Camera, GitCompare,
-  TreePine, Shield, Stethoscope, Timer, Sparkles, Loader2
+  TreePine, Shield, Stethoscope, Timer, Sparkles, Loader2, Bot
 } from 'lucide-react';
 
 export default function ResponseViewer() {
@@ -20,9 +28,10 @@ export default function ResponseViewer() {
   const response = activeTab ? state.responses[activeTab.requestId] : null;
   const request = activeTab ? state.requests[activeTab.requestId] : null;
   const isLoading = activeTab ? state.loading[activeTab.requestId] : false;
-  const [activeView, setActiveView] = useState<'body' | 'headers' | 'code' | 'tests' | 'explorer' | 'schema' | 'diagnosis' | 'timeline'>('body');
+  const [activeView, setActiveView] = useState<'body' | 'headers' | 'code' | 'tests' | 'explorer' | 'schema' | 'diagnosis' | 'timeline' | 'ai'>('body');
   const [bodyFormat, setBodyFormat] = useState<'pretty' | 'raw' | 'preview'>('pretty');
-  const [codeLang, setCodeLang] = useState<'curl' | 'javascript' | 'python' | 'go'>('curl');
+  const [codeLang, setCodeLang] = useState<'curl' | 'javascript' | 'python' | 'go' | AgentFramework>('curl');
+  const [aiArtifactFormat, setAiArtifactFormat] = useState<'markdown' | 'json'>('markdown');
   const [copied, setCopied] = useState(false);
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
@@ -53,7 +62,7 @@ export default function ResponseViewer() {
             color: 'var(--color-text-subtle)',
           }}
         >
-          Agent dispatching request…
+          Agent dispatching request...
         </p>
       </div>
     );
@@ -110,6 +119,24 @@ export default function ResponseViewer() {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const downloadText = (text: string, filename: string, type = 'text/plain') => {
+    const blob = new Blob([text], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const codeSnippetForCurrentLanguage = () => {
+    if (!request) return '';
+    if (codeLang === 'langchain' || codeLang === 'llamaindex' || codeLang === 'crewai') {
+      return generateAgentFrameworkSnippet(request, codeLang);
+    }
+    return generateCodeSnippet(request, codeLang);
   };
 
   const handleGenerateTests = async () => {
@@ -212,13 +239,7 @@ export default function ResponseViewer() {
         </button>
         <button
           onClick={() => {
-            const blob = new Blob([response.body], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'response.json';
-            a.click();
-            URL.revokeObjectURL(url);
+            downloadText(response.body, 'response.json');
           }}
           className="p-1 rounded text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors"
         >
@@ -263,12 +284,12 @@ export default function ResponseViewer() {
                 ? 'text-green-400 bg-green-500/10'
                 : aiTestStatus === 'error'
                 ? 'text-red-400 bg-red-500/10'
-                : 'text-purple-300 bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 ring-1 ring-purple-500/20'
+                : 'text-brand-400 bg-brand-500/10 hover:bg-brand-500/20 ring-1 ring-brand-500/20'
             }`}
             title={aiTestError || 'Generate test assertions with AI'}
           >
             {aiTestStatus === 'loading' ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-            {aiTestStatus === 'loading' ? 'Generating…' : aiTestStatus === 'done' ? 'Tests added' : aiTestStatus === 'error' ? 'Failed' : 'Generate Tests'}
+            {aiTestStatus === 'loading' ? 'Generating...' : aiTestStatus === 'done' ? 'Tests added' : aiTestStatus === 'error' ? 'Failed' : 'Generate Tests'}
           </button>
         )}
       </div>
@@ -281,9 +302,10 @@ export default function ResponseViewer() {
           { id: 'explorer' as const, label: 'Explorer', icon: TreePine },
           { id: 'schema' as const, label: 'Schema', icon: Shield },
           { id: 'code' as const, label: 'Code', icon: Code },
+          { id: 'ai' as const, label: 'AI Artifact', icon: Bot },
           { id: 'timeline' as const, label: 'Timeline', icon: Timer },
           ...(hasTests ? [{ id: 'tests' as const, label: `Tests (${testResults.filter(t=>t.passed).length}/${testResults.length})`, icon: FlaskConical }] : []),
-          ...((response && (response.status === 0 || response.status >= 400 || response.time > 3000 || response.size > 1024 * 1024)) ? [{ id: 'diagnosis' as const, label: '🩺 Fix', icon: Stethoscope }] : []),
+          ...((response && (response.status === 0 || response.status >= 400 || response.time > 3000 || response.size > 1024 * 1024)) ? [{ id: 'diagnosis' as const, label: 'Fix', icon: Stethoscope }] : []),
         ].map(tab => (
           <button
             key={tab.id}
@@ -385,7 +407,15 @@ export default function ResponseViewer() {
                 onClick={() => setShowLangDropdown(!showLangDropdown)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-300 hover:border-gray-600 transition-colors"
               >
-                {codeLang === 'curl' ? 'cURL' : codeLang === 'javascript' ? 'JavaScript' : codeLang === 'python' ? 'Python' : 'Go'}
+                {{
+                  curl: 'cURL',
+                  javascript: 'JavaScript',
+                  python: 'Python',
+                  go: 'Go',
+                  langchain: 'LangChain Tool',
+                  llamaindex: 'LlamaIndex Tool',
+                  crewai: 'CrewAI Tool',
+                }[codeLang]}
                 <ChevronDown size={12} className="text-gray-500" />
               </button>
               {showLangDropdown && (
@@ -397,6 +427,9 @@ export default function ResponseViewer() {
                       { id: 'javascript' as const, label: 'JavaScript' },
                       { id: 'python' as const, label: 'Python' },
                       { id: 'go' as const, label: 'Go' },
+                      { id: 'langchain' as const, label: 'LangChain Tool' },
+                      { id: 'llamaindex' as const, label: 'LlamaIndex Tool' },
+                      { id: 'crewai' as const, label: 'CrewAI Tool' },
                     ].map(lang => (
                       <button
                         key={lang.id}
@@ -414,10 +447,10 @@ export default function ResponseViewer() {
             </div>
             <div className="relative group">
               <pre className="p-4 rounded-lg bg-gray-800/50 border border-gray-800 text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed overflow-x-auto">
-                {generateCodeSnippet(request, codeLang)}
+                {codeSnippetForCurrentLanguage()}
               </pre>
               <button
-                onClick={() => copyToClipboard(generateCodeSnippet(request, codeLang))}
+                onClick={() => copyToClipboard(codeSnippetForCurrentLanguage())}
                 className="absolute top-2 right-2 p-1.5 rounded bg-gray-700/50 text-gray-500 hover:text-gray-200 opacity-0 group-hover:opacity-100 transition-all"
               >
                 <Copy size={12} />
@@ -442,6 +475,17 @@ export default function ResponseViewer() {
           <ResponseTimeline response={response} />
         )}
 
+        {activeView === 'ai' && response && request && (
+          <AiArtifactPanel
+            request={request}
+            response={response}
+            format={aiArtifactFormat}
+            onFormatChange={setAiArtifactFormat}
+            onCopy={copyToClipboard}
+            onDownload={downloadText}
+          />
+        )}
+
         {activeView === 'diagnosis' && response && request && (
           <ErrorDiagnosis request={request} response={response} />
         )}
@@ -451,6 +495,100 @@ export default function ResponseViewer() {
       {showDiff && response && (
         <ResponseDiff currentResponse={response} onClose={() => setShowDiff(false)} />
       )}
+    </div>
+  );
+}
+
+function AiArtifactPanel({
+  request,
+  response,
+  format,
+  onFormatChange,
+  onCopy,
+  onDownload,
+}: {
+  request: RequestConfig;
+  response: ResponseData;
+  format: 'markdown' | 'json';
+  onFormatChange: (format: 'markdown' | 'json') => void;
+  onCopy: (text: string) => void;
+  onDownload: (text: string, filename: string, type?: string) => void;
+}) {
+  const markdown = buildAiReadyMarkdown(request, response);
+  const json = JSON.stringify(buildAiReadyJson(request, response), null, 2);
+  const content = format === 'markdown' ? markdown : json;
+  const summary = summarizeAiArtifact(content);
+  const filename = format === 'markdown' ? 'fetchlab-ai-artifact.md' : 'fetchlab-ai-artifact.json';
+
+  return (
+    <div className="p-4 space-y-4">
+      <div
+        className="grid md:grid-cols-3 gap-px"
+        style={{ border: '1px solid var(--color-border)', background: 'var(--color-border)' }}
+      >
+        {[
+          ['Estimated input', `${summary.tokens.toLocaleString()} tokens`],
+          ['Estimated cost', `$${summary.costUsd.toFixed(5)}`],
+          ['Characters', summary.characters.toLocaleString()],
+        ].map(([label, value]) => (
+          <div key={label} className="p-3" style={{ background: 'var(--color-surface)' }}>
+            <div className="font-mono uppercase" style={{ fontSize: 9.5, letterSpacing: '0.14em', color: 'var(--color-text-subtle)', marginBottom: 6 }}>
+              {label}
+            </div>
+            <div className="font-mono" style={{ color: 'var(--color-text)', fontSize: 13 }}>{value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex gap-1 p-0.5 rounded" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+          {[
+            { id: 'markdown' as const, label: 'Markdown' },
+            { id: 'json' as const, label: 'Structured JSON' },
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => onFormatChange(item.id)}
+              className="px-2.5 py-1 rounded text-[11px] font-medium"
+              style={{
+                background: format === item.id ? 'var(--color-accent)' : 'transparent',
+                color: format === item.id ? 'var(--color-accent-ink)' : 'var(--color-text-muted)',
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onCopy(content)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs"
+            style={{ color: 'var(--color-text)', border: '1px solid var(--color-border-strong)' }}
+          >
+            <Copy size={12} />
+            Copy
+          </button>
+          <button
+            onClick={() => onDownload(content, filename, format === 'json' ? 'application/json' : 'text/markdown')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs"
+            style={{ background: 'var(--color-accent)', color: 'var(--color-accent-ink)' }}
+          >
+            <Download size={12} />
+            Download
+          </button>
+        </div>
+      </div>
+
+      <div
+        className="p-3 rounded text-[11px]"
+        style={{ background: 'var(--color-warning-soft)', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}
+      >
+        Cost is an estimate using 4 characters per token and $3 per 1M input tokens. Provider billing varies by model.
+      </div>
+
+      <pre className="p-4 rounded-lg bg-gray-800/50 border border-gray-800 text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed overflow-x-auto max-h-[460px]">
+        {content}
+      </pre>
     </div>
   );
 }

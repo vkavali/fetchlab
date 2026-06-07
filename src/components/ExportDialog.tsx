@@ -3,6 +3,7 @@ import type { RequestConfig, Collection } from '../types';
 import {
   generateCodeSnippet, collectionToShareableJson, requestToShareableJson
 } from '../utils/helpers';
+import { generateAgentFrameworkSnippet } from '../utils/aiArtifacts';
 import { X, Download, Terminal, FileJson, Code, FileText, Copy, Check } from 'lucide-react';
 
 type ExportTarget =
@@ -14,7 +15,7 @@ interface Props {
   onClose: () => void;
 }
 
-type Format = 'json' | 'curl' | 'javascript' | 'python' | 'go' | 'yaml' | 'txt';
+type Format = 'json' | 'curl' | 'javascript' | 'python' | 'go' | 'langchain' | 'llamaindex' | 'crewai' | 'txt';
 
 interface FormatOption {
   id: Format;
@@ -28,11 +29,14 @@ interface FormatOption {
 }
 
 const formats: FormatOption[] = [
-  { id: 'json', label: 'JSON', ext: '.json', mime: 'application/json', icon: FileJson, iconColor: 'text-blue-400', description: 'FetchLab format — importable on any machine', available: 'both' },
-  { id: 'curl', label: 'cURL', ext: '.sh', mime: 'text/x-shellscript', icon: Terminal, iconColor: 'text-green-400', description: 'Shell command — run directly in terminal', available: 'request' },
-  { id: 'javascript', label: 'JavaScript', ext: '.js', mime: 'text/javascript', icon: Code, iconColor: 'text-amber-400', description: 'fetch() snippet — paste into Node.js or browser', available: 'request' },
-  { id: 'python', label: 'Python', ext: '.py', mime: 'text/x-python', icon: Code, iconColor: 'text-blue-500', description: 'requests library — paste into Python script', available: 'request' },
-  { id: 'go', label: 'Go', ext: '.go', mime: 'text/x-go', icon: Code, iconColor: 'text-cyan-400', description: 'net/http — paste into Go file', available: 'request' },
+  { id: 'json', label: 'JSON', ext: '.json', mime: 'application/json', icon: FileJson, iconColor: 'text-brand-400', description: 'FetchLab format - importable on any machine', available: 'both' },
+  { id: 'curl', label: 'cURL', ext: '.sh', mime: 'text/x-shellscript', icon: Terminal, iconColor: 'text-green-400', description: 'Shell command - run directly in terminal', available: 'request' },
+  { id: 'javascript', label: 'JavaScript', ext: '.js', mime: 'text/javascript', icon: Code, iconColor: 'text-amber-400', description: 'fetch() snippet - paste into Node.js or browser', available: 'request' },
+  { id: 'python', label: 'Python', ext: '.py', mime: 'text/x-python', icon: Code, iconColor: 'text-green-400', description: 'requests library - paste into Python script', available: 'request' },
+  { id: 'go', label: 'Go', ext: '.go', mime: 'text/x-go', icon: Code, iconColor: 'text-brand-400', description: 'net/http - paste into Go file', available: 'request' },
+  { id: 'langchain', label: 'LangChain', ext: '.py', mime: 'text/x-python', icon: Code, iconColor: 'text-brand-400', description: 'LangChain tool wrapper for agent workflows', available: 'request' },
+  { id: 'llamaindex', label: 'LlamaIndex', ext: '.py', mime: 'text/x-python', icon: Code, iconColor: 'text-brand-400', description: 'LlamaIndex FunctionTool wrapper', available: 'request' },
+  { id: 'crewai', label: 'CrewAI', ext: '.py', mime: 'text/x-python', icon: Code, iconColor: 'text-brand-400', description: 'CrewAI BaseTool wrapper', available: 'request' },
   { id: 'txt', label: 'Plain Text', ext: '.txt', mime: 'text/plain', icon: FileText, iconColor: 'text-gray-400', description: 'Human-readable summary', available: 'both' },
 ];
 
@@ -50,21 +54,27 @@ function generateContent(target: ExportTarget, format: Format): string {
         return generateCodeSnippet(req, 'python');
       case 'go':
         return generateCodeSnippet(req, 'go');
+      case 'langchain':
+        return generateAgentFrameworkSnippet(req, 'langchain');
+      case 'llamaindex':
+        return generateAgentFrameworkSnippet(req, 'llamaindex');
+      case 'crewai':
+        return generateAgentFrameworkSnippet(req, 'crewai');
       case 'txt':
         return formatRequestAsText(req);
       default:
         return '';
     }
-  } else {
-    const col = target.collection;
-    switch (format) {
-      case 'json':
-        return JSON.stringify(collectionToShareableJson(col), null, 2);
-      case 'txt':
-        return formatCollectionAsText(col);
-      default:
-        return '';
-    }
+  }
+
+  const col = target.collection;
+  switch (format) {
+    case 'json':
+      return JSON.stringify(collectionToShareableJson(col), null, 2);
+    case 'txt':
+      return formatCollectionAsText(col);
+    default:
+      return '';
   }
 }
 
@@ -73,13 +83,13 @@ function formatRequestAsText(req: RequestConfig): string {
   text += `Name: ${req.name}\n\n`;
   const headers = req.headers.filter(h => h.enabled && h.key);
   if (headers.length > 0) {
-    text += `Headers:\n`;
+    text += 'Headers:\n';
     headers.forEach(h => { text += `  ${h.key}: ${h.value}\n`; });
     text += '\n';
   }
   const params = req.params.filter(p => p.enabled && p.key);
   if (params.length > 0) {
-    text += `Query Parameters:\n`;
+    text += 'Query Parameters:\n';
     params.forEach(p => { text += `  ${p.key}=${p.value}\n`; });
     text += '\n';
   }
@@ -93,7 +103,7 @@ function formatCollectionAsText(col: Collection): string {
   let text = `Collection: ${col.name}\n`;
   if (col.description) text += `Description: ${col.description}\n`;
   text += `Requests: ${col.requests.length}\n`;
-  text += '─'.repeat(40) + '\n\n';
+  text += '-'.repeat(40) + '\n\n';
   col.requests.forEach((req, i) => {
     text += `${i + 1}. ${req.method} ${req.url}\n`;
     text += `   Name: ${req.name}\n`;
@@ -105,9 +115,10 @@ function formatCollectionAsText(col: Collection): string {
 
 function getFilename(target: ExportTarget, format: FormatOption): string {
   const baseName = target.type === 'request'
-    ? (target.request.name || target.request.method + '-request')
+    ? (target.request.name || `${target.request.method}-request`)
     : target.collection.name;
-  return baseName.replace(/\s+/g, '-').toLowerCase() + format.ext;
+  const suffix = ['langchain', 'llamaindex', 'crewai'].includes(format.id) ? `-${format.id}` : '';
+  return baseName.replace(/\s+/g, '-').toLowerCase() + suffix + format.ext;
 }
 
 export default function ExportDialog({ target, onClose }: Props) {
@@ -146,7 +157,6 @@ export default function ExportDialog({ target, onClose }: Props) {
         className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-[600px] max-w-[90vw] max-h-[80vh] flex flex-col animate-slide-in"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-800">
           <div>
             <h2 className="text-sm font-semibold text-gray-200">
@@ -161,7 +171,6 @@ export default function ExportDialog({ target, onClose }: Props) {
           </button>
         </div>
 
-        {/* Format selector */}
         <div className="px-5 py-3 border-b border-gray-800">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2">Format</p>
           <div className="flex flex-wrap gap-2">
@@ -184,7 +193,6 @@ export default function ExportDialog({ target, onClose }: Props) {
           <p className="text-[10px] text-gray-600 mt-2">{selectedFormatInfo.description}</p>
         </div>
 
-        {/* Preview */}
         <div className="flex-1 overflow-auto px-5 py-3">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Preview</p>
@@ -195,7 +203,6 @@ export default function ExportDialog({ target, onClose }: Props) {
           </pre>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-between px-5 py-3 border-t border-gray-800">
           <button
             onClick={handleCopy}

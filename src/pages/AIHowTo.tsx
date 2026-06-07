@@ -34,6 +34,8 @@ const SCOPE_COLUMNS = [
       'Explaining failed responses and likely root causes.',
       'Suggesting fixes for auth, validation, rate limit, timeout, and server errors.',
       'Helping generate tests, schemas, docs, and OpenAPI-style descriptions from known requests.',
+      'Exporting response context as AI-ready Markdown or structured JSON with estimated token/cost impact.',
+      'Generating LangChain, LlamaIndex, and CrewAI tool wrappers from tested requests.',
       'Triage of Slack incident messages through the AI Ops Agent.',
       'Summarizing agent findings and proposed next steps.',
     ],
@@ -113,6 +115,36 @@ const WORKFLOWS = [
     caution: 'FetchLab redacts obvious secret headers before sending diagnosis context, but request bodies can still contain sensitive data.',
   },
   {
+    id: 'ai-artifact',
+    label: 'AI artifacts',
+    title: 'Export clean context for LLM debugging',
+    steps: [
+      'Send a request and open the response panel.',
+      'Open the AI Artifact tab.',
+      'Choose Markdown for human-readable prompts or Structured JSON for agent pipelines.',
+      'Review the estimated token count and estimated input cost before copying.',
+      'Copy or download the artifact and paste it into your model or agent runtime.',
+      'Keep human review in the loop because artifacts summarize observed behavior, not official API contracts.',
+    ],
+    example: 'Export a failed 422 response as Markdown, then ask your model to generate regression tests from the observed response.',
+    caution: 'Obvious secret headers are redacted, but sensitive body fields should still be reviewed before sharing.',
+  },
+  {
+    id: 'agent-snippets',
+    label: 'Agent snippets',
+    title: 'Generate framework wrappers for agent tools',
+    steps: [
+      'Build and test the request in FetchLab first.',
+      'Open the response Code tab or export dialog.',
+      'Choose LangChain Tool, LlamaIndex Tool, or CrewAI Tool.',
+      'Copy the generated Python wrapper.',
+      'Replace placeholder auth values and run it in your agent project.',
+      'Keep timeout, retry, and approval logic in your application code.',
+    ],
+    example: 'Turn a tested GET /v1/orders request into a LangChain tool that returns status and body for an agent.',
+    caution: 'Generated wrappers are starting points. Enterprise workflows still need auth, retries, logging, and policy checks.',
+  },
+  {
     id: 'agent',
     label: 'AI Ops Agent',
     title: 'Use the AI Ops Agent for incident triage',
@@ -167,6 +199,7 @@ function Nav() {
         <div className="hidden md:flex items-center gap-9" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
           <a href="/how-to" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">How-to</a>
           <a href="/ai-how-to" style={{ opacity: 1, color: 'var(--color-text)' }}>AI guide</a>
+          <a href="/enterprise" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">Enterprise</a>
           <a href="/pricing" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">Pricing</a>
         </div>
         <a

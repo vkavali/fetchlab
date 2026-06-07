@@ -25,6 +25,7 @@ function Nav() {
           <a href="/how-to" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>How-to</a>
           <a href="/ai-how-to" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>AI guide</a>
           <a href="/download" style={{ opacity: 1, color: 'var(--color-text)' }}>Download</a>
+          <a href="/enterprise" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Enterprise</a>
           <a href="/pricing" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Pricing</a>
         </div>
         <a

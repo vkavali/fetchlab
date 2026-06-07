@@ -70,6 +70,13 @@ describe('client route smoke', () => {
     expect(screen.getByText('Use the AI Ops Agent for incident triage')).toBeTruthy();
   });
 
+  it('renders the enterprise page', () => {
+    renderAt('/enterprise');
+    expect(screen.getByText('Enterprise readiness')).toBeTruthy();
+    expect(screen.getByText('What is enterprise-useful now')).toBeTruthy();
+    expect(screen.getByText('What is not finished yet')).toBeTruthy();
+  });
+
   it('renders legal pages', () => {
     const { unmount } = renderAt('/privacy');
     expect(screen.getByText('Privacy Policy')).toBeTruthy();

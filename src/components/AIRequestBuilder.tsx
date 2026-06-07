@@ -97,7 +97,7 @@ export default function AIRequestBuilder({ onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-800">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
               <Sparkles size={16} className="text-white" />
             </div>
             <div>
@@ -116,7 +116,7 @@ export default function AIRequestBuilder({ onClose }: Props) {
             onClick={() => setMode('nl')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               mode === 'nl'
-                ? 'bg-purple-500/20 text-purple-400 ring-1 ring-purple-500/30'
+                ? 'bg-brand-500/20 text-brand-400 ring-1 ring-brand-500/30'
                 : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800'
             }`}
           >
@@ -163,7 +163,7 @@ export default function AIRequestBuilder({ onClose }: Props) {
             }
             rows={mode === 'nl' ? 3 : 6}
             className={`w-full bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2.5 text-sm font-mono text-gray-200 placeholder-gray-600 focus:outline-none transition-colors resize-none ${
-              mode === 'nl' ? 'focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20' : 'focus:border-green-500/50 focus:ring-1 focus:ring-green-500/20'
+              mode === 'nl' ? 'focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/20' : 'focus:border-green-500/50 focus:ring-1 focus:ring-green-500/20'
             }`}
           />
 
@@ -173,7 +173,7 @@ export default function AIRequestBuilder({ onClose }: Props) {
                 <button
                   key={ex}
                   onClick={() => setInput(ex)}
-                  className="px-2 py-1 rounded-md text-[10px] text-gray-500 bg-gray-800/50 hover:text-purple-300 hover:bg-purple-500/10 transition-colors"
+                  className="px-2 py-1 rounded-md text-[10px] text-gray-500 bg-gray-800/50 hover:text-brand-300 hover:bg-brand-500/10 transition-colors"
                 >
                   {ex}
                 </button>
@@ -206,12 +206,12 @@ export default function AIRequestBuilder({ onClose }: Props) {
               disabled={loading || !input.trim() || (mode === 'nl' && aiEnabled === false)}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                 mode === 'nl'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400'
+                  ? 'bg-brand-600 hover:bg-brand-500'
                   : 'bg-green-600 hover:bg-green-500'
               }`}
             >
               {loading ? <Loader2 size={12} className="animate-spin" /> : <ArrowRight size={12} />}
-              {loading ? 'Generating…' : 'Generate request'}
+              {loading ? 'Generating...' : 'Generate request'}
             </button>
           </div>
         </div>
