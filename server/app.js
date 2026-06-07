@@ -6,6 +6,7 @@ import { initDb } from './db.js';
 import { buildAuthRouter, requireAuth } from './auth.js';
 import { buildWorkspacesRouter } from './workspaces.js';
 import { buildAuditRouter } from './audit.js';
+import { buildEnterpriseRouter } from './enterprise.js';
 import { authLimiter, aiLimiter, apiLimiter } from './rateLimit.js';
 import { buildIntegrationsRouter } from './integrations.js';
 import { buildAgentRouter } from './agent/routes.js';
@@ -65,7 +66,7 @@ export async function buildApp({ skipDbInit = false } = {}) {
       return res.json({ country: 'IN', source: 'accept-language' });
     }
 
-    // ipapi.co fallback — uses req.ip (trust-proxy is set above so this honors X-Forwarded-For).
+    // ipapi.co fallback uses req.ip (trust-proxy is set above so this honors X-Forwarded-For).
     // Free tier is 1k/day; soft-fail to 'US' on any error.
     try {
       const ip = (req.ip || '').replace(/^::ffff:/, '');
@@ -97,7 +98,7 @@ export async function buildApp({ skipDbInit = false } = {}) {
   // Public auth (with rate limit on attempts)
   app.use('/api/auth', authLimiter, buildAuthRouter());
 
-  // AI endpoints — auth + AI rate limit, then mount the existing AI route handlers
+  // AI endpoints: auth + AI rate limit, then mount the existing AI route handlers.
   // /api/ai/status remains accessible without auth so the UI can probe AI availability.
   const aiSubApp = express.Router();
   aiSubApp.use((req, res, next) => {
@@ -113,15 +114,16 @@ export async function buildApp({ skipDbInit = false } = {}) {
   // Workspace + audit + integrations
   app.use('/api/workspaces', apiLimiter, buildWorkspacesRouter());
   app.use('/api/audit', apiLimiter, buildAuditRouter());
+  app.use('/api/enterprise', apiLimiter, buildEnterpriseRouter());
   app.use('/api/agent', apiLimiter, buildAgentRouter());
   app.use('/api/settings/llm', apiLimiter, buildLlmSettingsRouter());
   app.use('/api', apiLimiter, buildIntegrationsRouter());
 
   // Serve static SPA. Client-side router in App.tsx maps:
-  //   /          → marketing landing page
-  //   /privacy   → privacy policy
-  //   /terms     → terms of service
-  //   /app, *    → API client app (with auth gate)
+  //   /          -> marketing landing page
+  //   /privacy   -> privacy policy
+  //   /terms     -> terms of service
+  //   /app, *    -> API client app (with auth gate)
   app.use(express.static(join(ROOT, 'dist')));
   app.get('/{*path}', (_req, res) => {
     res.sendFile(join(ROOT, 'dist', 'index.html'));

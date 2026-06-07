@@ -5,18 +5,23 @@ const READY = [
   'Local-first request workspace with browser and desktop paths.',
   'Bring-your-own-key AI provider setup, including local mode for no external AI calls.',
   '2FA, session controls, account lockout tests, and encrypted local settings.',
+  'Admin-only audit logs for auth, workspace, enterprise settings, retention, SCIM, and SOC 2 evidence events.',
+  'Global admin/user controls plus workspace admin/member/viewer RBAC.',
+  'OIDC SSO configuration, SCIM v2 user provisioning endpoints, and admin status checks.',
+  'Configurable retention policy execution for audit logs, request history, sessions, agent records, and evidence.',
+  'SOC 2 evidence tracking workflow with control IDs, owners, status, details, and audit events.',
   'SSRF-safe request proxy behavior covered by tests.',
   'AI-ready response artifacts with Markdown, structured JSON, and token/cost estimates.',
   'Agent framework snippets for LangChain, LlamaIndex, and CrewAI.',
 ];
 
 const NEEDS_ENTERPRISE_HARDENING = [
-  'Organization-wide RBAC with admin roles, least-privilege policies, and approval workflows.',
-  'Immutable server-side audit logs for auth events, workspace changes, and request execution.',
-  'SAML/OIDC SSO, SCIM provisioning, and domain capture controls.',
-  'Formal SOC 2 program: policies, risk register, vendor review, evidence collection, and external audit.',
-  'Centralized secrets management, customer-managed keys, and data retention controls.',
-  'Security operations: vulnerability SLAs, incident response drills, and dependency review cadence.',
+  'Customer IdP setup and validation for production OIDC/SAML mappings, domain capture, and break-glass access.',
+  'External immutable audit archive or SIEM export for WORM retention beyond the built-in audit table.',
+  'Enterprise tenant model, approval workflows, fine-grained permissions, and admin policy UI.',
+  'Formal SOC 2 program: policies, risk register, vendor review, operating evidence, and external audit.',
+  'Centralized cloud secrets management, customer-managed keys, and documented backup/restore procedures.',
+  'Security operations: vulnerability SLAs, penetration testing, incident response drills, and dependency review cadence.',
 ];
 
 const ROADMAP = [
@@ -27,13 +32,13 @@ const ROADMAP = [
   },
   {
     phase: 'Next',
-    title: 'Enterprise controls',
-    body: 'Add audit logs, RBAC, SSO/SCIM, workspace admin controls, and retention policy enforcement.',
+    title: 'Configure controls',
+    body: 'Connect production IdP settings, provision SCIM tokens, set retention windows, and export audit events into the customer security stack.',
   },
   {
     phase: 'After controls',
     title: 'Compliance readiness',
-    body: 'Build SOC 2 evidence collection, vendor management, security policy pack, and customer-facing trust documentation.',
+    body: 'Operate the controls long enough to collect evidence, complete vendor/security policy packs, and run the external SOC 2 audit.',
   },
 ];
 
@@ -144,12 +149,13 @@ export default function Enterprise() {
                 maxWidth: '11ch',
               }}
             >
-              Ready for teams. Not yet SOC 2 ready.
+              Backend controls exist. Certification still does not.
             </h1>
           </div>
           <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
-            FetchLab is suitable for individual developers and team beta evaluation today. For regulated enterprise deployment,
-            the product still needs formal admin controls, audit logging, SSO/SCIM, retention policies, and compliance evidence.
+            FetchLab now has the backend enterprise baseline: audit logs, admin controls, SSO/SCIM surfaces,
+            retention execution, and SOC 2 evidence tracking. It is still not SOC 2 certified and still needs
+            production IdP setup, external audit retention, operating evidence, and a completed audit before regulated rollout.
           </p>
         </section>
 

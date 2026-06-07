@@ -60,6 +60,7 @@ export async function requireAuth(req, res, next) {
   if (!payload) return res.status(401).json({ error: 'Invalid or expired token' });
   const user = await db.findUserById(payload.sub);
   if (!user) return res.status(401).json({ error: 'User no longer exists' });
+  if (user.disabled_at) return res.status(403).json({ error: 'User account is disabled' });
   req.user = { id: user.id, email: user.email, name: user.name, role: user.role };
   next();
 }
@@ -99,6 +100,13 @@ function clearAuthCookies(res) {
 
 function publicUser(u) {
   return { id: u.id, email: u.email, name: u.name, role: u.role, totp_enabled: !!u.totp_enabled };
+}
+
+async function passwordAuthBlockedBySsoPolicy() {
+  const settings = await db.getEnterpriseSettings();
+  if (!settings.sso_required) return false;
+  const configs = await db.listOidcConfigs();
+  return configs.length > 0;
 }
 
 export async function ensurePersonalWorkspace(user) {
@@ -194,6 +202,9 @@ export function buildAuthRouter() {
       if (typeof password !== 'string' || password.length < 8) {
         return res.status(400).json({ error: 'password must be at least 8 characters' });
       }
+      if (await passwordAuthBlockedBySsoPolicy()) {
+        return res.status(403).json({ error: 'Password registration is disabled by SSO policy' });
+      }
       const existing = await db.findUserByEmail(email);
       if (existing) return res.status(409).json({ error: 'Email already registered' });
 
@@ -229,6 +240,14 @@ export function buildAuthRouter() {
         await appendAudit({ user_id: user?.id || null, action: 'auth.login.failed', detail: { email }, ip: req.ip });
         return res.status(401).json({ error: 'Invalid email or password' });
       }
+      if (user.disabled_at) {
+        await appendAudit({ user_id: user.id, action: 'auth.login.disabled', detail: { email }, ip: req.ip });
+        return res.status(403).json({ error: 'User account is disabled' });
+      }
+      if (await passwordAuthBlockedBySsoPolicy()) {
+        await appendAudit({ user_id: user.id, action: 'auth.login.sso_required', detail: { email }, ip: req.ip });
+        return res.status(403).json({ error: 'Password login is disabled by SSO policy' });
+      }
       if (isUserLocked(user)) {
         await appendAudit({ user_id: user.id, action: 'auth.login.locked', detail: { email }, ip: req.ip });
         return res.status(423).json({
@@ -237,7 +256,7 @@ export function buildAuthRouter() {
         });
       }
 
-      // 2FA gate — issue a short-lived pending cookie that only authorises POST /login/2fa
+      // 2FA gate: issue a short-lived pending cookie that only authorises POST /login/2fa.
       if (user.totp_enabled) {
         const pendingPayload = { sub: user.id, type: '2fa_pending' };
         const pendingToken = jwt.sign(pendingPayload, getJwtSecret(), { expiresIn: 5 * 60 });
@@ -272,6 +291,7 @@ export function buildAuthRouter() {
       }
       const user = await db.findUserById(payload.sub);
       if (!user) return res.status(401).json({ error: 'User no longer exists' });
+      if (user.disabled_at) return res.status(403).json({ error: 'User account is disabled' });
       if (isUserLocked(user)) return res.status(423).json({ error: 'Account locked', locked_until: user.locked_until });
 
       let verified = false;
@@ -329,7 +349,7 @@ export function buildAuthRouter() {
           target_type: 'session', target_id: session.id, ip: req.ip,
         });
         clearAuthCookies(res);
-        return res.status(401).json({ error: 'Refresh token reuse detected — all sessions revoked' });
+        return res.status(401).json({ error: 'Refresh token reuse detected - all sessions revoked' });
       }
       // Already-revoked session: just deny, don't escalate (the user may have
       // explicitly logged this device out from another device).
@@ -344,6 +364,11 @@ export function buildAuthRouter() {
 
       const user = await db.findUserById(session.user_id);
       if (!user) return res.status(401).json({ error: 'User no longer exists' });
+      if (user.disabled_at) {
+        await db.revokeSession(session.id);
+        clearAuthCookies(res);
+        return res.status(403).json({ error: 'User account is disabled' });
+      }
 
       // Rotate: replace stored hash with a fresh one
       const newRefresh = generateRefreshToken();

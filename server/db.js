@@ -29,6 +29,8 @@ function freshMemStore() {
     agent_actions: [],
     agent_config: [],
     llm_configs: [],
+    enterprise_settings: [],
+    soc2_evidence: [],
   };
 }
 
@@ -69,6 +71,7 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT,
   role TEXT NOT NULL DEFAULT 'user',
   oidc_subject TEXT,
+  disabled_at TIMESTAMPTZ,
   totp_secret_enc TEXT,
   totp_enabled BOOLEAN NOT NULL DEFAULT false,
   recovery_codes_hashed JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -229,6 +232,31 @@ CREATE TABLE IF NOT EXISTS llm_configs (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS enterprise_settings (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  data_retention_days INTEGER NOT NULL DEFAULT 365,
+  audit_retention_days INTEGER NOT NULL DEFAULT 365,
+  soc2_evidence_retention_days INTEGER NOT NULL DEFAULT 730,
+  sso_required BOOLEAN NOT NULL DEFAULT false,
+  scim_enabled BOOLEAN NOT NULL DEFAULT false,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO enterprise_settings (id) VALUES ('default') ON CONFLICT (id) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS soc2_evidence (
+  id UUID PRIMARY KEY,
+  control_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  owner TEXT,
+  status TEXT NOT NULL DEFAULT 'needed',
+  detail JSONB NOT NULL DEFAULT '{}'::jsonb,
+  due_at TIMESTAMPTZ,
+  collected_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_audit_log_workspace ON audit_log(workspace_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_log_user ON audit_log(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_collections_workspace ON collections(workspace_id);
@@ -237,6 +265,9 @@ CREATE INDEX IF NOT EXISTS idx_agent_issues_workspace ON agent_issues(workspace_
 CREATE INDEX IF NOT EXISTS idx_agent_issues_status ON agent_issues(status);
 CREATE INDEX IF NOT EXISTS idx_agent_actions_issue ON agent_actions(issue_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_config_channel ON agent_config(channel_type, channel_id);
+CREATE INDEX IF NOT EXISTS idx_soc2_evidence_control ON soc2_evidence(control_id, status);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS disabled_at TIMESTAMPTZ;
 `;
 
 export async function initDb() {
@@ -288,12 +319,12 @@ function memCollection(name) {
 export async function createUser({ email, password_hash, name, role = 'user', oidc_subject = null }) {
   const id = newId();
   const created_at = new Date().toISOString();
-  const user = { id, email: email.toLowerCase(), password_hash, name, role, oidc_subject, created_at };
+  const user = { id, email: email.toLowerCase(), password_hash, name, role, oidc_subject, disabled_at: null, created_at };
   if (mode === 'pg') {
     await pgQuery(
-      `INSERT INTO users (id, email, password_hash, name, role, oidc_subject, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [id, user.email, password_hash, name, role, oidc_subject, created_at]
+      `INSERT INTO users (id, email, password_hash, name, role, oidc_subject, disabled_at, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [id, user.email, password_hash, name, role, oidc_subject, null, created_at]
     );
   } else {
     memCollection('users').push(user);
@@ -329,10 +360,10 @@ export async function findUserByOidc(subject) {
 
 export async function listUsers() {
   if (mode === 'pg') {
-    const { rows } = await pgQuery(`SELECT id, email, name, role, created_at FROM users ORDER BY created_at`);
+    const { rows } = await pgQuery(`SELECT id, email, name, role, disabled_at, created_at FROM users ORDER BY created_at`);
     return rows;
   }
-  return memCollection('users').map(u => ({ id: u.id, email: u.email, name: u.name, role: u.role, created_at: u.created_at }));
+  return memCollection('users').map(u => ({ id: u.id, email: u.email, name: u.name, role: u.role, disabled_at: u.disabled_at || null, created_at: u.created_at }));
 }
 
 export async function updateUser(id, fields) {
@@ -704,6 +735,223 @@ export async function listAudit({ workspace_id, limit = 200 } = {}) {
   let rows = memCollection('audit_log');
   if (workspace_id) rows = rows.filter(r => r.workspace_id === workspace_id);
   return [...rows].reverse().slice(0, limit);
+}
+
+// ============ Enterprise settings / retention / evidence ============
+const DEFAULT_ENTERPRISE_SETTINGS = {
+  id: 'default',
+  data_retention_days: 365,
+  audit_retention_days: 365,
+  soc2_evidence_retention_days: 730,
+  sso_required: false,
+  scim_enabled: false,
+};
+
+const ENTERPRISE_SETTING_FIELDS = new Set([
+  'data_retention_days',
+  'audit_retention_days',
+  'soc2_evidence_retention_days',
+  'sso_required',
+  'scim_enabled',
+]);
+
+function normaliseEnterpriseSettings(row = {}) {
+  return {
+    ...DEFAULT_ENTERPRISE_SETTINGS,
+    ...row,
+    data_retention_days: Number(row.data_retention_days ?? DEFAULT_ENTERPRISE_SETTINGS.data_retention_days),
+    audit_retention_days: Number(row.audit_retention_days ?? DEFAULT_ENTERPRISE_SETTINGS.audit_retention_days),
+    soc2_evidence_retention_days: Number(row.soc2_evidence_retention_days ?? DEFAULT_ENTERPRISE_SETTINGS.soc2_evidence_retention_days),
+    sso_required: !!row.sso_required,
+    scim_enabled: !!row.scim_enabled,
+    updated_at: row.updated_at || new Date().toISOString(),
+  };
+}
+
+function getOrCreateMemEnterpriseSettings() {
+  const list = memCollection('enterprise_settings');
+  let row = list.find(r => r.id === 'default');
+  if (!row) {
+    row = { ...DEFAULT_ENTERPRISE_SETTINGS, updated_at: new Date().toISOString() };
+    list.push(row);
+  }
+  return row;
+}
+
+export async function getEnterpriseSettings() {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(`SELECT * FROM enterprise_settings WHERE id = 'default'`);
+    if (rows[0]) return normaliseEnterpriseSettings(rows[0]);
+    await pgQuery(`INSERT INTO enterprise_settings (id) VALUES ('default') ON CONFLICT (id) DO NOTHING`);
+    return { ...DEFAULT_ENTERPRISE_SETTINGS, updated_at: new Date().toISOString() };
+  }
+  const row = getOrCreateMemEnterpriseSettings();
+  return normaliseEnterpriseSettings(row);
+}
+
+export async function updateEnterpriseSettings(fields = {}) {
+  const updates = {};
+  for (const [key, value] of Object.entries(fields)) {
+    if (!ENTERPRISE_SETTING_FIELDS.has(key)) continue;
+    if (key.endsWith('_days')) {
+      const n = Number(value);
+      if (!Number.isInteger(n) || n < 1 || n > 3650) {
+        throw new Error(`${key} must be an integer from 1 to 3650`);
+      }
+      updates[key] = n;
+    } else {
+      updates[key] = !!value;
+    }
+  }
+
+  const updated_at = new Date().toISOString();
+  if (mode === 'pg') {
+    await pgQuery(`INSERT INTO enterprise_settings (id) VALUES ('default') ON CONFLICT (id) DO NOTHING`);
+    const cols = [];
+    const vals = [];
+    let i = 1;
+    for (const [key, value] of Object.entries(updates)) {
+      cols.push(`${key} = $${i++}`);
+      vals.push(value);
+    }
+    cols.push(`updated_at = $${i++}`);
+    vals.push(updated_at);
+    const { rows } = await pgQuery(
+      `UPDATE enterprise_settings SET ${cols.join(', ')} WHERE id = 'default' RETURNING *`,
+      vals
+    );
+    return normaliseEnterpriseSettings(rows[0]);
+  }
+
+  const row = getOrCreateMemEnterpriseSettings();
+  Object.assign(row, updates, { updated_at });
+  await persistFile();
+  return normaliseEnterpriseSettings(row);
+}
+
+function retentionCutoff(days) {
+  return new Date(Date.now() - Number(days) * 24 * 60 * 60 * 1000).toISOString();
+}
+
+function pruneMemList(name, predicate) {
+  const before = memCollection(name).length;
+  memStore[name] = memCollection(name).filter(row => !predicate(row));
+  return before - memStore[name].length;
+}
+
+export async function runEnterpriseRetention(settings = null) {
+  const cfg = settings || await getEnterpriseSettings();
+  const auditCutoff = retentionCutoff(cfg.audit_retention_days);
+  const dataCutoff = retentionCutoff(cfg.data_retention_days);
+  const evidenceCutoff = retentionCutoff(cfg.soc2_evidence_retention_days);
+  const counts = {
+    audit_log: 0,
+    history: 0,
+    sessions: 0,
+    agent_actions: 0,
+    agent_issues: 0,
+    soc2_evidence: 0,
+  };
+
+  if (mode === 'pg') {
+    counts.audit_log = (await pgQuery(`DELETE FROM audit_log WHERE created_at < $1 RETURNING id`, [auditCutoff])).rowCount;
+    counts.history = (await pgQuery(`DELETE FROM history WHERE created_at < $1 RETURNING id`, [dataCutoff])).rowCount;
+    counts.sessions = (await pgQuery(
+      `DELETE FROM sessions
+       WHERE expires_at < $1 OR (revoked_at IS NOT NULL AND revoked_at < $1)
+       RETURNING id`,
+      [dataCutoff]
+    )).rowCount;
+    counts.agent_actions = (await pgQuery(`DELETE FROM agent_actions WHERE created_at < $1 RETURNING id`, [dataCutoff])).rowCount;
+    counts.agent_issues = (await pgQuery(`DELETE FROM agent_issues WHERE detected_at < $1 RETURNING id`, [dataCutoff])).rowCount;
+    counts.soc2_evidence = (await pgQuery(
+      `DELETE FROM soc2_evidence
+       WHERE collected_at IS NOT NULL AND collected_at < $1
+       RETURNING id`,
+      [evidenceCutoff]
+    )).rowCount;
+    return { counts, cutoffs: { audit: auditCutoff, data: dataCutoff, soc2_evidence: evidenceCutoff } };
+  }
+
+  counts.audit_log = pruneMemList('audit_log', row => row.created_at < auditCutoff);
+  counts.history = pruneMemList('history', row => row.created_at < dataCutoff);
+  counts.sessions = pruneMemList('sessions', row =>
+    row.expires_at < dataCutoff || (row.revoked_at && row.revoked_at < dataCutoff)
+  );
+  counts.agent_actions = pruneMemList('agent_actions', row => row.created_at < dataCutoff);
+  counts.agent_issues = pruneMemList('agent_issues', row => row.detected_at < dataCutoff);
+  counts.soc2_evidence = pruneMemList('soc2_evidence', row => row.collected_at && row.collected_at < evidenceCutoff);
+  await persistFile();
+  return { counts, cutoffs: { audit: auditCutoff, data: dataCutoff, soc2_evidence: evidenceCutoff } };
+}
+
+export async function listSoc2Evidence({ status } = {}) {
+  if (mode === 'pg') {
+    if (status) {
+      const { rows } = await pgQuery(`SELECT * FROM soc2_evidence WHERE status = $1 ORDER BY updated_at DESC`, [status]);
+      return rows;
+    }
+    const { rows } = await pgQuery(`SELECT * FROM soc2_evidence ORDER BY updated_at DESC`);
+    return rows;
+  }
+  let rows = memCollection('soc2_evidence');
+  if (status) rows = rows.filter(r => r.status === status);
+  return [...rows].sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1));
+}
+
+export async function upsertSoc2Evidence({ id, control_id, title, owner, status = 'needed', detail = {}, due_at = null, collected_at = null }) {
+  const eid = id || newId();
+  const now = new Date().toISOString();
+  const row = {
+    id: eid,
+    control_id,
+    title,
+    owner: owner || null,
+    status,
+    detail: detail || {},
+    due_at: due_at || null,
+    collected_at: collected_at || null,
+    created_at: now,
+    updated_at: now,
+  };
+
+  if (mode === 'pg') {
+    await pgQuery(
+      `INSERT INTO soc2_evidence (id, control_id, title, owner, status, detail, due_at, collected_at, created_at, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9)
+       ON CONFLICT (id) DO UPDATE SET
+         control_id = EXCLUDED.control_id,
+         title = EXCLUDED.title,
+         owner = EXCLUDED.owner,
+         status = EXCLUDED.status,
+         detail = EXCLUDED.detail,
+         due_at = EXCLUDED.due_at,
+         collected_at = EXCLUDED.collected_at,
+         updated_at = EXCLUDED.updated_at`,
+      [row.id, row.control_id, row.title, row.owner, row.status, row.detail, row.due_at, row.collected_at, row.updated_at]
+    );
+    const { rows } = await pgQuery(`SELECT * FROM soc2_evidence WHERE id = $1`, [eid]);
+    return rows[0];
+  }
+
+  const list = memCollection('soc2_evidence');
+  const idx = list.findIndex(r => r.id === eid);
+  if (idx >= 0) {
+    list[idx] = { ...list[idx], ...row, created_at: list[idx].created_at };
+  } else {
+    list.push(row);
+  }
+  await persistFile();
+  return idx >= 0 ? list[idx] : row;
+}
+
+export async function deleteSoc2Evidence(id) {
+  if (mode === 'pg') {
+    await pgQuery(`DELETE FROM soc2_evidence WHERE id = $1`, [id]);
+  } else {
+    memStore.soc2_evidence = memCollection('soc2_evidence').filter(r => r.id !== id);
+    await persistFile();
+  }
 }
 
 // ============ OIDC Configs ============
