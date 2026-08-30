@@ -11,6 +11,7 @@ import SSEViewer from './SSEViewer';
 import FlowBuilder from './FlowBuilder';
 import AIRequestBuilder from './AIRequestBuilder';
 import AgentDashboard from './AgentDashboard';
+import AIWorkbench from './AIWorkbench';
 import SecuritySettings from './SecuritySettings';
 import LLMSettings from './LLMSettings';
 import { FetchLabLogo } from './FetchLabLogo';
@@ -45,6 +46,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
   const [showFlow, setShowFlow] = useState(false);
   const [showAi, setShowAi] = useState(false);
   const [showAgent, setShowAgent] = useState(false);
+  const [showAIWorkbench, setShowAIWorkbench] = useState(false);
   const [showSecurity, setShowSecurity] = useState(false);
   const [showLlmSettings, setShowLlmSettings] = useState(false);
 
@@ -103,15 +105,15 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
             </button>
           )}
 
-          {/* AI Ops Agent Dashboard */}
+          {/* AI Workbench */}
           <button
-            onClick={() => setShowAgent(true)}
+            onClick={() => setShowAIWorkbench(true)}
             className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
             style={{ color: 'var(--color-text-muted)' }}
-            title="AI Ops Agent - monitors Slack, detects API issues, reproduces & diagnoses"
+            title="AI Workbench - model gateway, evals, agents, and coding flows"
           >
             <Bot size={13} />
-            <span className="hidden sm:inline">Agent</span>
+            <span className="hidden sm:inline">AI Workbench</span>
           </button>
 
           <button
@@ -344,6 +346,16 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
       {/* AI Request Builder */}
       {showAi && (
         <AIRequestBuilder onClose={() => setShowAi(false)} />
+      )}
+
+      {/* AI Workbench */}
+      {showAIWorkbench && (
+        <AIWorkbench
+          onClose={() => setShowAIWorkbench(false)}
+          onOpenAgent={() => { setShowAIWorkbench(false); setShowAgent(true); }}
+          onOpenLlmSettings={() => { setShowAIWorkbench(false); setShowLlmSettings(true); }}
+          onOpenSecurity={() => { setShowAIWorkbench(false); setShowSecurity(true); }}
+        />
       )}
 
       {/* AI Ops Agent Dashboard */}
