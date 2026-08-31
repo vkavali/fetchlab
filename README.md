@@ -1,14 +1,21 @@
-# ⚡ FetchLab — AI-Native API Client
+# ⚡ FetchLab — API + AI Workbench
 
-A fast, free, **AI-powered** API testing tool. Better than Postman: no accounts, no cloud lock-in, your data stays local — and now with Claude built in for request generation, test authoring, error diagnosis, diff explanations, and OpenAPI spec generation.
+FetchLab is a team workbench for modern engineering orgs: one **API Workbench** for requests, collections, environments, WebSocket/SSE, flows, and OpenAPI, plus one **AI Workbench** for model providers, AI-assisted tests, debugging, agent monitoring, and coding-agent workflows.
+
+It runs local-first for individual developers and self-hosted for teams that need auth, workspaces, encrypted secrets, audit logs, rate limits, OIDC SSO, SCIM surfaces, and bring-your-own-key model routing.
 
 ![FetchLab](https://img.shields.io/badge/FetchLab-v1.1.0-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![AI](https://img.shields.io/badge/AI-Claude%20Sonnet%204.6-purple) ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
 
 ---
 
-## ✨ AI Features (what sets FetchLab apart)
+## ✨ Product
 
-All AI features are powered by Claude (`claude-sonnet-4-6`). They're optional — set the `ANTHROPIC_API_KEY` environment variable on your server to enable them. The rest of FetchLab works without it.
+FetchLab has two benches in one app:
+
+- **API Workbench** — send requests, manage collections, run scripts, compare responses, test WebSocket/SSE streams, build flows, generate OpenAPI specs.
+- **AI Workbench** — configure model providers, generate requests/tests, diagnose failures, explain diffs, monitor API issues with the AI Ops Agent, and prepare coding-agent workflows.
+
+AI features are optional. Configure a provider in the app or set server-side provider keys. The rest of FetchLab works without external AI.
 
 ### 🪄 AI Request Builder
 Click the **AI Builder** button in the header. You can either:
@@ -84,6 +91,13 @@ FetchLab can run in two modes:
 
 - **Local mode** (default): no auth, all state in `localStorage`. Just `npm run dev` and go.
 - **Server mode**: PostgreSQL-backed multi-user with auth, team workspaces, encrypted credentials, audit log, rate limiting, and OIDC SSO.
+
+### Sellable packages
+
+- **Free** — local API Workbench for individual developers.
+- **Pro** — AI-assisted API development for one developer.
+- **Team** — shared workspaces, RBAC, audit log, and BYOK model setup for an engineering team.
+- **Enterprise Pilot** — self-hosted setup, SSO/SCIM configuration support, security review support, and guided rollout.
 
 ### Environment variables
 

@@ -50,7 +50,7 @@ const SCOPE_COLUMNS = [
       'It does not replace backend logs, observability, code review, or incident ownership.',
       'It does not make unsafe secrets safe if they are included in request bodies or prompts.',
       'It does not train a model inside FetchLab. Provider retention depends on the configured provider.',
-      'It does not certify enterprise compliance or security readiness by itself.',
+      'It prepares repeatable evidence for security review; your team remains the final approval gate.',
     ],
   },
   {

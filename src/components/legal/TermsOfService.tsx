@@ -31,7 +31,7 @@ export default function TermsOfService() {
       <section>
         <h2 className="text-base font-semibold text-white mb-2">3. Free trial</h2>
         <p>
-          New accounts include a <strong className="text-white font-medium">7-day free trial</strong>{' '}
+          New accounts include a <strong className="text-white font-medium">30-day free trial</strong>{' '}
           of paid features. No credit card is required to start. When the trial ends, your account
           reverts to the free tier unless you choose to subscribe. We will not charge you without
           your explicit consent.

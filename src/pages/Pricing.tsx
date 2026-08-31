@@ -167,9 +167,9 @@ interface PlanCol {
 
 const PLAN_COLS: PlanCol[] = [
   { key: 'free', name: 'Free',       price: { USD: '$0',     INR: 'INR 0' },      cta: 'Start free',     href: '/app' },
-  { key: 'pro',  name: 'Pro',        price: { USD: '$12',    INR: 'INR 999' },    period: { USD: '/ month', INR: '/ month' },          cta: 'Start trial', highlight: true, waitlist: true },
-  { key: 'team', name: 'Team',       price: { USD: '$15',    INR: 'INR 2,499' },  period: { USD: '/ user / month', INR: '/ user / month' }, cta: 'Start trial', waitlist: true },
-  { key: 'ent',  name: 'Enterprise', price: { USD: 'Custom', INR: 'Custom' },  cta: 'Contact sales',  href: 'mailto:hello@fetchlab.dev' },
+  { key: 'pro',  name: 'Pro',        price: { USD: '$12',    INR: 'INR 999' },    period: { USD: '/ month', INR: '/ month' },          cta: 'Start Pro trial', highlight: true, href: '/app' },
+  { key: 'team', name: 'Team',       price: { USD: '$15',    INR: 'INR 2,499' },  period: { USD: '/ user / month', INR: '/ user / month' }, cta: 'Book team pilot', href: 'mailto:hello@fetchlab.dev?subject=FetchLab%20Team%20Pilot' },
+  { key: 'ent',  name: 'Enterprise', price: { USD: 'Custom', INR: 'Custom' },  cta: 'Contact sales',  href: 'mailto:hello@fetchlab.dev?subject=FetchLab%20Enterprise%20Pilot' },
 ];
 
 type Cell = string | { USD: string; INR: string } | boolean | null;
@@ -184,7 +184,7 @@ const PLAN_ROWS: { label: string; cells: [Cell, Cell, Cell, Cell] }[] = [
   { label: 'Role-based access',      cells: [null, null, true, true] },
   { label: 'Audit log',              cells: [null, null, true, true] },
   { label: 'Slack ops agent',        cells: [null, null, true, true] },
-  { label: 'SAML SSO',               cells: [null, null, null, true] },
+  { label: 'OIDC SSO',               cells: [null, null, null, true] },
   { label: 'Custom data residency',  cells: [null, null, null, true] },
   { label: 'Support',                cells: ['community', 'email', 'email', 'priority'] },
 ];
@@ -842,19 +842,18 @@ export default function Pricing() {
                   className="font-mono"
                   style={{ fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-subtle)', marginBottom: 8 }}
                 >
-                  Note - payments in flight
+                  Simple buying path
                 </div>
                 <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--color-text)', margin: 0 }}>
                   {currency === 'INR' ? (
                     <>
-                      Razorpay is being wired up for India (UPI, cards, netbanking).
-                      Until then, every tier opens the full free 30-day trial.
-                      No card needed, no auto-upgrade.
+                      Start free immediately. For Team and Enterprise, book a pilot and we will handle setup,
+                      invoice, and rollout directly.
                     </>
                   ) : (
                     <>
-                      Stripe is being wired up. Until then, every tier opens the full free
-                      30-day trial. No card needed, no auto-upgrade.
+                      Start free immediately. For Team and Enterprise, book a pilot and we will handle setup,
+                      invoice, and rollout directly.
                     </>
                   )}
                 </p>
@@ -866,15 +865,15 @@ export default function Pricing() {
                 {currency === 'INR' ? (
                   <>
                     <div>- INR pricing is PPP-adjusted, not a USD multiplication.</div>
-                    <div>- GST handled at invoice when Razorpay ships.</div>
-                    <div>- UPI, cards, and netbanking on launch.</div>
-                    <div>- Annual billing - 20% off - coming with payments.</div>
+                    <div>- GST and purchase-order details handled on invoice.</div>
+                    <div>- Team pilots include onboarding and workspace setup.</div>
+                    <div>- Annual contracts available for Enterprise.</div>
                   </>
                 ) : (
                   <>
-                    <div>- Pricing in USD, billed monthly.</div>
-                    <div>- Cards via Stripe at launch.</div>
-                    <div>- Annual billing - 20% off - coming with payments.</div>
+                    <div>- Pricing in USD, billed monthly or annually.</div>
+                    <div>- Team pilots include onboarding and workspace setup.</div>
+                    <div>- Purchase orders available for Enterprise.</div>
                   </>
                 )}
               </div>

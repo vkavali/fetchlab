@@ -72,9 +72,9 @@ describe('client route smoke', () => {
 
   it('renders the enterprise page', () => {
     renderAt('/enterprise');
-    expect(screen.getByText('Enterprise readiness')).toBeTruthy();
-    expect(screen.getByText('What is enterprise-useful now')).toBeTruthy();
-    expect(screen.getByText('What is not finished yet')).toBeTruthy();
+    expect(screen.getByText('One workbench for API and AI engineering teams.')).toBeTruthy();
+    expect(screen.getByText('What teams get today')).toBeTruthy();
+    expect(screen.getByText('How enterprise pilots run')).toBeTruthy();
   });
 
   it('renders legal pages', () => {

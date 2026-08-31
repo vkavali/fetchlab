@@ -15,30 +15,30 @@ const READY = [
   'Agent framework snippets for LangChain, LlamaIndex, and CrewAI.',
 ];
 
-const NEEDS_ENTERPRISE_HARDENING = [
-  'Customer IdP setup and validation for production OIDC/SAML mappings, domain capture, and break-glass access.',
-  'External immutable audit archive or SIEM export for WORM retention beyond the built-in audit table.',
-  'Enterprise tenant model, approval workflows, fine-grained permissions, and admin policy UI.',
-  'Formal SOC 2 program: policies, risk register, vendor review, operating evidence, and external audit.',
-  'Centralized cloud secrets management, customer-managed keys, and documented backup/restore procedures.',
-  'Security operations: vulnerability SLAs, penetration testing, incident response drills, and dependency review cadence.',
+const PILOT_PACKAGE = [
+  'Private workspace setup with admin, member, and viewer roles.',
+  'OIDC SSO setup support and 2FA policy for all users.',
+  'Encrypted credentials with bring-your-own-key LLM provider routing.',
+  'Audit log review for auth, workspace changes, AI usage, and agent actions.',
+  '30-day guided rollout for one engineering team.',
+  'Security questionnaire support for pilot and vendor review.',
 ];
 
 const ROADMAP = [
   {
-    phase: 'Now',
-    title: 'Team beta',
-    body: 'Use FetchLab for internal API testing, AI-assisted request generation, reproducible debug artifacts, and team workflow evaluation.',
+    phase: 'Day 1',
+    title: 'Launch a workspace',
+    body: 'Create the team workspace, connect your model provider, import collections, and invite the first engineering group.',
   },
   {
-    phase: 'Next',
-    title: 'Configure controls',
-    body: 'Connect production IdP settings, provision SCIM tokens, set retention windows, and export audit events into the customer security stack.',
+    phase: 'Week 1',
+    title: 'Prove the workflow',
+    body: 'Run API tests, generate AI-assisted assertions, configure agent monitoring, and review audit/security controls with admins.',
   },
   {
-    phase: 'After controls',
-    title: 'Compliance readiness',
-    body: 'Operate the controls long enough to collect evidence, complete vendor/security policy packs, and run the external SOC 2 audit.',
+    phase: 'Month 1',
+    title: 'Expand adoption',
+    body: 'Roll out to more teams, standardize provider routing, use SCIM provisioning, and export evidence for vendor/security review.',
   },
 ];
 
@@ -82,7 +82,7 @@ function Nav() {
   );
 }
 
-function Checklist({ title, items, tone }: { title: string; items: string[]; tone: 'ready' | 'gap' }) {
+function Checklist({ title, items, tone }: { title: string; items: string[]; tone: 'ready' | 'pilot' }) {
   return (
     <section
       style={{
@@ -94,7 +94,7 @@ function Checklist({ title, items, tone }: { title: string; items: string[]; ton
     >
       <div className="p-5 md:p-6" style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}>
         <div className="font-mono uppercase" style={{ fontSize: 10.5, letterSpacing: '0.16em', color: tone === 'ready' ? 'var(--color-accent)' : 'var(--color-warning)', marginBottom: 8 }}>
-          {tone === 'ready' ? 'Available today' : 'Required before regulated enterprise rollout'}
+          {tone === 'ready' ? 'Available today' : 'Enterprise pilot package'}
         </div>
         <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.04em', margin: 0 }}>
           {title}
@@ -137,7 +137,7 @@ export default function Enterprise() {
         <section className="grid lg:grid-cols-[0.95fr_1.05fr] gap-10 lg:gap-16 items-end" style={{ marginBottom: 42 }}>
           <div>
             <div className="font-mono uppercase" style={{ color: 'var(--color-accent)', fontSize: 11, letterSpacing: '0.16em', marginBottom: 18 }}>
-              Enterprise readiness
+              Enterprise
             </div>
             <h1
               className="text-4xl md:text-6xl"
@@ -149,19 +149,52 @@ export default function Enterprise() {
                 maxWidth: '11ch',
               }}
             >
-              Backend controls exist. Certification still does not.
+              One workbench for API and AI engineering teams.
             </h1>
           </div>
-          <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
-            FetchLab now has the backend enterprise baseline: audit logs, admin controls, SSO/SCIM surfaces,
-            retention execution, and SOC 2 evidence tracking. It is still not SOC 2 certified and still needs
-            production IdP setup, external audit retention, operating evidence, and a completed audit before regulated rollout.
-          </p>
+          <div>
+            <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
+              FetchLab gives teams an API Workbench for requests, collections, environments, and protocol testing,
+              plus an AI Workbench for model providers, AI-assisted tests, agent monitoring, and governed rollout.
+              It is ready for team adoption and enterprise pilots with self-hosted deployment, RBAC, SSO surfaces,
+              encrypted secrets, audit logs, SCIM endpoints, retention controls, and BYOK model routing.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <a
+                href="/app"
+                className="inline-flex items-center"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 650,
+                  color: 'var(--color-accent-ink)',
+                  background: 'var(--color-accent)',
+                  padding: '10px 14px',
+                  borderRadius: 5,
+                }}
+              >
+                Start free
+              </a>
+              <a
+                href="mailto:hello@fetchlab.dev?subject=FetchLab%20Enterprise%20Pilot"
+                className="inline-flex items-center"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: 'var(--color-text)',
+                  border: '1px solid var(--color-border-strong)',
+                  padding: '10px 14px',
+                  borderRadius: 5,
+                }}
+              >
+                Book enterprise pilot
+              </a>
+            </div>
+          </div>
         </section>
 
         <section className="grid lg:grid-cols-2 gap-5" style={{ marginBottom: 44 }}>
-          <Checklist title="What is enterprise-useful now" items={READY} tone="ready" />
-          <Checklist title="What is not finished yet" items={NEEDS_ENTERPRISE_HARDENING} tone="gap" />
+          <Checklist title="What teams get today" items={READY} tone="ready" />
+          <Checklist title="How enterprise pilots run" items={PILOT_PACKAGE} tone="pilot" />
         </section>
 
         <section
@@ -174,10 +207,10 @@ export default function Enterprise() {
         >
           <div className="p-5 md:p-6" style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}>
             <div className="font-mono uppercase" style={{ fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--color-accent)', marginBottom: 8 }}>
-              Rollout path
+              Simple rollout
             </div>
             <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.04em', margin: 0 }}>
-              How to evaluate it without over-claiming it
+              From trial to team standard
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-px" style={{ background: 'var(--color-border)' }}>
