@@ -2,7 +2,7 @@ import { FetchLabLogo } from '../components/FetchLabLogo';
 import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 
 const READY = [
-  'Local-first request workspace with browser and desktop paths.',
+  'Browser-hosted web app plus Windows EXE/MSI installer for desktop teams.',
   'Bring-your-own-key AI provider setup, including local mode for no external AI calls.',
   '2FA, session controls, account lockout tests, and encrypted local settings.',
   'Admin-only audit logs for auth, workspace, enterprise settings, retention, SCIM, and SOC 2 evidence events.',
@@ -60,6 +60,7 @@ function Nav() {
         <div className="hidden md:flex items-center gap-9" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
           <a href="/how-to" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">How-to</a>
           <a href="/ai-how-to" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">AI guide</a>
+          <a href="/download" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">Download</a>
           <a href="/enterprise" style={{ opacity: 1, color: 'var(--color-text)' }}>Enterprise</a>
           <a href="/pricing" style={{ opacity: 0.85 }} className="hover:opacity-100 transition-opacity">Pricing</a>
         </div>
@@ -154,10 +155,10 @@ export default function Enterprise() {
           </div>
           <div>
             <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
-              FetchLab gives teams an API Workbench for requests, collections, environments, and protocol testing,
-              plus an AI Workbench for model providers, AI-assisted tests, agent monitoring, and governed rollout.
-              It is ready for team adoption and enterprise pilots with self-hosted deployment, RBAC, SSO surfaces,
-              encrypted secrets, audit logs, SCIM endpoints, retention controls, and BYOK model routing.
+              FetchLab is a browser app and Windows desktop installer for teams building AI products.
+              It combines an API Workbench for requests, collections, environments, and protocol testing
+              with an AI Workbench for model providers, AI-assisted tests, agent monitoring, eval prep, and coding-agent workflows.
+              Enterprise pilots add self-hosted deployment, PostgreSQL, RBAC, encrypted secrets, audit logs, SCIM, retention controls, and OIDC SSO.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <a

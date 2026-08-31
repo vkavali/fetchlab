@@ -118,7 +118,7 @@ export default function Download() {
         <section className="grid lg:grid-cols-[0.95fr_1.05fr] gap-10 lg:gap-16 items-end" style={{ marginBottom: 42 }}>
           <div>
             <div className="font-mono uppercase" style={{ color: 'var(--color-accent)', fontSize: 11, letterSpacing: '0.16em', marginBottom: 18 }}>
-              Desktop build
+              Web app + desktop installer
             </div>
             <h1
               className="text-4xl md:text-6xl"
@@ -134,8 +134,8 @@ export default function Download() {
             </h1>
           </div>
           <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 620, margin: 0 }}>
-            The FetchLab desktop app for Windows. Free during the public beta.
-            Version {VERSION}. macOS and Linux builds are planned next.
+            Use FetchLab immediately in the browser, or install the Windows desktop build for local workflows and managed team rollouts.
+            Version {VERSION}. macOS and Linux installers are planned next.
           </p>
         </section>
 
@@ -156,11 +156,11 @@ export default function Download() {
         </section>
 
         <div style={{ color: 'var(--color-text-muted)', fontSize: 13.5 }}>
-          Browser version is available now.{' '}
+          The browser app is available now, and the Windows installer files are included on this page.{' '}
           <a href="/app" style={{ color: 'var(--color-accent)', textDecoration: 'underline', textUnderlineOffset: 4 }}>
-            Use FetchLab in the browser
+            Open FetchLab in the browser
           </a>
-          {' '}while desktop builds catch up.
+          {' '}or use the MSI for managed enterprise deployment.
         </div>
       </main>
     </div>

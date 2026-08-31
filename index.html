@@ -4,7 +4,19 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FetchLab — Modern API Client</title>
+    <title>FetchLab — API + AI Workbench for Engineering Teams</title>
+    <meta
+      name="description"
+      content="FetchLab is a browser and desktop workbench for API testing, AI-assisted debugging, model-provider setup, team workspaces, audit logs, SSO, SCIM, and enterprise pilots."
+    />
+    <meta property="og:title" content="FetchLab — API + AI Workbench" />
+    <meta
+      property="og:description"
+      content="One app for API and AI development: browser workbench, Windows installer, shared team workspaces, BYOK AI providers, audit logs, SSO, and SCIM."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://fetchlab.app" />
+    <meta name="twitter:card" content="summary" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -14,7 +26,7 @@
           // Marketing surfaces are always light (brand-led, "cool laboratory").
           // The in-app routes respect localStorage, falling back to system preference.
           var path = (location.pathname || '/').toLowerCase();
-          var marketing = path === '/' || path === '' || path === '/pricing' || path === '/download' || path === '/privacy' || path === '/terms';
+          var marketing = path === '/' || path === '' || path === '/pricing' || path === '/download' || path === '/enterprise' || path === '/how-to' || path === '/ai-how-to' || path === '/privacy' || path === '/terms';
           if (marketing) return;
           var saved = localStorage.getItem('fetchlab-theme');
           var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;

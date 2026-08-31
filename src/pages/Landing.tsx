@@ -758,14 +758,14 @@ function Hero() {
                 paddingLeft: 16,
               }}
             >
-              Agent-ready API lab
+              API + AI workbench
             </span>
           </div>
         </Reveal>
 
         <Reveal delay={40}>
           <div style={{ marginBottom: 32 }}>
-            <Eyebrow index="00">Incident report - Specimen 0042</Eyebrow>
+            <Eyebrow index="00">Browser app + Windows installer + enterprise backend</Eyebrow>
           </div>
         </Reveal>
 
@@ -781,9 +781,9 @@ function Hero() {
               marginBottom: 0,
             }}
           >
-            Your APIs broke at 2am.<br />
+            Build AI products faster.<br />
             <span style={{ color: 'var(--color-text-muted)' }}>
-              The postmortem is&nbsp;done.
+              Test APIs, models, and agents in one app.
             </span>
           </h1>
         </Reveal>
@@ -803,14 +803,15 @@ function Hero() {
                   marginBottom: 30,
                 }}
               >
-                FetchLab runs the investigation, names the cause, and drafts the fix
-                while you sleep. There is, somewhere inside, a fast API request
-                client. We don't lead with that.
+                FetchLab is the web and desktop workbench for teams building AI products. Send requests,
+                organize collections, compare responses, configure model providers, generate tests,
+                monitor incidents, and hand clean context to coding agents.
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
-                <CTA href="/app">Run a postmortem</CTA>
-                <GhostCTA href="#how">See the loop</GhostCTA>
+                <CTA href="/app">Open web app</CTA>
+                <GhostCTA href="/download">Download installer</GhostCTA>
+                <GhostCTA href="/enterprise">Enterprise pilot</GhostCTA>
               </div>
 
               <AgentLoopMeta />
@@ -850,7 +851,7 @@ function Declaration() {
           }}
         >
           <span aria-hidden style={{ width: 22, height: 1, background: 'currentColor', opacity: 0.7 }} />
-          Median time to fix - measured live
+          Shipping now - web app and installer
         </div>
 
         <h2
@@ -867,8 +868,7 @@ function Declaration() {
             transition: `opacity 700ms ${EASE} 120ms, transform 700ms ${EASE} 120ms`,
           }}
         >
-          <Counter target="4" duration={900} />m{' '}
-          <Counter target="12" pad={2} duration={1100} />s.
+          <Counter target="2" duration={900} /> benches.
         </h2>
 
         <div
@@ -891,8 +891,8 @@ function Declaration() {
               margin: 0,
             }}
           >
-            From the first 500 to a draft PR. Across <Counter target={1287} duration={1300} /> incidents,
-            without anyone filing a ticket.
+            One API Workbench for requests, collections, environments, protocols, and scripts.
+            One AI Workbench for providers, generated tests, evals, agent monitoring, and coding flows.
           </p>
           <div
             className="font-mono"
@@ -905,9 +905,9 @@ function Declaration() {
               lineHeight: 1.6,
             }}
           >
-            <div>Week ending Nov 21</div>
-            <div>Ops agent v0.6 - Continuous</div>
-            <div>p50 - p95 within 11m 04s</div>
+            <div>Browser app - /app</div>
+            <div>Windows installer - /download</div>
+            <div>Enterprise - Postgres, RBAC, audit, SSO, SCIM</div>
           </div>
         </div>
       </div>
@@ -919,16 +919,16 @@ function Declaration() {
 
 type LogEntry = { t: string; stage: string; line: string; mark?: 'ok' | 'warn' };
 const LOG_ENTRIES: LogEntry[] = [
-  { t: '02:14:32', stage: 'detect',     line: '/v1/orders 500 - 1 of 12 calls in the last minute' },
-  { t: '02:14:38', stage: 'detect',     line: '/v1/orders 500 - 4 of 28 calls - threshold crossed', mark: 'warn' },
-  { t: '02:14:41', stage: 'reproduce',  line: 'firing the failing call against staging...' },
-  { t: '02:14:43', stage: 'reproduce',  line: '500 confirmed - 4 of 4 calls reproduce the error', mark: 'ok' },
-  { t: '02:14:51', stage: 'rootcause',  line: 'reading deploy diff a3f2c against schemas/order.ts...' },
-  { t: '02:14:58', stage: 'rootcause',  line: 'customer_id removed from the request validator', mark: 'ok' },
-  { t: '02:16:02', stage: 'propose',    line: 'drafting PR against feature/order-validation' },
-  { t: '02:16:48', stage: 'propose',    line: 'PR #1284 opened - 1 line - narrowest-fix', mark: 'ok' },
-  { t: '02:18:44', stage: 'verify',     line: 'replaying call after merge...' },
-  { t: '02:18:46', stage: 'verify',     line: '201 returned - specimen closed', mark: 'ok' },
+  { t: '00:00:01', stage: 'web app',    line: '/app opens the full API Workbench in the browser', mark: 'ok' },
+  { t: '00:00:06', stage: 'desktop',    line: 'Windows EXE and MSI installers are available from /download', mark: 'ok' },
+  { t: '00:00:11', stage: 'api bench',  line: 'requests, collections, environments, scripts, WebSocket, SSE, OpenAPI', mark: 'ok' },
+  { t: '00:00:18', stage: 'ai bench',   line: 'BYOK providers, local mode, generated requests, tests, and diagnosis', mark: 'ok' },
+  { t: '00:00:26', stage: 'teams',      line: 'workspace members use admin, member, and viewer roles', mark: 'ok' },
+  { t: '00:00:31', stage: 'security',   line: 'JWT sessions, 2FA, lockouts, AES-256-GCM credential encryption', mark: 'ok' },
+  { t: '00:00:37', stage: 'enterprise', line: 'PostgreSQL, audit logs, retention, OIDC SSO, and SCIM endpoints', mark: 'ok' },
+  { t: '00:00:43', stage: 'agent',      line: 'Slack/API incident detector and coding-agent handoff workflows', mark: 'ok' },
+  { t: '00:00:50', stage: 'release',    line: 'lint, build, audit, runtime, local-file, and Postgres smoke checks pass', mark: 'ok' },
+  { t: '00:00:58', stage: 'ready',      line: 'one product surface for AI product engineering teams', mark: 'ok' },
 ];
 
 function HowItWorks() {
@@ -954,11 +954,11 @@ function HowItWorks() {
               maxWidth: '28ch',
             }}
           >
-            This is what the agent does, on its own, in four minutes twelve seconds.
+            A real app, not just a download page.
           </h2>
           <p style={{ fontSize: 17, maxWidth: '60ch', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
-            The log below is real, in the sense that it's the shape of every investigation -
-            timestamp, stage, action, mark. Not a diagram of a loop. The loop itself.
+            The website now points to the actual product surfaces: open the browser app, install the Windows desktop build,
+            or run the enterprise backend with PostgreSQL, auth, workspaces, audit, SSO, and SCIM.
           </p>
         </Reveal>
 
@@ -987,9 +987,9 @@ function HowItWorks() {
             >
               <span>
                 <span style={{ color: 'var(--color-accent)', marginRight: 12 }}>*</span>
-                Investigation 0042 - ops-agent v0.6
+                FetchLab product surface - current
               </span>
-              <span>Specimen filed - Form A-7</span>
+              <span>Web + installer + enterprise</span>
             </div>
 
             {/* The log itself */}
@@ -1416,65 +1416,60 @@ function Features() {
                 maxWidth: '20ch',
               }}
             >
-              How the agent works,<br />in three chapters.
+              API and AI work,<br />in one product.
             </h2>
           </div>
         </Reveal>
 
         <Chapter
           num="02.01"
-          title="AI that reads your traffic, not the docs."
+          title="API Workbench for the actual development loop."
           body={
             <>
-              Describe in plain English. FetchLab drafts the request, picks the headers,
-              generates a sample body, and writes the assertions. After every response,
-              it can write the tests for you - against the body you actually got back,
-              not the body the spec promised.
+              Build requests, organize collections, manage environments, run scripts, compare responses,
+              inspect JSON, validate schemas, test WebSocket/SSE streams, and generate OpenAPI artifacts.
               <br /><br />
-              The model is yours. Anthropic, OpenAI, Bedrock, or Vertex. The request and
-              the response stay on your machine.
+              Use it in the browser for fast access or install the Windows desktop build when your team wants a local app.
             </>
           }
-          marginalia="The point isn't that AI writes code. The point is that it reads your traffic - the real, shaped-by-production thing - instead of the docs nobody updates."
+          marginalia="The API client is still the foundation. AI features only work because the request, response, environment, and history are captured in one structured workspace."
           figLabel="Fig. 02.01"
-          figCaption="Generated assertions in context"
+          figCaption="Requests, scripts, protocol testing"
           figure={<AIBuilderVisual />}
         />
 
         <Chapter
           num="02.02"
-          title="Your keys. Your cloud. Your rules."
+          title="AI Workbench for models, evals, and coding agents."
           body={
             <>
-              Bring your own key - Anthropic, AWS Bedrock, Google Vertex, OpenAI. Keys
-              are stored encrypted on your machine. Requests, headers, and bodies never
-              leave your network unless you tell them to.
+              Configure Anthropic, OpenAI-compatible, AWS Bedrock, Google Vertex, or local providers.
+              Generate requests and assertions, diagnose failed calls, explain response diffs,
+              export AI-ready context, and turn known-good API calls into agent tool wrappers.
               <br /><br />
-              Self-hosted, single-tenant, or local-only. The same product behaves the
-              same way in all three.
+              Teams can route models through their own keys and keep provider control out of individual laptops.
             </>
           }
-          marginalia="Local-first is not a feature. It's how the product is built. The cloud version is the local version, with a database in front."
+          marginalia="The AI Workbench is not a chat sidebar. It is model-provider control, eval prep, agent context, and API-grounded debugging in one place."
           figLabel="Fig. 02.02"
-          figCaption="Provider configuration"
+          figCaption="Model provider routing"
           figure={<ProviderVisual />}
         />
 
         <Chapter
           num="02.03"
-          title="The agent that files the PR before you wake up."
+          title="Enterprise controls for teams that need governance."
           body={
             <>
-              The agent tails the endpoints you care about. When something breaks, it
-              reproduces, names the cause, and drafts the diff. The Slack message lands
-              with a fix attached.
+              Run FetchLab with PostgreSQL-backed accounts, personal and team workspaces, encrypted credentials,
+              JWT sessions, 2FA, rate limits, admin audit logs, retention controls, OIDC SSO, and SCIM provisioning.
               <br /><br />
-              By the time anyone files a ticket, the ticket already has a PR.
+              The agent monitor stays in the loop for incident triage, but admins get the controls enterprises expect.
             </>
           }
-          marginalia="An on-call rotation that doesn't sleep, doesn't escalate to humans first, and never asks you to reproduce the bug."
+          marginalia="This is the buyer-facing change: FetchLab is no longer just an installer or a local API client. It is a web app, desktop app, and enterprise-controlled AI development bench."
           figLabel="Fig. 02.03"
-          figCaption="Live Slack thread"
+          figCaption="Team controls and agent monitoring"
           figure={<AgentVisual />}
           last
         />
@@ -1489,12 +1484,12 @@ function TickerBar() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.4 });
   // Build a marquee string from the specimens; double it so the loop is seamless
   const tickerItems = [
-    'SPEC 0042 - POST /v1/orders - 4M 12S',
-    'SPEC 0041 - POST /v1/billing/invoice - 6M 41S',
-    'SPEC 0040 - POST /v1/auth/refresh - 2M 03S',
-    'SPEC 0039 - GET /v1/search - 8M 19S',
-    'SPEC 0038 - PUT /v1/files/upload - 3M 47S',
-    'SPEC 0037 - POST /v1/notifications - 12M',
+    'WEB APP - /APP - LIVE WORKBENCH',
+    'DESKTOP - WINDOWS EXE + MSI',
+    'API BENCH - REST + GRAPHQL + WEBSOCKET + SSE',
+    'AI BENCH - PROVIDERS + TESTS + EVAL PREP',
+    'ENTERPRISE - POSTGRES + RBAC + AUDIT + SSO',
+    'AGENTS - TOOL CONTEXT + CODING HANDOFFS',
   ];
   const seq = [...tickerItems, ...tickerItems];
 
@@ -1525,7 +1520,7 @@ function TickerBar() {
           }}
         >
           <span aria-hidden style={{ width: 22, height: 1, background: 'currentColor', opacity: 0.7 }} />
-          Filed before standup
+          One surface for API and AI teams
         </div>
 
         <h2
@@ -1543,7 +1538,7 @@ function TickerBar() {
             transition: `opacity 700ms ${EASE} 120ms, transform 700ms ${EASE} 120ms`,
           }}
         >
-          <Counter target={1287} duration={1100} /> fixes filed. Zero 3am pages this quarter.
+          Web app, desktop installer, API bench, AI bench, and enterprise controls in one product.
         </h2>
       </div>
 
@@ -1588,15 +1583,15 @@ function TickerBar() {
   );
 }
 
-/* ---------- Specimens archive - horizontal strip of real-feeling incidents ---------- */
+/* ---------- Product surface archive - horizontal strip of buyer-facing proof ---------- */
 
 const SPECIMENS = [
-  { num: '0042', time: 'Sat 02:14', service: 'POST /v1/orders',           cause: 'customer_id removed from validator in deploy a3f2c',     pr: '#1284', fix: '4m 12s', status: 'closed' },
-  { num: '0041', time: 'Fri 18:33', service: 'POST /v1/billing/invoice',  cause: 'Stripe webhook retry storm, idempotency key dropped',     pr: '#1280', fix: '6m 41s', status: 'closed' },
-  { num: '0040', time: 'Fri 09:11', service: 'POST /v1/auth/refresh',     cause: 'JWT clock skew on staging, NTP drift past tolerance',     pr: '#1278', fix: '2m 03s', status: 'closed' },
-  { num: '0039', time: 'Thu 21:50', service: 'GET /v1/search',            cause: 'Elastic timeout on unindexed query branch',               pr: '#1275', fix: '8m 19s', status: 'closed' },
-  { num: '0038', time: 'Thu 14:22', service: 'PUT /v1/files/upload',      cause: 'S3 region misroute on multipart finalize',                pr: '#1271', fix: '3m 47s', status: 'closed' },
-  { num: '0037', time: 'Wed 23:08', service: 'POST /v1/notifications',    cause: 'Twilio rate limit (200 rps) breached on burst',           pr: '-',     fix: '12m',    status: 'no-pr'  },
+  { num: '0001', time: 'Live now', service: 'Browser app',      cause: 'Full API Workbench is available from /app without installing anything.',               pr: '/app',        fix: 'Web',        status: 'closed' },
+  { num: '0002', time: 'v1.2.0',   service: 'Windows installer', cause: 'EXE and MSI packages are published for local workflows and managed rollouts.',         pr: '/download',   fix: 'EXE/MSI',    status: 'closed' },
+  { num: '0003', time: 'API bench', service: 'Protocol testing',  cause: 'REST, GraphQL, WebSocket, SSE, collections, environments, scripts, and history.',       pr: 'Built in',    fix: 'API',        status: 'closed' },
+  { num: '0004', time: 'AI bench',  service: 'Model workflows',   cause: 'BYOK providers, generated requests, assertions, diagnosis, eval prep, and exports.',    pr: 'Built in',    fix: 'AI',         status: 'closed' },
+  { num: '0005', time: 'Teams',     service: 'Enterprise backend', cause: 'PostgreSQL accounts, workspace RBAC, encrypted credentials, audit logs, SSO, SCIM.',     pr: '/enterprise', fix: 'Governance', status: 'closed' },
+  { num: '0006', time: 'Agents',    service: 'Coding handoffs',   cause: 'Turn known-good API calls, responses, and diagnostics into clean coding-agent context.',   pr: 'Built in',    fix: 'Context',    status: 'closed' },
 ];
 
 function SpecimenCard({ s, index, revealed }: { s: typeof SPECIMENS[number]; index: number; revealed: boolean }) {
@@ -1641,7 +1636,7 @@ function SpecimenCard({ s, index, revealed }: { s: typeof SPECIMENS[number]; ind
       />
       <div className="flex items-baseline justify-between">
         <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-accent)' }}>
-          SPEC {s.num}
+          SURFACE {s.num}
         </span>
         <span className="font-mono" style={{ fontSize: 11, color: 'var(--color-text)', fontWeight: 500 }}>
           {s.fix}
@@ -1663,7 +1658,7 @@ function SpecimenCard({ s, index, revealed }: { s: typeof SPECIMENS[number]; ind
 
       <div className="flex items-baseline justify-between" style={{ borderTop: '1px solid var(--color-border)', paddingTop: 10 }}>
         <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.14em', color: 'var(--color-text-subtle)', textTransform: 'uppercase' }}>
-          {s.status === 'closed' ? 'Closed' : 'No PR'}
+          {s.status === 'closed' ? 'Ready' : 'Planned'}
         </span>
         <span className="font-mono" style={{ fontSize: 12, color: s.status === 'closed' ? 'var(--color-accent)' : 'var(--color-text-subtle)' }}>
           {s.pr}
@@ -1678,12 +1673,12 @@ function SpecimensArchive() {
   return (
     <section style={{ position: 'relative' }}>
       <SectionRule />
-      <ChapterMarker num="05" label="Specimens archive" />
+      <ChapterMarker num="05" label="Product surfaces" />
       <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-24 md:py-28">
         <Reveal>
           <div className="flex items-end justify-between flex-wrap gap-6" style={{ marginBottom: 28 }}>
             <div>
-              <Eyebrow index="05">Archive - last 7 days</Eyebrow>
+              <Eyebrow index="05">Archive - product surfaces</Eyebrow>
               <h2
                 style={{
                   fontFamily: 'var(--font-display)',
@@ -1697,14 +1692,14 @@ function SpecimensArchive() {
                   maxWidth: '24ch',
                 }}
               >
-                Six specimens this week. Five PRs merged.
+                Everything available from the website.
               </h2>
               <p style={{ fontSize: 16, maxWidth: '52ch', color: 'var(--color-text-muted)', lineHeight: 1.55, margin: 0 }}>
-                Real incidents the agent filed last week. The boring ones, mostly.
+                Open the browser app, download the Windows installer or MSI, and evaluate the enterprise backend from the same public site.
               </p>
             </div>
             <div className="font-mono" style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}>
-              <Counter target={SPECIMENS.length} /> of <Counter target={1287} /> total
+              <Counter target={SPECIMENS.length} /> live product surfaces
             </div>
           </div>
         </Reveal>
@@ -1766,7 +1761,6 @@ function PullQuote() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.4 });
   const { country } = useCountry();
   const isIN = country === 'IN';
-  const tz = isIN ? 'IST' : 'UTC';
   const attribution = isIN
     ? 'Engineering lead - Bangalore fintech'
     : 'Engineering lead - series-B fintech';
@@ -1803,8 +1797,8 @@ function PullQuote() {
               }}
             >
               <span style={{ color: 'var(--color-accent)', display: 'inline-block', marginRight: 8 }}>"</span>
-              Caught a regression at 3am we wouldn't have seen until standup.
-              The PR was already drafted when I logged in.
+              We stopped switching between API clients, model playgrounds, docs, and incident threads.
+              FetchLab became the shared bench for API and AI work.
               <span style={{ color: 'var(--color-accent)', display: 'inline-block', marginLeft: 4 }}>"</span>
             </blockquote>
             <div
@@ -1850,13 +1844,13 @@ function PullQuote() {
               }}
             >
               <div style={{ fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-accent)', marginBottom: 12 }}>
-                The incident - receipt
+                Product - receipt
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', rowGap: 6, color: 'var(--color-text-muted)' }}>
-                <span>Detected</span> <span style={{ color: 'var(--color-text)' }}>02:51 {tz}</span>
-                <span>Filed</span>    <span style={{ color: 'var(--color-text)' }}>02:53 {tz}</span>
-                <span>PR</span>       <span style={{ color: 'var(--color-accent)' }}>#<Counter target={982} duration={900} /></span>
-                <span>Fix</span>      <span style={{ color: 'var(--color-text)' }}><Counter target={3} duration={700} />m <Counter target={4} pad={2} duration={700} />s</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '96px 1fr', rowGap: 6, color: 'var(--color-text-muted)' }}>
+                <span>Web</span>        <span style={{ color: 'var(--color-text)' }}>/app</span>
+                <span>Desktop</span>    <span style={{ color: 'var(--color-text)' }}>EXE + MSI</span>
+                <span>Enterprise</span> <span style={{ color: 'var(--color-accent)' }}>RBAC + SSO</span>
+                <span>AI</span>         <span style={{ color: 'var(--color-text)' }}>BYOK + evals</span>
               </div>
             </div>
           </div>
@@ -1891,11 +1885,11 @@ function Closing() {
                 maxWidth: '14ch',
               }}
             >
-              Spend the afternoon shipping.<br />
-              <span style={{ color: 'var(--color-text-muted)' }}>Not chasing.</span>
+              Build in the browser.<br />
+              <span style={{ color: 'var(--color-text-muted)' }}>Install when you need desktop.</span>
             </h2>
             <div>
-              <CTA href="/app">Start free</CTA>
+              <div className="flex flex-wrap gap-3"><CTA href="/app">Open web app</CTA><GhostCTA href="/download">Download installer</GhostCTA></div>
               <div
                 className="font-mono"
                 style={{
@@ -1907,7 +1901,7 @@ function Closing() {
                   lineHeight: 1.6,
                 }}
               >
-                <div>Free for 30 days - No credit card</div>
+                <div>Web app available now - Windows installer included</div>
                 <div>
                   Pro from {isIN ? 'INR 999/mo - Razorpay coming soon' : '$12/mo'} -{' '}
                   <a href="/pricing" style={{ color: 'var(--color-text-muted)', textDecoration: 'underline', textUnderlineOffset: 3 }}>full pricing</a>
@@ -1950,7 +1944,7 @@ function Footer() {
             className="font-mono"
             style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}
           >
-            Model 0001 - Continuous API diagnostics - (c) 2026
+            FetchLab - API + AI Workbench - (c) 2026
           </div>
         </div>
       </div>
