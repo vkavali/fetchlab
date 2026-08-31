@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import { buildApp } from '../server/app.js';
 import { initDb, _resetForTests } from '../server/db.js';
@@ -21,6 +21,13 @@ beforeEach(async () => {
   _resetForTests();
 });
 
+afterEach(() => {
+  process.env.NODE_ENV = 'test';
+  process.env.JWT_SECRET = 'test-secret-very-long-key-for-tests';
+  process.env.APP_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+  resetKeyCache();
+});
+
 describe('JWT token signing', () => {
   it('signs and verifies a token round-trip', () => {
     const tok = signToken({ id: 'u1', email: 'a@b.c', role: 'user' });
@@ -33,6 +40,35 @@ describe('JWT token signing', () => {
   it('returns null for invalid tokens', () => {
     expect(verifyToken('not.a.token')).toBeNull();
     expect(verifyToken('')).toBeNull();
+  });
+});
+
+describe('Production runtime config', () => {
+  it('fails fast without JWT_SECRET', async () => {
+    process.env.NODE_ENV = 'production';
+    delete process.env.JWT_SECRET;
+    process.env.APP_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    resetKeyCache();
+
+    await expect(buildApp({ skipDbInit: true })).rejects.toThrow(/JWT_SECRET/);
+  });
+
+  it('fails fast without APP_ENCRYPTION_KEY', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.JWT_SECRET = 'production-secret-very-long-key-for-tests';
+    delete process.env.APP_ENCRYPTION_KEY;
+    resetKeyCache();
+
+    await expect(buildApp({ skipDbInit: true })).rejects.toThrow(/APP_ENCRYPTION_KEY/);
+  });
+
+  it('accepts production startup when required secrets are present', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.JWT_SECRET = 'production-secret-very-long-key-for-tests';
+    process.env.APP_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    resetKeyCache();
+
+    await expect(buildApp({ skipDbInit: true })).resolves.toBeTruthy();
   });
 });
 

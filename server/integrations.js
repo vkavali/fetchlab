@@ -1,9 +1,46 @@
 import express from 'express';
+import crypto from 'crypto';
 import { assertSafeUrl, SsrfBlockedError, ssrfBypassEnabled } from './ssrf.js';
+import { requireAuth } from './auth.js';
+import { appendAudit } from './db.js';
 
 async function safeFetch(url, opts) {
   if (!ssrfBypassEnabled()) await assertSafeUrl(url);
   return fetch(url, opts);
+}
+
+function verifySlackRequest(req) {
+  const secret = process.env.SLACK_SIGNING_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      return { ok: false, status: 503, error: 'Slack signing secret is required' };
+    }
+    return { ok: true };
+  }
+
+  const timestamp = String(req.headers['x-slack-request-timestamp'] || '');
+  const signature = String(req.headers['x-slack-signature'] || '');
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts) || !signature) {
+    return { ok: false, status: 401, error: 'Invalid Slack signature' };
+  }
+  if (Math.abs(Math.floor(Date.now() / 1000) - ts) > 60 * 5) {
+    return { ok: false, status: 401, error: 'Stale Slack signature' };
+  }
+
+  const rawBody = req.rawBody || '';
+  const expected = `v0=${crypto
+    .createHmac('sha256', secret)
+    .update(`v0:${timestamp}:${rawBody}`)
+    .digest('hex')}`;
+  const expectedBuffer = Buffer.from(expected, 'utf8');
+  const presentedBuffer = Buffer.from(signature, 'utf8');
+  const matches = expectedBuffer.length === presentedBuffer.length
+    && crypto.timingSafeEqual(expectedBuffer, presentedBuffer);
+
+  return matches
+    ? { ok: true }
+    : { ok: false, status: 401, error: 'Invalid Slack signature' };
 }
 
 export function buildIntegrationsRouter() {
@@ -12,6 +49,10 @@ export function buildIntegrationsRouter() {
   // ============ Slack slash command ============
   router.post('/slack', async (req, res) => {
     try {
+      const slackCheck = verifySlackRequest(req);
+      if (!slackCheck.ok) {
+        return res.status(slackCheck.status).json({ error: slackCheck.error });
+      }
       const { text, response_url } = req.body || {};
       if (!text) {
         return res.json({
@@ -101,7 +142,7 @@ export function buildIntegrationsRouter() {
   });
 
   // ============ Teams webhook proxy ============
-  router.post('/teams/test', async (req, res) => {
+  router.post('/teams/test', requireAuth, async (req, res) => {
     try {
       const { method = 'GET', url, body, webhookUrl } = req.body || {};
       if (!url || !webhookUrl) return res.status(400).json({ error: 'Missing url or webhookUrl' });
@@ -151,6 +192,14 @@ export function buildIntegrationsRouter() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(teamsPayload),
+      });
+      await appendAudit({
+        user_id: req.user.id,
+        action: 'teams.test',
+        target_type: 'integration',
+        target_id: 'teams',
+        detail: { method, url },
+        ip: req.ip,
       });
       res.json({ success: true, status: response.status, time: elapsed });
     } catch (err) {

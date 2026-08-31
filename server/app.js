@@ -3,7 +3,8 @@ import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { initDb } from './db.js';
-import { buildAuthRouter, requireAuth } from './auth.js';
+import { buildAuthRouter, requireAuth, signToken } from './auth.js';
+import { encrypt } from './encryption.js';
 import { buildWorkspacesRouter } from './workspaces.js';
 import { buildAuditRouter } from './audit.js';
 import { buildEnterpriseRouter } from './enterprise.js';
@@ -17,13 +18,23 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, '..');
 
+function assertRuntimeConfig() {
+  if (process.env.NODE_ENV !== 'production') return;
+  signToken({ id: 'startup-check', email: 'startup@fetchlab.local', role: 'admin' }, { ttl: 1 });
+  encrypt('startup-check');
+}
+
 export async function buildApp({ skipDbInit = false } = {}) {
+  assertRuntimeConfig();
   if (!skipDbInit) await initDb();
 
   const app = express();
   app.set('trust proxy', 1);
-  app.use(express.json({ limit: '5mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '5mb' }));
+  const captureRawBody = (req, _res, buf) => {
+    req.rawBody = buf.toString('utf8');
+  };
+  app.use(express.json({ limit: '5mb', verify: captureRawBody }));
+  app.use(express.urlencoded({ extended: true, limit: '5mb', verify: captureRawBody }));
   app.use(cookieParser());
 
   app.get('/api/health', (_req, res) => {

@@ -1,6 +1,20 @@
 import rateLimit from 'express-rate-limit';
+import { verifyToken } from './auth.js';
 
-const userKey = (req) => (req.user && req.user.id) || req.ip;
+function tokenSubject(req) {
+  const auth = req.headers.authorization || '';
+  const token = auth.startsWith('Bearer ')
+    ? auth.slice(7)
+    : req.cookies?.fl_session;
+  if (!token) return null;
+  try {
+    return verifyToken(token)?.sub || null;
+  } catch {
+    return null;
+  }
+}
+
+const userKey = (req) => req.user?.id || tokenSubject(req) || req.ip;
 const isDisabled = () => process.env.RATE_LIMIT_DISABLED === '1' || process.env.NODE_ENV === 'test';
 
 const passthrough = (_req, _res, next) => next();

@@ -1,28 +1,30 @@
+// @vitest-environment jsdom
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import App from '../src/App';
 
 class MockIntersectionObserver {
-  private callback: IntersectionObserverCallback;
-
-  constructor(callback: IntersectionObserverCallback) {
-    this.callback = callback;
-  }
-
-  observe(target: Element) {
-    this.callback([
-      {
-        isIntersecting: true,
-        target,
-      } as IntersectionObserverEntry,
-    ], this as unknown as IntersectionObserver);
-  }
+  observe() {}
 
   disconnect() {}
   unobserve() {}
   takeRecords() { return []; }
 }
+
+vi.mock('../src/utils/useCountry', async () => {
+  const actual = await vi.importActual<typeof import('../src/utils/useCountry')>('../src/utils/useCountry');
+  return {
+    ...actual,
+    useCountry: () => ({
+      country: 'US',
+      currency: 'USD',
+      ready: true,
+      setOverride: () => undefined,
+      toggleCurrency: () => undefined,
+    }),
+  };
+});
 
 function renderAt(path: string) {
   window.history.pushState({}, '', path);
@@ -32,6 +34,8 @@ function renderAt(path: string) {
 describe('client route smoke', () => {
   beforeEach(() => {
     vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
+    vi.stubGlobal('requestAnimationFrame', () => 0);
+    vi.stubGlobal('cancelAnimationFrame', () => undefined);
     localStorage.clear();
   });
 

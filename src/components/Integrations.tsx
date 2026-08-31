@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../store/useApp';
+import { useAuth } from '../auth/useAuth';
 import {
   X, MessageSquare, Hash, Webhook, Code, Copy, Check,
   ExternalLink, Play, CheckCircle2, XCircle, Globe
@@ -11,6 +12,7 @@ interface Props {
 
 export default function Integrations({ onClose }: Props) {
   const { state } = useApp();
+  const { authFetch } = useAuth();
   const [activeTab, setActiveTab] = useState<'slack' | 'teams' | 'widget'>('slack');
   const [copied, setCopied] = useState<string | null>(null);
   const [teamsWebhookUrl, setTeamsWebhookUrl] = useState('');
@@ -31,7 +33,7 @@ export default function Integrations({ onClose }: Props) {
     if (!teamsWebhookUrl || !teamsTestUrl) return;
     setTeamsStatus('sending');
     try {
-      const res = await fetch(`${baseUrl}/api/teams/test`, {
+      const res = await authFetch('/api/teams/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ method: teamsTestMethod, url: teamsTestUrl, webhookUrl: teamsWebhookUrl }),
