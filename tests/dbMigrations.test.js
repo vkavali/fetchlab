@@ -1,0 +1,33 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+describe('PostgreSQL schema migrations', () => {
+  afterEach(() => {
+    vi.resetModules();
+    vi.doUnmock('pg');
+    delete process.env.DATABASE_URL;
+  });
+
+  it('backfills auth columns on existing users tables', async () => {
+    const queries = [];
+    class Pool {
+      async query(sql) {
+        queries.push(sql);
+        return { rows: [] };
+      }
+      async end() {}
+    }
+
+    vi.doMock('pg', () => ({ default: { Pool } }));
+    process.env.DATABASE_URL = 'postgres://fetchlab:test@localhost:5432/fetchlab_test';
+
+    const db = await import('../server/db.js');
+    await db.initDb();
+    await db.closeDb();
+
+    const schema = queries.join('\n');
+    expect(schema).toContain('ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_count INTEGER NOT NULL DEFAULT 0');
+    expect(schema).toContain('ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ');
+    expect(schema).toContain('ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret_enc TEXT');
+    expect(schema).toContain("ALTER TABLE users ADD COLUMN IF NOT EXISTS recovery_codes_hashed JSONB NOT NULL DEFAULT '[]'::jsonb");
+  });
+});

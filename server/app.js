@@ -38,7 +38,7 @@ export async function buildApp({ skipDbInit = false } = {}) {
   app.use(cookieParser());
 
   app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', version: '1.1.0', uptime: process.uptime() });
+    res.json({ status: 'ok', version: '1.2.0', uptime: process.uptime() });
   });
 
   // Lightweight geo lookup so the marketing pages can localize currency + copy

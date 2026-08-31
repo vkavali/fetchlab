@@ -257,6 +257,21 @@ CREATE TABLE IF NOT EXISTS soc2_evidence (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Idempotent migrations for existing PostgreSQL installs. CREATE TABLE IF NOT EXISTS
+-- does not add columns to tables that already exist, so every column used by
+-- auth/session code must be explicitly backfilled here.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS oidc_subject TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS disabled_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret_enc TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS recovery_codes_hashed JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
 CREATE INDEX IF NOT EXISTS idx_audit_log_workspace ON audit_log(workspace_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_log_user ON audit_log(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_collections_workspace ON collections(workspace_id);
@@ -266,8 +281,6 @@ CREATE INDEX IF NOT EXISTS idx_agent_issues_status ON agent_issues(status);
 CREATE INDEX IF NOT EXISTS idx_agent_actions_issue ON agent_actions(issue_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_config_channel ON agent_config(channel_type, channel_id);
 CREATE INDEX IF NOT EXISTS idx_soc2_evidence_control ON soc2_evidence(control_id, status);
-
-ALTER TABLE users ADD COLUMN IF NOT EXISTS disabled_at TIMESTAMPTZ;
 `;
 
 export async function initDb() {
