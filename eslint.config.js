@@ -6,7 +6,15 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores([
+    'dist',
+    'node_modules',
+    '.claude',
+    '.claude/**',
+    'src-tauri/target',
+    'src-tauri/target/**',
+    'vitest.config.ts.timestamp-*.mjs',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
