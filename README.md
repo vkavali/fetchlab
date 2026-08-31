@@ -13,12 +13,12 @@ It runs local-first for individual developers and self-hosted for teams that nee
 FetchLab has two benches in one app:
 
 - **API Workbench** — send requests, manage collections, run scripts, compare responses, test WebSocket/SSE streams, build flows, generate OpenAPI specs.
-- **AI Workbench** — configure model providers, generate requests/tests, diagnose failures, explain diffs, monitor API issues with the AI Ops Agent, and prepare coding-agent workflows.
+- **AI Workbench** — run prompts against approved model routes, compare local baselines, seed eval cases from live API traffic, export OpenAI/MCP/framework tools, configure providers, diagnose failures, and monitor API issues with the AI Ops Agent.
 
 AI features are optional. Configure a provider in the app or set server-side provider keys. The rest of FetchLab works without external AI.
 
-### 🪄 AI Request Builder
-Click the **AI Builder** button in the header. You can either:
+### 🪄 AI Workbench
+Click **AI Workbench** in the header. It gives the team one place to run prompt experiments, seed eval cases from the active API request/response, export agent-ready tools, and check provider/agent/security status. The request builder is available inside the workbench and can:
 - **Paste a cURL command** — it's auto-parsed into a fully editable FetchLab request (URL, method, headers, body, query params).
 - **Describe in plain English** — `"GET all users from the GitHub API with auth token"` becomes a real request with the right URL, method, headers, and a placeholder for your token.
 

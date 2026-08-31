@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/useApp';
 import { useAuth } from '../auth/useAuth';
-import { PanelLeftClose, PanelLeft, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, Sparkles, LogOut, LogIn, User as UserIcon, Users, Bot, Shield, Cpu } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, LogOut, LogIn, User as UserIcon, Users, Bot, Shield, Cpu } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -92,19 +92,6 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
         </div>
 
         <div className="flex items-center gap-0.5" style={{ color: 'var(--color-text-muted)' }}>
-          {/* AI Request Builder - requires server-side auth, hidden for guests */}
-          {!isGuest && (
-            <button
-              onClick={() => setShowAi(true)}
-              className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
-              style={{ color: 'var(--color-text-muted)' }}
-              title="AI Request Builder - describe in natural language or paste cURL"
-            >
-              <Sparkles size={13} />
-              <span className="hidden sm:inline">AI</span>
-            </button>
-          )}
-
           {/* AI Workbench */}
           <button
             onClick={() => setShowAIWorkbench(true)}
@@ -355,6 +342,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
           onOpenAgent={() => { setShowAIWorkbench(false); setShowAgent(true); }}
           onOpenLlmSettings={() => { setShowAIWorkbench(false); setShowLlmSettings(true); }}
           onOpenSecurity={() => { setShowAIWorkbench(false); setShowSecurity(true); }}
+          onOpenRequestBuilder={() => { setShowAIWorkbench(false); setShowAi(true); }}
         />
       )}
 

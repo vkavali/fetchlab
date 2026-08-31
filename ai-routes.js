@@ -1,5 +1,6 @@
 import { getProviderForRequest } from './server/llmRoutes.js';
 import { LlmError, describeDefaultProvider } from './server/llm/index.js';
+import { LocalProvider } from './server/llm/local.js';
 
 // Extract a JSON object/array from a model response that may be wrapped in
 // prose or fenced code blocks.
@@ -43,6 +44,59 @@ async function withProvider(req, res, fn) {
 }
 
 export function registerAiRoutes(app) {
+
+  // ============================================================
+  // 0. Run a prompt against the active provider or local baseline
+  // ============================================================
+  app.post('/api/ai/run-prompt', async (req, res) => {
+    const { system, prompt, messages, maxTokens, temperature, provider: requestedProvider, context } = req.body || {};
+    const hasPrompt = typeof prompt === 'string' && prompt.trim();
+    const hasMessages = Array.isArray(messages) && messages.some(m => typeof m?.content === 'string' && m.content.trim());
+    if (!hasPrompt && !hasMessages) {
+      return res.status(400).json({ error: 'Missing "prompt" string or "messages" array in body' });
+    }
+
+    const normalizedMessages = hasMessages
+      ? messages
+          .filter(m => ['system', 'user', 'assistant'].includes(m?.role) && typeof m.content === 'string')
+          .map(m => ({ role: m.role, content: clip(m.content, 8000) }))
+      : [{ role: 'user', content: clip(prompt, 8000) }];
+
+    const promptSystem = typeof system === 'string' && system.trim()
+      ? clip(system, 4000)
+      : 'You are FetchLab AI Workbench. Help engineers build, test, evaluate, and ship API-backed AI products. Be specific, practical, and concise.';
+
+    const workbenchContext = context && typeof context === 'object'
+      ? `
+
+FetchLab context:
+${clip(JSON.stringify(context, null, 2), 5000)}`
+      : '';
+
+    if (workbenchContext) {
+      const lastUser = [...normalizedMessages].reverse().find(m => m.role === 'user');
+      if (lastUser) lastUser.content = `${lastUser.content}${workbenchContext}`;
+    }
+
+    await withProvider(req, res, async (activeProvider, source) => {
+      const provider = requestedProvider === 'local'
+        ? new LocalProvider()
+        : activeProvider;
+      const result = await provider.chat(normalizedMessages, {
+        system: promptSystem,
+        maxTokens: Math.min(Math.max(parseInt(maxTokens, 10) || 1200, 64), 6000),
+        temperature: typeof temperature === 'number' ? Math.min(Math.max(temperature, 0), 2) : undefined,
+      });
+      res.json({
+        content: result.content || '',
+        provider: provider.name,
+        source: requestedProvider === 'local' ? 'local' : source,
+        model: result.usage?.model || '',
+        usage: result.usage || null,
+      });
+    });
+  });
+
   // ============================================================
   // 1. Generate request from natural language or context
   // ============================================================

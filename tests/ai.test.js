@@ -38,6 +38,22 @@ describe('AI HTTP endpoints (mounted ai-routes.js)', () => {
     expect(res.status).toBe(401);
   });
 
+  it('POST /api/ai/run-prompt requires auth', async () => {
+    const res = await request(app).post('/api/ai/run-prompt').send({ prompt: 'draft an eval plan' });
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/ai/run-prompt can use the local baseline provider', async () => {
+    const res = await request(app)
+      .post('/api/ai/run-prompt')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ prompt: 'test connection', provider: 'local' });
+    expect(res.status).toBe(200);
+    expect(res.body.provider).toBe('local');
+    expect(res.body.source).toBe('local');
+    expect(res.body.content).toContain('pong');
+  });
+
   it('POST /api/ai/generate-request requires auth', async () => {
     const res = await request(app).post('/api/ai/generate-request').send({ prompt: 'hi' });
     expect(res.status).toBe(401);
