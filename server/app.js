@@ -24,6 +24,38 @@ function assertRuntimeConfig() {
   encrypt('startup-check');
 }
 
+function configuredOrigins() {
+  return (process.env.FETCHLAB_ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '')
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+}
+
+function isAllowedCorsOrigin(origin) {
+  if (!origin) return false;
+  let parsed;
+  try { parsed = new URL(origin); } catch { return false; }
+  const host = parsed.hostname.toLowerCase();
+  if (host === 'fetchlab.app' || host === 'www.fetchlab.app') return true;
+  if (host === 'localhost' || host === '127.0.0.1') return true;
+  const normalized = origin.replace(/\/+$/, '');
+  const allowed = configuredOrigins();
+  return allowed.includes(normalized);
+}
+
+function corsForSplitDeployments(req, res, next) {
+  const origin = req.headers.origin;
+  if (isAllowedCorsOrigin(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Credentials', 'true');
+    res.set('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.set('Access-Control-Allow-Headers', req.headers['access-control-request-headers'] || 'Content-Type, Authorization');
+    res.set('Vary', 'Origin');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  return next();
+}
+
 export async function buildApp({ skipDbInit = false } = {}) {
   assertRuntimeConfig();
   if (!skipDbInit) await initDb();
@@ -33,6 +65,7 @@ export async function buildApp({ skipDbInit = false } = {}) {
   const captureRawBody = (req, _res, buf) => {
     req.rawBody = buf.toString('utf8');
   };
+  app.use(corsForSplitDeployments);
   app.use(express.json({ limit: '5mb', verify: captureRawBody }));
   app.use(express.urlencoded({ extended: true, limit: '5mb', verify: captureRawBody }));
   app.use(cookieParser());

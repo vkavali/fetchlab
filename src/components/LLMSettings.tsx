@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { X, Save, Trash2, PlayCircle, CheckCircle2, AlertCircle, Shield, Cloud, Globe, Server, Cpu, Loader2 } from 'lucide-react';
+import { useAuth } from '../auth/useAuth';
 
 type Provider = 'anthropic' | 'bedrock' | 'vertex' | 'openai' | 'local';
 
@@ -51,6 +52,7 @@ interface Props {
 }
 
 export default function LLMSettings({ onClose }: Props) {
+  const { authFetch } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [info, setInfo] = useState<ConfigResponse | null>(null);
@@ -71,14 +73,10 @@ export default function LLMSettings({ onClose }: Props) {
     try { return localStorage.getItem('fetchlab_llm_clientside') === '1'; } catch { return false; }
   });
 
-  useEffect(() => {
-    load();
-  }, []);
-
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/settings/llm', { credentials: 'include' });
+      const res = await authFetch('/api/settings/llm');
       if (!res.ok) throw new Error(`Failed to load: ${res.status}`);
       const data: ConfigResponse = await res.json();
       setInfo(data);
@@ -97,7 +95,11 @@ export default function LLMSettings({ onClose }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [authFetch]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   function clearForm() {
     setApiKey('');
@@ -125,7 +127,7 @@ export default function LLMSettings({ onClose }: Props) {
       if (projectId) body.project_id = projectId;
       if (location) body.location = location;
 
-      const res = await fetch('/api/settings/llm', {
+      const res = await authFetch('/api/settings/llm', {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -151,7 +153,7 @@ export default function LLMSettings({ onClose }: Props) {
     setError(null);
     setSuccess(null);
     try {
-      const res = await fetch('/api/settings/llm', { method: 'DELETE', credentials: 'include' });
+      const res = await authFetch('/api/settings/llm', { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error(`Failed: ${res.status}`);
       setSuccess('Configuration removed.');
       clearForm();
@@ -167,7 +169,7 @@ export default function LLMSettings({ onClose }: Props) {
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await fetch('/api/settings/llm/test', { method: 'POST', credentials: 'include' });
+      const res = await authFetch('/api/settings/llm/test', { method: 'POST', credentials: 'include' });
       const data = await res.json();
       if (res.ok && data.ok) {
         setTestResult({ ok: true, message: `${data.provider} → ${data.model || 'ok'} — "${(data.preview || '').slice(0, 80)}"` });

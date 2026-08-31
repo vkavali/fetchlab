@@ -1,3 +1,4 @@
+import { apiUrl } from './apiBase';
 // Shared authenticated fetch helper. Reads the JWT from the same localStorage
 // key the AuthContext writes to, so all API calls flow through here and stay
 // authenticated even outside React contexts.
@@ -11,7 +12,7 @@ export async function authFetch(input: string, init: RequestInit = {}): Promise<
   const token = getToken();
   const headers = new Headers(init.headers || {});
   if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`);
-  return fetch(input, { ...init, headers, credentials: 'include' });
+  return fetch(apiUrl(input), { ...init, headers, credentials: 'include' });
 }
 
 export async function authJson<T>(input: string, init: RequestInit = {}): Promise<T> {

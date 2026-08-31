@@ -1,11 +1,12 @@
 import { authFetch } from './apiClient';
+import { apiUrl } from './apiBase';
 
 let cachedStatus: { enabled: boolean; model: string } | null = null;
 
 export async function getAiStatus(): Promise<{ enabled: boolean; model: string }> {
   if (cachedStatus) return cachedStatus;
   try {
-    const res = await fetch('/api/ai/status');
+    const res = await fetch(apiUrl('/api/ai/status'), { credentials: 'include' });
     if (!res.ok) {
       cachedStatus = { enabled: false, model: '' };
       return cachedStatus;

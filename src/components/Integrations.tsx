@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../store/useApp';
 import { useAuth } from '../auth/useAuth';
+import { getApiBaseUrl } from '../utils/apiBase';
 import {
   X, MessageSquare, Hash, Webhook, Code, Copy, Check,
   ExternalLink, Play, CheckCircle2, XCircle, Globe
@@ -20,7 +21,7 @@ export default function Integrations({ onClose }: Props) {
   const [teamsTestMethod, setTeamsTestMethod] = useState('GET');
   const [teamsStatus, setTeamsStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
-  const baseUrl = window.location.origin;
+  const baseUrl = getApiBaseUrl() || window.location.origin;
   const slackRequestUrl = `${baseUrl}/api/slack`;
 
   const handleCopy = (text: string, id: string) => {

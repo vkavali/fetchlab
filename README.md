@@ -109,6 +109,8 @@ FetchLab can run in two modes:
 | `APP_ENCRYPTION_KEY` | Required in production. 32 bytes (hex or base64) used for AES-256-GCM credential encryption. |
 | `ANTHROPIC_API_KEY` | Optional. Enables `/api/ai/*` endpoints (diagnose, generate-tests). |
 | `ANTHROPIC_MODEL` | Optional. Defaults to `claude-haiku-4-5-20251001`. |
+| `VITE_API_BASE_URL` | Optional frontend build variable. Set this to the backend origin when the web frontend and API run as separate Railway services. Leave unset for the normal single-service deployment. |
+| `FETCHLAB_ALLOWED_ORIGINS` | Optional comma-separated backend allowlist for split deployments, for example `https://your-web-service.up.railway.app,https://fetchlab.app`. |
 | `AUTH_DISABLED=1` | Skips auth checks server-side (single-user / dev only). |
 | `RATE_LIMIT_DISABLED=1` | Disables rate limiting (tests only). |
 

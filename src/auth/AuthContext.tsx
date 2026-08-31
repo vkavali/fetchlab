@@ -1,5 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { AuthContext, type AuthUser, type LoginResult, type Workspace } from './useAuth';
+import { apiUrl } from '../utils/apiBase';
+import { parseAuthResponse } from './authResponse';
 
 const TOKEN_KEY = 'fetchlab_jwt';
 const ACTIVE_WS_KEY = 'fetchlab_active_workspace';
@@ -31,7 +33,7 @@ async function probeServer(): Promise<boolean> {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 3000); // 3s timeout
-    const res = await fetch('/api/health', { cache: 'no-store', signal: controller.signal });
+    const res = await fetch(apiUrl('/api/health'), { cache: 'no-store', signal: controller.signal, credentials: 'include' });
     clearTimeout(timer);
     return res.ok;
   } catch {
@@ -82,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (token) headers.set('Authorization', `Bearer ${token}`);
     if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
     try {
-      return await fetch(input, { ...init, headers, credentials: 'include' });
+      return await fetch(apiUrl(input), { ...init, headers, credentials: 'include' });
     } catch {
       return new Response(JSON.stringify({ error: 'Server unreachable' }), {
         status: 503,
@@ -134,30 +136,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const parseAuthResponse = async (res: Response, action: 'Login' | 'Registration'): Promise<Record<string, unknown>> => {
-    let data: Record<string, unknown> = {};
-    try { data = await res.json(); } catch { /* non-JSON body (likely HTML 500) */ }
-    if (!res.ok) {
-      if (res.status >= 500) {
-        throw new Error(`${action} unavailable — server not configured`);
-      }
-      const errMsg = typeof data.error === 'string' ? data.error : null;
-      throw new Error(errMsg || `${action} failed (${res.status})`);
-    }
-    return data;
-  };
-
   const login = async (email: string, password: string): Promise<LoginResult> => {
     let res: Response;
     try {
-      res = await fetch('/api/auth/login', {
+      res = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
         credentials: 'include',
       });
     } catch {
-      throw new Error('Login unavailable — cannot reach server');
+      throw new Error('Login unavailable - cannot reach API server');
     }
     const data = await parseAuthResponse(res, 'Login');
     if (data.twofa_required) {
@@ -172,14 +161,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginVerify2fa = async ({ code, recovery_code, pending_token }: { code?: string; recovery_code?: string; pending_token?: string }) => {
     let res: Response;
     try {
-      res = await fetch('/api/auth/login/2fa', {
+      res = await fetch(apiUrl('/api/auth/login/2fa'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, recovery_code, pending_token }),
         credentials: 'include',
       });
     } catch {
-      throw new Error('2FA verification unavailable — cannot reach server');
+      throw new Error('2FA verification unavailable - cannot reach API server');
     }
     const data = await parseAuthResponse(res, 'Login');
     setToken(data.token as string);
@@ -190,14 +179,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (email: string, password: string, name?: string) => {
     let res: Response;
     try {
-      res = await fetch('/api/auth/register', {
+      res = await fetch(apiUrl('/api/auth/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name }),
         credentials: 'include',
       });
     } catch {
-      throw new Error('Registration unavailable — cannot reach server');
+      throw new Error('Registration unavailable - cannot reach API server');
     }
     const data = await parseAuthResponse(res, 'Registration');
     setToken(data.token as string);

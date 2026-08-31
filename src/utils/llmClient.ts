@@ -8,6 +8,8 @@
 //
 // Both modes share the same interface so callers don't need to care.
 
+import { authFetch } from './apiClient';
+
 export type ProviderType = 'anthropic' | 'bedrock' | 'vertex' | 'openai' | 'local';
 
 export interface ClientLLMConfig {
@@ -157,7 +159,7 @@ export async function chat(messages: ChatMessage[], opts: { maxTokens?: number; 
   if (!opts.serverPath) {
     throw new Error('Server fallback requires serverPath');
   }
-  const res = await fetch(opts.serverPath, {
+  const res = await authFetch(opts.serverPath, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },

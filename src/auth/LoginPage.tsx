@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FetchLabLogo } from '../components/FetchLabLogo';
 import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 import { useAuth } from './useAuth';
+import { apiUrl } from '../utils/apiBase';
 
 interface SsoConfig { id: string; name: string }
 
@@ -29,7 +30,7 @@ export default function LoginPage({ trialEnded = false, initialMode = 'login' }:
   const [recoveryCode, setRecoveryCode] = useState('');
 
   useEffect(() => {
-    fetch('/api/auth/sso/configs').then(r => r.ok ? r.json() : { configs: [] })
+    fetch(apiUrl('/api/auth/sso/configs'), { credentials: 'include' }).then(r => r.ok ? r.json() : { configs: [] })
       .then(d => setSsoConfigs(d.configs || []))
       .catch(() => { /* ignore */ });
   }, []);
@@ -249,7 +250,7 @@ export default function LoginPage({ trialEnded = false, initialMode = 'login' }:
                 {ssoConfigs.map(c => (
                   <a
                     key={c.id}
-                    href={`/api/auth/sso/start/${c.id}`}
+                    href={apiUrl(`/api/auth/sso/start/${c.id}`)}
                     className="block w-full text-center h-9 leading-9 border border-[#262626] hover:border-[#404040] rounded text-[13px] text-[#e5e5e5]"
                   >
                     Continue with {c.name}

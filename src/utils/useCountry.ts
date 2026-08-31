@@ -17,6 +17,7 @@
  * ========================================================================== */
 
 import { useCallback, useEffect, useState } from 'react';
+import { apiUrl } from './apiBase';
 
 const COUNTRY_DEFAULT = 'US';
 const STORAGE_OVERRIDE = 'fl_country_override';
@@ -77,7 +78,7 @@ async function fetchCountry(): Promise<Country> {
       const qs = u && /^[A-Z]{2}$/i.test(u) ? `?country=${encodeURIComponent(u)}` : '';
       const ctrl = new AbortController();
       const t = setTimeout(() => ctrl.abort(), 2500);
-      const r = await fetch(`/api/geo${qs}`, { signal: ctrl.signal }).finally(() => clearTimeout(t));
+      const r = await fetch(apiUrl(`/api/geo${qs}`), { signal: ctrl.signal, credentials: 'include' }).finally(() => clearTimeout(t));
       if (!r.ok) throw new Error('geo unavailable');
       const j = await r.json();
       const c = String(j.country || '').toUpperCase();
