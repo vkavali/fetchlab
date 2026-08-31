@@ -59,18 +59,20 @@ const FEATURES = [
     note: 'Use environment variables for credentials so requests can be shared without exposing secrets.',
   },
   {
-    id: 'ai-builder',
-    label: 'AI Builder',
-    title: 'Generate request setup from plain English',
-    summary: 'Describe the API call you want and let the AI builder draft method, URL, headers, and body.',
+    id: 'ai-workbench',
+    label: 'AI Workbench',
+    title: 'Use the AI Workbench for AI product development',
+    summary: 'Turn live API behavior into prompts, evals, agent tools, and release evidence from one workspace.',
     steps: [
-      'Open AI Request Builder from the app tools.',
-      'Describe the call, including endpoint, method, payload, and any auth requirements.',
-      'Review the generated request before applying it.',
-      'Edit fields manually if the API contract requires exact values.',
-      'Send the request and use the response to refine the prompt or saved request.',
+      'Open the app and click AI Workbench in the header.',
+      'Use Overview to confirm the active model route, selected API request, observed response, eval count, and agent readiness.',
+      'Use Create API Request when you want FetchLab to draft a request from plain English or paste a cURL command.',
+      'Use Prompt Lab to run prompts against the active provider and compare them with the local baseline.',
+      'Use Eval Lab to seed pass/fail cases from the active request and response before changing prompts or models.',
+      'Use Tool Builder to export OpenAI tool schemas, MCP tools, agent framework snippets, cURL, or AI-ready context.',
+      'Use Ops to configure BYOK providers, agent monitoring, and security controls.',
     ],
-    note: 'AI output should be reviewed before sending, especially for production APIs.',
+    note: 'Treat AI Workbench output as reviewable engineering evidence: run evals before shipping model, prompt, or agent changes.',
   },
   {
     id: 'tests',
@@ -337,7 +339,7 @@ export default function HowTo() {
           </div>
           <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 620, margin: 0 }}>
             A practical walkthrough for the full product: requests, collections, environments,
-            auth, AI-assisted setup, tests, schema validation, runners, diffs, realtime APIs,
+            auth, AI Workbench, tests, schema validation, runners, diffs, realtime APIs,
             docs, sharing, and security controls.
             {' '}
             <a href="/ai-how-to" style={{ color: 'var(--color-accent)', textDecoration: 'underline', textUnderlineOffset: 4 }}>

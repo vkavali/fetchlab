@@ -564,32 +564,32 @@ export default function AIWorkbench({ onClose, onOpenAgent, onOpenLlmSettings, o
   return (
     <div className="fixed inset-0 z-50 bg-gray-950 text-gray-100" onClick={onClose}>
       <div className="flex h-full flex-col" onClick={e => e.stopPropagation()}>
-        <header className="flex h-14 items-center justify-between border-b border-gray-800 bg-gray-950 px-4">
+        <header className="flex h-16 items-center justify-between border-b border-gray-800 bg-gray-950 px-5">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md border border-cyan-500/20 bg-cyan-500/10 text-cyan-300">
-              <Sparkles size={17} />
+            <div className="flex h-10 w-10 items-center justify-center rounded-md border border-cyan-500/30 bg-cyan-500/15 text-cyan-200">
+              <Sparkles size={19} />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-gray-100">AI Workbench</h2>
-                <span className="rounded border border-gray-700 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-gray-500">Beta</span>
+                <h2 className="text-lg font-semibold text-gray-100">AI Workbench</h2>
+                <span className="rounded border border-gray-700 px-2 py-0.5 text-xs uppercase tracking-wide text-gray-400">Beta</span>
               </div>
-              <div className="truncate text-[11px] text-gray-500">Prompts, evals, tools, and agent handoff from live API context</div>
+              <div className="truncate text-sm text-gray-400">Prompts, evals, tools, and agent handoff from live API context</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <StatusPill ok={providerConfigured} label={providerLabel[activeProvider] || activeProvider} />
-            <button onClick={refreshStatus} className="rounded-md p-1.5 text-gray-500 hover:bg-gray-800 hover:text-gray-200" title="Refresh AI status">
-              <RefreshCw size={15} className={loadingStatus ? 'animate-spin' : ''} />
+            <button onClick={refreshStatus} className="flex h-10 w-10 items-center justify-center rounded-md text-gray-200 hover:bg-gray-800 hover:text-gray-100" title="Refresh AI status">
+              <RefreshCw size={17} className={loadingStatus ? 'animate-spin' : ''} />
             </button>
-            <button onClick={onClose} className="rounded-md p-1.5 text-gray-500 hover:bg-gray-800 hover:text-gray-200" title="Close">
-              <X size={17} />
+            <button onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-md text-gray-200 hover:bg-gray-800 hover:text-gray-100" title="Close">
+              <X size={18} />
             </button>
           </div>
         </header>
 
         <div className="flex min-h-0 flex-1">
-          <aside className="w-[232px] shrink-0 border-r border-gray-800 bg-gray-950 px-3 py-4">
+          <aside className="w-[280px] shrink-0 border-r border-gray-800 bg-gray-950 px-4 py-5">
             <nav className="space-y-1">
               <NavButton active={activePane === 'overview'} icon={Gauge} label="Overview" onClick={() => setActivePane('overview')} />
               <NavButton active={activePane === 'prompt'} icon={Wand2} label="Prompt Lab" onClick={() => setActivePane('prompt')} />
@@ -598,51 +598,51 @@ export default function AIWorkbench({ onClose, onOpenAgent, onOpenLlmSettings, o
               <NavButton active={activePane === 'ops'} icon={Shield} label="Ops" onClick={() => setActivePane('ops')} />
             </nav>
 
-            <div className="mt-5 rounded-md border border-gray-800 bg-gray-900/40 p-3">
+            <div className="mt-5 rounded-md border border-gray-800 bg-gray-900/50 p-4">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Ship score</span>
-                <span className="font-mono text-xs text-gray-200">{readinessScore}%</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Ship score</span>
+                <span className="font-mono text-base font-semibold text-gray-100">{readinessScore}%</span>
               </div>
-              <div className="h-1.5 overflow-hidden rounded bg-gray-800">
+              <div className="h-2 overflow-hidden rounded bg-gray-800">
                 <div className="h-full bg-cyan-400" style={{ width: `${readinessScore}%` }} />
               </div>
               <div className="mt-3 space-y-2">
                 {readiness.map(item => (
                   <div key={item.label} className="flex items-start gap-2">
-                    {item.ok ? <CheckCircle2 size={13} className="mt-0.5 text-green-400" /> : <XCircle size={13} className="mt-0.5 text-gray-600" />}
+                    {item.ok ? <CheckCircle2 size={15} className="mt-0.5 text-green-400" /> : <XCircle size={15} className="mt-0.5 text-gray-500" />}
                     <div className="min-w-0">
-                      <div className="text-[11px] text-gray-300">{item.label}</div>
-                      <div className="truncate text-[10px] text-gray-600">{item.detail}</div>
+                      <div className="text-sm text-gray-200">{item.label}</div>
+                      <div className="truncate text-xs text-gray-400">{item.detail}</div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="mt-3 rounded-md border border-gray-800 bg-gray-900/30 p-3">
-              <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Current API context</div>
+            <div className="mt-3 rounded-md border border-gray-800 bg-gray-900/40 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-gray-400">Current API context</div>
               {request ? (
                 <div className="mt-2 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className={`rounded border px-1.5 py-0.5 font-mono text-[10px] ${methodTone(request.method)}`}>{request.method}</span>
-                    <span className="min-w-0 truncate text-xs text-gray-200">{request.name || 'Untitled'}</span>
+                    <span className={`rounded border px-1.5 py-0.5 font-mono text-xs ${methodTone(request.method)}`}>{request.method}</span>
+                    <span className="min-w-0 truncate text-sm font-medium text-gray-100">{request.name || 'Untitled'}</span>
                   </div>
-                  <div className="break-all font-mono text-[10px] leading-4 text-gray-500">{request.url || 'No URL set'}</div>
+                  <div className="break-all font-mono text-xs leading-5 text-gray-400">{request.url || 'No URL set'}</div>
                   {response ? (
-                    <span className={`inline-flex rounded border px-1.5 py-0.5 font-mono text-[10px] ${statusTone(response.status)}`}>{response.status} {Math.round(response.time)} ms</span>
+                    <span className={`inline-flex rounded border px-1.5 py-0.5 font-mono text-xs ${statusTone(response.status)}`}>{response.status} {Math.round(response.time)} ms</span>
                   ) : (
-                    <span className="text-[10px] text-amber-300">No response captured</span>
+                    <span className="text-xs text-amber-300">No response captured</span>
                   )}
                 </div>
               ) : (
-                <div className="mt-2 text-xs leading-5 text-gray-500">No request selected.</div>
+                <div className="mt-2 text-sm leading-6 text-gray-400">No request selected.</div>
               )}
             </div>
           </aside>
 
           <main className="min-w-0 flex-1 overflow-y-auto bg-gray-950">
             {statusError && (
-              <div className="mx-5 mt-5 flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+              <div className="mx-6 mt-6 flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
                 <AlertTriangle size={14} className="mt-0.5 shrink-0" />
                 <span>{statusError}</span>
               </div>
@@ -768,17 +768,18 @@ function OverviewPane({
   onOpenRequestBuilder: () => void;
 }) {
   return (
-    <div className="p-5">
+    <div className="p-6">
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         <section className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <Metric icon={Cpu} label="Model route" value={providerLabel[activeProvider] || activeProvider} tone={providerConfigured ? 'cyan' : 'amber'} />
             <Metric icon={Layers3} label="API assets" value={`${collectionCount} collections`} tone="blue" />
             <Metric icon={FlaskConical} label="Eval cases" value={`${evalCount} saved`} tone={evalCount ? 'green' : 'amber'} />
             <Metric icon={BarChart3} label="Last pass rate" value={passRate ? `${passRate}%` : 'No runs'} tone={passRate >= 80 ? 'green' : passRate ? 'amber' : 'gray'} />
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+            <WorkCard icon={Sparkles} title="Create API Request" label="Plain English or cURL import" detail="Draft a new request from a description, import a cURL command, then review the generated method, URL, auth, headers, params, and body before sending." cta="Create request" onClick={onOpenRequestBuilder} />
             <WorkCard icon={Wand2} title="Prompt Lab" label="Run active route vs local baseline" detail="Use the selected API request and response as prompt context, then compare provider output to a deterministic local baseline." cta="Open Prompt Lab" onClick={onOpenPrompt} />
             <WorkCard icon={FlaskConical} title="Eval Lab" label="Turn behavior into release gates" detail="Seed cases from the current endpoint, run them against the model route, and keep pass/fail evidence for review." cta={evalCount ? 'Open Eval Lab' : 'Seed evals'} onClick={evalCount ? onOpenEvals : onSeedEvals} />
             <WorkCard icon={Code2} title="Tool Builder" label="Export agent-ready tools" detail="Generate OpenAI function schemas, MCP tool skeletons, framework snippets, cURL, and AI-ready context bundles." cta="Build tools" onClick={onOpenTools} />
@@ -791,10 +792,10 @@ function OverviewPane({
             {request ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className={`rounded border px-2 py-1 font-mono text-[11px] ${methodTone(request.method)}`}>{request.method}</span>
+                  <span className={`rounded border px-2 py-1 font-mono text-xs ${methodTone(request.method)}`}>{request.method}</span>
                   <span className="min-w-0 truncate text-sm font-semibold text-gray-100">{request.name || 'Untitled request'}</span>
                 </div>
-                <div className="break-all font-mono text-xs leading-5 text-gray-500">{request.url || 'No URL set'}</div>
+                <div className="break-all font-mono text-sm leading-6 text-gray-400">{request.url || 'No URL set'}</div>
                 <div className="grid grid-cols-3 gap-2">
                   <MiniStat label="Headers" value={String(enabledPairs(request.headers).length)} />
                   <MiniStat label="Params" value={String(enabledPairs(request.params).length)} />
@@ -803,14 +804,14 @@ function OverviewPane({
                 {response ? (
                   <div className="rounded-md border border-gray-800 bg-gray-950/70 p-3">
                     <div className="mb-2 flex items-center justify-between">
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Observed response</span>
-                      <span className={`rounded border px-1.5 py-0.5 font-mono text-[10px] ${statusTone(response.status)}`}>{response.status}</span>
+                      <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Observed response</span>
+                      <span className={`rounded border px-1.5 py-0.5 font-mono text-xs ${statusTone(response.status)}`}>{response.status}</span>
                     </div>
-                    <div className="font-mono text-[11px] text-gray-400">{Math.round(response.time)} ms / {response.size} bytes</div>
-                    {artifactSummary && <div className="mt-2 text-[10px] text-gray-600">{artifactSummary}</div>}
+                    <div className="font-mono text-sm text-gray-300">{Math.round(response.time)} ms / {response.size} bytes</div>
+                    {artifactSummary && <div className="mt-2 text-xs leading-5 text-gray-400">{artifactSummary}</div>}
                   </div>
                 ) : (
-                  <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-200">Run the request once to unlock eval seeding and context export.</div>
+                  <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-6 text-amber-100">Run the request once to unlock eval seeding and context export.</div>
                 )}
               </div>
             ) : (
@@ -865,14 +866,14 @@ function PromptPane({
   hasContext: boolean;
 }) {
   return (
-    <div className="grid min-h-full gap-4 p-5 xl:grid-cols-[0.92fr_1.08fr]">
+    <div className="grid min-h-full gap-5 p-6 xl:grid-cols-[0.95fr_1.05fr]">
       <section className="space-y-4">
         <Panel title="Prompt Runner" icon={Wand2}>
           <div className="space-y-3">
             <FieldLabel label="System" />
-            <textarea value={systemPrompt} onChange={e => setSystemPrompt(e.target.value)} rows={4} className="w-full resize-none rounded-md border border-gray-800 bg-gray-950 px-3 py-2 font-mono text-xs leading-5 text-gray-200 outline-none focus:border-cyan-500/50" />
+            <textarea value={systemPrompt} onChange={e => setSystemPrompt(e.target.value)} rows={5} className="w-full resize-none rounded-md border border-gray-700 bg-gray-950 px-4 py-3 font-mono text-sm leading-6 text-gray-100 outline-none focus:border-cyan-400" />
             <FieldLabel label="User prompt" />
-            <textarea value={prompt} onChange={e => setPrompt(e.target.value)} rows={8} className="w-full resize-none rounded-md border border-gray-800 bg-gray-950 px-3 py-2 text-sm leading-6 text-gray-100 outline-none focus:border-cyan-500/50" />
+            <textarea value={prompt} onChange={e => setPrompt(e.target.value)} rows={14} className="min-h-[320px] w-full resize-none rounded-md border border-gray-700 bg-gray-950 px-4 py-3 text-base leading-7 text-gray-100 outline-none focus:border-cyan-400" />
             <div className="flex flex-wrap items-center gap-2">
               <Toggle checked={includeContext} onChange={setIncludeContext} label="Use API context" disabled={!hasContext} />
               <Toggle checked={compareLocal} onChange={setCompareLocal} label="Compare local baseline" />
@@ -880,9 +881,9 @@ function PromptPane({
             {error && <Notice tone="red" icon={AlertTriangle}>{error}</Notice>}
             {!hasUser && <Notice tone="amber" icon={AlertTriangle}>Sign in is required for server-side AI runs.</Notice>}
             <div className="flex items-center justify-between border-t border-gray-800 pt-3">
-              <div className="text-[11px] text-gray-600">Active provider uses your configured BYOK route.</div>
-              <button onClick={onRun} disabled={running || !prompt.trim() || !hasUser} className="flex h-9 items-center gap-2 rounded-md bg-cyan-500 px-4 text-xs font-semibold text-gray-950 hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50">
-                {running ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+              <div className="text-sm text-gray-400">Active provider uses your configured BYOK route.</div>
+              <button onClick={onRun} disabled={running || !prompt.trim() || !hasUser} className="flex h-11 items-center gap-2 rounded-md bg-cyan-400 px-5 text-sm font-semibold text-gray-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50">
+                {running ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
                 Run prompt
               </button>
             </div>
@@ -898,12 +899,12 @@ function PromptPane({
                 <div key={run.id} className="rounded-md border border-gray-800 bg-gray-950/70 p-3">
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="rounded bg-gray-800 px-2 py-1 text-[10px] font-semibold text-gray-300">{run.label}</span>
-                      <span className="truncate text-xs text-gray-500">{providerLabel[run.provider] || run.provider} {run.model ? `/ ${run.model}` : ''}</span>
+                      <span className="rounded bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-200">{run.label}</span>
+                      <span className="truncate text-sm text-gray-400">{providerLabel[run.provider] || run.provider} {run.model ? `/ ${run.model}` : ''}</span>
                     </div>
-                    <span className="font-mono text-[10px] text-gray-600">{run.latencyMs} ms</span>
+                    <span className="font-mono text-xs text-gray-400">{run.latencyMs} ms</span>
                   </div>
-                  <pre className="max-h-[300px] overflow-auto whitespace-pre-wrap rounded border border-gray-800 bg-black/20 p-3 text-xs leading-5 text-gray-300">{run.content}</pre>
+                  <pre className="max-h-[460px] overflow-auto whitespace-pre-wrap rounded border border-gray-800 bg-black/20 p-4 text-sm leading-6 text-gray-200">{run.content}</pre>
                 </div>
               ))}
             </div>
@@ -946,7 +947,7 @@ function EvalPane({
   passRate: number;
 }) {
   return (
-    <div className="grid min-h-full gap-4 p-5 xl:grid-cols-[0.9fr_1.1fr]">
+    <div className="grid min-h-full gap-5 p-6 xl:grid-cols-[0.92fr_1.08fr]">
       <section className="space-y-4">
         <Panel title="Eval Cases" icon={FlaskConical}>
           <div className="space-y-3">
@@ -955,32 +956,32 @@ function EvalPane({
               <MiniStat label="Pass rate" value={results.length ? `${passRate}%` : 'No runs'} />
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={onSeed} className="flex h-8 items-center gap-1.5 rounded-md border border-gray-700 bg-gray-900 px-3 text-xs text-gray-200 hover:border-cyan-500/50">
-                <Sparkles size={13} /> Seed from API
+              <button onClick={onSeed} className="flex h-10 items-center gap-2 rounded-md border border-gray-600 bg-gray-900 px-4 text-sm font-medium text-gray-100 hover:border-cyan-400">
+                <Sparkles size={16} /> Seed from API
               </button>
-              <select value={provider} onChange={e => setProvider(e.target.value as 'active' | 'local')} className="h-8 rounded-md border border-gray-800 bg-gray-950 px-2 text-xs text-gray-300 outline-none">
+              <select value={provider} onChange={e => setProvider(e.target.value as 'active' | 'local')} className="h-10 rounded-md border border-gray-700 bg-gray-950 px-3 text-sm text-gray-100 outline-none">
                 <option value="active">Active route</option>
                 <option value="local">Local baseline</option>
               </select>
-              <button onClick={onRun} disabled={running || !hasUser || cases.length === 0} className="ml-auto flex h-8 items-center gap-1.5 rounded-md bg-green-500 px-3 text-xs font-semibold text-gray-950 hover:bg-green-400 disabled:cursor-not-allowed disabled:opacity-50">
-                {running ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />}
+              <button onClick={onRun} disabled={running || !hasUser || cases.length === 0} className="ml-auto flex h-10 items-center gap-2 rounded-md bg-green-400 px-4 text-sm font-semibold text-gray-950 hover:bg-green-300 disabled:cursor-not-allowed disabled:opacity-50">
+                {running ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
                 Run
               </button>
             </div>
             {!hasUser && <Notice tone="amber" icon={AlertTriangle}>Sign in is required to run evals.</Notice>}
             <div className="rounded-md border border-gray-800 bg-gray-950/70 p-3">
               <div className="grid gap-2">
-                <input value={newEval.name} onChange={e => setNewEval({ ...newEval, name: e.target.value })} className="h-8 rounded-md border border-gray-800 bg-gray-950 px-2 text-xs text-gray-200 outline-none focus:border-cyan-500/50" placeholder="Eval case name" />
-                <textarea value={newEval.input} onChange={e => setNewEval({ ...newEval, input: e.target.value })} rows={4} className="resize-none rounded-md border border-gray-800 bg-gray-950 px-2 py-2 text-xs leading-5 text-gray-200 outline-none focus:border-cyan-500/50" placeholder="Prompt/input to test" />
+                <input value={newEval.name} onChange={e => setNewEval({ ...newEval, name: e.target.value })} className="h-10 rounded-md border border-gray-700 bg-gray-950 px-3 text-sm text-gray-100 outline-none focus:border-cyan-400" placeholder="Eval case name" />
+                <textarea value={newEval.input} onChange={e => setNewEval({ ...newEval, input: e.target.value })} rows={7} className="resize-none rounded-md border border-gray-700 bg-gray-950 px-3 py-3 text-sm leading-6 text-gray-100 outline-none focus:border-cyan-400" placeholder="Prompt/input to test" />
                 <div className="flex gap-2">
-                  <input value={newEval.expected} onChange={e => setNewEval({ ...newEval, expected: e.target.value })} className="h-8 min-w-0 flex-1 rounded-md border border-gray-800 bg-gray-950 px-2 text-xs text-gray-200 outline-none focus:border-cyan-500/50" placeholder="Expected text or blank" />
-                  <select value={newEval.scorer} onChange={e => setNewEval({ ...newEval, scorer: e.target.value as EvalScorer })} className="h-8 rounded-md border border-gray-800 bg-gray-950 px-2 text-xs text-gray-300 outline-none">
+                  <input value={newEval.expected} onChange={e => setNewEval({ ...newEval, expected: e.target.value })} className="h-10 min-w-0 flex-1 rounded-md border border-gray-700 bg-gray-950 px-3 text-sm text-gray-100 outline-none focus:border-cyan-400" placeholder="Expected text or blank" />
+                  <select value={newEval.scorer} onChange={e => setNewEval({ ...newEval, scorer: e.target.value as EvalScorer })} className="h-10 rounded-md border border-gray-700 bg-gray-950 px-3 text-sm text-gray-100 outline-none">
                     <option value="contains">Contains</option>
                     <option value="json">Valid JSON</option>
                     <option value="nonempty">Non-empty</option>
                   </select>
-                  <button onClick={onAdd} className="flex h-8 items-center gap-1.5 rounded-md border border-gray-700 bg-gray-900 px-3 text-xs text-gray-200 hover:border-green-500/50">
-                    <Plus size={13} /> Add
+                  <button onClick={onAdd} className="flex h-10 items-center gap-2 rounded-md border border-gray-600 bg-gray-900 px-4 text-sm font-medium text-gray-100 hover:border-green-400">
+                    <Plus size={16} /> Add
                   </button>
                 </div>
               </div>
@@ -990,16 +991,16 @@ function EvalPane({
                 <div key={item.id} className="rounded-md border border-gray-800 bg-gray-950/60 p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="truncate text-xs font-semibold text-gray-200">{item.name}</div>
-                      <div className="mt-1 line-clamp-2 text-[11px] leading-4 text-gray-500">{item.input}</div>
+                      <div className="truncate text-base font-semibold text-gray-100">{item.name}</div>
+                      <div className="mt-1 line-clamp-2 text-sm leading-5 text-gray-400">{item.input}</div>
                     </div>
-                    <button onClick={() => setCases(cases.filter(c => c.id !== item.id))} className="rounded p-1 text-gray-600 hover:bg-red-500/10 hover:text-red-300" title="Delete eval case">
-                      <Trash2 size={13} />
+                    <button onClick={() => setCases(cases.filter(c => c.id !== item.id))} className="flex h-9 w-9 items-center justify-center rounded text-gray-400 hover:bg-red-500/10 hover:text-red-300" title="Delete eval case">
+                      <Trash2 size={16} />
                     </button>
                   </div>
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="rounded bg-gray-800 px-1.5 py-0.5 text-[10px] text-gray-400">{item.scorer}</span>
-                    {item.expected && <span className="truncate font-mono text-[10px] text-gray-600">expect: {item.expected}</span>}
+                    <span className="rounded bg-gray-800 px-2 py-1 text-xs text-gray-300">{item.scorer}</span>
+                    {item.expected && <span className="truncate font-mono text-xs text-gray-400">expect: {item.expected}</span>}
                   </div>
                 </div>
               ))}
@@ -1017,13 +1018,13 @@ function EvalPane({
                 <div key={result.id} className="rounded-md border border-gray-800 bg-gray-950/70 p-3">
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2">
-                      {result.passed ? <CheckCircle2 size={14} className="text-green-400" /> : <XCircle size={14} className="text-red-400" />}
-                      <span className="truncate text-xs font-semibold text-gray-200">{result.caseName}</span>
+                      {result.passed ? <CheckCircle2 size={16} className="text-green-400" /> : <XCircle size={16} className="text-red-400" />}
+                      <span className="truncate text-base font-semibold text-gray-100">{result.caseName}</span>
                     </div>
-                    <span className="font-mono text-[10px] text-gray-600">{result.provider} / {result.latencyMs} ms</span>
+                    <span className="font-mono text-xs text-gray-400">{result.provider} / {result.latencyMs} ms</span>
                   </div>
-                  <div className={result.passed ? 'text-[11px] text-green-300' : 'text-[11px] text-red-300'}>{result.reason}</div>
-                  <pre className="mt-2 max-h-[160px] overflow-auto whitespace-pre-wrap rounded border border-gray-800 bg-black/20 p-2 text-[11px] leading-5 text-gray-400">{result.output}</pre>
+                  <div className={result.passed ? 'text-sm text-green-300' : 'text-sm text-red-300'}>{result.reason}</div>
+                  <pre className="mt-2 max-h-[240px] overflow-auto whitespace-pre-wrap rounded border border-gray-800 bg-black/20 p-3 text-sm leading-6 text-gray-300">{result.output}</pre>
                 </div>
               ))}
             </div>
@@ -1065,13 +1066,13 @@ function ToolsPane({
     { id: 'curl', label: 'cURL', icon: TerminalSquare },
   ];
   return (
-    <div className="grid min-h-full gap-4 p-5 xl:grid-cols-[260px_1fr]">
+    <div className="grid min-h-full gap-5 p-6 xl:grid-cols-[320px_1fr]">
       <section className="space-y-4">
         <Panel title="Export Target" icon={Code2}>
           <div className="space-y-2">
             {options.map(option => (
-              <button key={option.id} onClick={() => setFormat(option.id)} className={`flex w-full items-center gap-2 rounded-md border px-3 py-2 text-left text-xs transition-colors ${format === option.id ? 'border-cyan-500/40 bg-cyan-500/10 text-cyan-200' : 'border-gray-800 bg-gray-950/60 text-gray-400 hover:border-gray-700 hover:text-gray-200'}`}>
-                <option.icon size={14} />
+              <button key={option.id} onClick={() => setFormat(option.id)} className={`flex min-h-11 w-full items-center gap-2 rounded-md border px-4 py-3 text-left text-sm font-medium transition-colors ${format === option.id ? 'border-cyan-500/40 bg-cyan-500/10 text-cyan-100' : 'border-gray-700 bg-gray-950/80 text-gray-200 hover:border-cyan-500/50 hover:text-gray-100'}`}>
+                <option.icon size={16} />
                 {option.label}
               </button>
             ))}
@@ -1079,9 +1080,9 @@ function ToolsPane({
         </Panel>
         <Panel title="Source" icon={ClipboardCheck}>
           {request ? (
-            <div className="space-y-2 text-xs text-gray-400">
-              <div className="flex items-center gap-2"><span className={`rounded border px-1.5 py-0.5 font-mono text-[10px] ${methodTone(request.method)}`}>{request.method}</span><span className="truncate text-gray-200">{request.name}</span></div>
-              <div className="break-all font-mono text-[10px] leading-4 text-gray-500">{request.url}</div>
+            <div className="space-y-2 text-sm text-gray-300">
+              <div className="flex items-center gap-2"><span className={`rounded border px-1.5 py-0.5 font-mono text-xs ${methodTone(request.method)}`}>{request.method}</span><span className="truncate text-gray-200">{request.name}</span></div>
+              <div className="break-all font-mono text-xs leading-5 text-gray-400">{request.url}</div>
               <div>{response ? `Response context available: ${response.status}` : 'Run the request to include response context.'}</div>
             </div>
           ) : (
@@ -1092,18 +1093,18 @@ function ToolsPane({
       <section className="space-y-4">
         <Panel title="Generated Artifact" icon={FileJson}>
           <div className="mb-3 flex items-center justify-between gap-2">
-            <div className="text-xs text-gray-500">Secrets are redacted from generated agent artifacts.</div>
+            <div className="text-sm text-gray-400">Secrets are redacted from generated agent artifacts.</div>
             <div className="flex items-center gap-2">
-              <button onClick={onCopy} disabled={!output.trim()} className="flex h-8 items-center gap-1.5 rounded-md border border-gray-700 bg-gray-900 px-3 text-xs text-gray-200 hover:border-cyan-500/50 disabled:opacity-50">
-                {copied ? <CheckCircle2 size={13} className="text-green-400" /> : <Copy size={13} />}
+              <button onClick={onCopy} disabled={!output.trim()} className="flex h-10 items-center gap-2 rounded-md border border-gray-600 bg-gray-900 px-4 text-sm font-medium text-gray-100 hover:border-cyan-400 disabled:opacity-50">
+                {copied ? <CheckCircle2 size={16} className="text-green-400" /> : <Copy size={16} />}
                 {copied ? 'Copied' : 'Copy'}
               </button>
-              <button onClick={onDownload} disabled={!output.trim()} className="flex h-8 items-center gap-1.5 rounded-md bg-cyan-500 px-3 text-xs font-semibold text-gray-950 hover:bg-cyan-400 disabled:opacity-50">
-                <Download size={13} /> Download
+              <button onClick={onDownload} disabled={!output.trim()} className="flex h-10 items-center gap-2 rounded-md bg-cyan-400 px-4 text-sm font-semibold text-gray-950 hover:bg-cyan-300 disabled:opacity-50">
+                <Download size={16} /> Download
               </button>
             </div>
           </div>
-          <pre className="max-h-[calc(100vh-210px)] min-h-[480px] overflow-auto whitespace-pre-wrap rounded-md border border-gray-800 bg-black/30 p-4 text-xs leading-5 text-gray-300">{output}</pre>
+          <pre className="max-h-[calc(100vh-240px)] min-h-[560px] overflow-auto whitespace-pre-wrap rounded-md border border-gray-800 bg-black/30 p-5 text-sm leading-6 text-gray-200">{output}</pre>
         </Panel>
       </section>
     </div>
@@ -1120,14 +1121,14 @@ function OpsPane({ llm, agent, providerConfigured, activeProvider, onOpenAgent, 
   onOpenSecurity: () => void;
 }) {
   return (
-    <div className="grid gap-4 p-5 xl:grid-cols-3">
+    <div className="grid gap-5 p-6 xl:grid-cols-3">
       <Panel title="Model Gateway" icon={KeyRound}>
         <div className="space-y-3">
           <CheckRow ok={providerConfigured} label="Active provider" detail={providerLabel[activeProvider] || activeProvider} />
           <CheckRow ok={!!llm?.config} label="User BYOK config" detail={llm?.config?.model_id || llm?.active_source || 'Server default'} />
           <CheckRow ok={activeProvider === 'local' || !!llm?.server_default?.configured} label="Server fallback" detail={llm?.server_default?.provider || 'Not loaded'} />
-          <button onClick={onOpenLlmSettings} className="mt-2 flex h-9 w-full items-center justify-center gap-2 rounded-md bg-cyan-500 px-3 text-xs font-semibold text-gray-950 hover:bg-cyan-400">
-            <Cpu size={14} /> Configure provider
+          <button onClick={onOpenLlmSettings} className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-cyan-400 px-4 text-sm font-semibold text-gray-950 hover:bg-cyan-300">
+            <Cpu size={16} /> Configure provider
           </button>
         </div>
       </Panel>
@@ -1136,8 +1137,8 @@ function OpsPane({ llm, agent, providerConfigured, activeProvider, onOpenAgent, 
           <CheckRow ok={!!agent?.aiEnabled} label="AI diagnosis" detail={agent?.aiEnabled ? 'Enabled' : 'Needs provider'} />
           <CheckRow ok={!!agent?.slackEnabled} label="Slack intake" detail={agent?.slackEnabled ? 'Connected' : 'Manual/test mode'} />
           <CheckRow ok={!!agent?.githubEnabled} label="PR handoff" detail={agent?.githubEnabled ? 'Connected' : 'Needs GitHub token'} />
-          <button onClick={onOpenAgent} className="mt-2 flex h-9 w-full items-center justify-center gap-2 rounded-md border border-gray-700 bg-gray-900 px-3 text-xs text-gray-200 hover:border-purple-500/50">
-            <Bot size={14} /> Open agent monitor
+          <button onClick={onOpenAgent} className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-md border border-gray-600 bg-gray-900 px-4 text-sm font-medium text-gray-100 hover:border-purple-400">
+            <Bot size={16} /> Open agent monitor
           </button>
         </div>
       </Panel>
@@ -1146,8 +1147,8 @@ function OpsPane({ llm, agent, providerConfigured, activeProvider, onOpenAgent, 
           <CheckRow ok label="Workspace auth" detail="JWT, sessions, roles" />
           <CheckRow ok label="Credential encryption" detail="AES-256-GCM at rest" />
           <CheckRow ok label="Audit evidence" detail="Auth, AI, workspace actions" />
-          <button onClick={onOpenSecurity} className="mt-2 flex h-9 w-full items-center justify-center gap-2 rounded-md border border-gray-700 bg-gray-900 px-3 text-xs text-gray-200 hover:border-blue-500/50">
-            <Shield size={14} /> Security controls
+          <button onClick={onOpenSecurity} className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-md border border-gray-600 bg-gray-900 px-4 text-sm font-medium text-gray-100 hover:border-blue-400">
+            <Shield size={16} /> Security controls
           </button>
         </div>
       </Panel>
@@ -1157,20 +1158,20 @@ function OpsPane({ llm, agent, providerConfigured, activeProvider, onOpenAgent, 
 
 function Panel({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: ReactNode }) {
   return (
-    <section className="rounded-lg border border-gray-800 bg-gray-900/40">
-      <div className="flex items-center gap-2 border-b border-gray-800 px-4 py-3">
-        <Icon size={15} className="text-cyan-300" />
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-300">{title}</h3>
+    <section className="rounded-lg border border-gray-800 bg-gray-900/50">
+      <div className="flex items-center gap-2 border-b border-gray-800 px-5 py-4">
+        <Icon size={18} className="text-cyan-300" />
+        <h3 className="text-sm font-semibold text-gray-100">{title}</h3>
       </div>
-      <div className="p-4">{children}</div>
+      <div className="p-5">{children}</div>
     </section>
   );
 }
 
 function NavButton({ active, icon: Icon, label, onClick }: { active: boolean; icon: LucideIcon; label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className={`flex h-9 w-full items-center gap-2 rounded-md px-3 text-left text-xs transition-colors ${active ? 'bg-cyan-500/10 text-cyan-200 ring-1 ring-cyan-500/20' : 'text-gray-500 hover:bg-gray-900 hover:text-gray-200'}`}>
-      <Icon size={14} />
+    <button onClick={onClick} className={`flex h-11 w-full items-center gap-2.5 rounded-md px-3 text-left text-sm font-medium transition-colors ${active ? 'bg-cyan-500/10 text-cyan-200 ring-1 ring-cyan-500/20' : 'text-gray-300 hover:bg-gray-900 hover:text-gray-100'}`}>
+      <Icon size={16} />
       {label}
     </button>
   );
@@ -1185,42 +1186,42 @@ function Metric({ icon: Icon, label, value, tone }: { icon: LucideIcon; label: s
     gray: 'text-gray-300 bg-gray-500/10 border-gray-500/20',
   };
   return (
-    <div className="rounded-lg border border-gray-800 bg-gray-900/40 p-3">
-      <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-        <span className={`flex h-6 w-6 items-center justify-center rounded-md border ${tones[tone]}`}><Icon size={13} /></span>
+    <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-4">
+      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+        <span className={`flex h-6 w-6 items-center justify-center rounded-md border ${tones[tone]}`}><Icon size={15} /></span>
         {label}
       </div>
-      <div className="truncate text-sm font-semibold text-gray-100">{value}</div>
+      <div className="truncate text-base font-semibold text-gray-100">{value}</div>
     </div>
   );
 }
 
 function WorkCard({ icon: Icon, title, label, detail, cta, onClick }: { icon: LucideIcon; title: string; label: string; detail: string; cta: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="min-h-[170px] rounded-lg border border-gray-800 bg-gray-900/40 p-4 text-left transition-colors hover:border-cyan-500/40 hover:bg-gray-900">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-100"><Icon size={16} className="text-cyan-300" /> {title}</div>
-        <span className="rounded bg-gray-800 px-2 py-0.5 text-[10px] text-gray-500">{cta}</span>
+    <button onClick={onClick} className="min-h-[190px] rounded-lg border border-gray-800 bg-gray-900/50 p-5 text-left transition-colors hover:border-cyan-400 hover:bg-gray-900">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2 text-base font-semibold text-gray-100"><Icon size={18} className="text-cyan-300" /> {title}</div>
+        <span className="rounded bg-cyan-500/10 px-2.5 py-1 text-xs font-medium text-cyan-200">{cta}</span>
       </div>
-      <div className="mb-2 text-xs font-semibold text-gray-300">{label}</div>
-      <p className="text-xs leading-5 text-gray-500">{detail}</p>
+      <div className="mb-2 text-sm font-semibold text-gray-200">{label}</div>
+      <p className="text-sm leading-6 text-gray-400">{detail}</p>
     </button>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-gray-800 bg-gray-950/70 p-2">
-      <div className="text-[10px] uppercase tracking-wide text-gray-600">{label}</div>
-      <div className="mt-1 truncate font-mono text-xs text-gray-200">{value}</div>
+    <div className="rounded-md border border-gray-800 bg-gray-950/70 p-3">
+      <div className="text-xs uppercase tracking-wide text-gray-500">{label}</div>
+      <div className="mt-1 truncate font-mono text-sm text-gray-100">{value}</div>
     </div>
   );
 }
 
 function StatusPill({ ok, label }: { ok: boolean; label: string }) {
   return (
-    <span className={`hidden items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] md:flex ${ok ? 'border-green-500/20 bg-green-500/10 text-green-300' : 'border-amber-500/20 bg-amber-500/10 text-amber-300'}`}>
-      {ok ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}
+    <span className={`hidden items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm md:flex ${ok ? 'border-green-500/20 bg-green-500/10 text-green-300' : 'border-amber-500/20 bg-amber-500/10 text-amber-300'}`}>
+      {ok ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
       {label}
     </span>
   );
@@ -1228,35 +1229,35 @@ function StatusPill({ ok, label }: { ok: boolean; label: string }) {
 
 function Toggle({ checked, onChange, label, disabled = false }: { checked: boolean; onChange: (checked: boolean) => void; label: string; disabled?: boolean }) {
   return (
-    <label className={`flex h-8 items-center gap-2 rounded-md border border-gray-800 bg-gray-950 px-3 text-xs ${disabled ? 'cursor-not-allowed text-gray-700' : 'cursor-pointer text-gray-300'}`}>
-      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} disabled={disabled} className="h-3.5 w-3.5 accent-cyan-400" />
+    <label className={`flex h-10 items-center gap-2 rounded-md border border-gray-700 bg-gray-950 px-3 text-sm ${disabled ? 'cursor-not-allowed text-gray-700' : 'cursor-pointer text-gray-300'}`}>
+      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} disabled={disabled} className="h-4 w-4 accent-cyan-400" />
       {label}
     </label>
   );
 }
 
 function FieldLabel({ label }: { label: string }) {
-  return <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{label}</div>;
+  return <div className="text-xs font-semibold uppercase tracking-wide text-gray-400">{label}</div>;
 }
 
 function Notice({ tone, icon: Icon, children }: { tone: 'amber' | 'red'; icon: LucideIcon; children: ReactNode }) {
   const cls = tone === 'red' ? 'border-red-500/20 bg-red-500/10 text-red-200' : 'border-amber-500/20 bg-amber-500/10 text-amber-200';
-  return <div className={`flex items-start gap-2 rounded-md border px-3 py-2 text-xs ${cls}`}><Icon size={14} className="mt-0.5 shrink-0" /><span>{children}</span></div>;
+  return <div className={`flex items-start gap-2 rounded-md border px-4 py-3 text-sm ${cls}`}><Icon size={16} className="mt-0.5 shrink-0" /><span>{children}</span></div>;
 }
 
 function EmptyState({ icon: Icon, title, body, action, onAction }: { icon: LucideIcon; title: string; body: string; action?: string; onAction?: () => void }) {
   return (
-    <div className="flex min-h-[180px] flex-col items-center justify-center rounded-md border border-dashed border-gray-800 bg-gray-950/40 p-5 text-center">
-      <Icon size={22} className="mb-3 text-gray-600" />
-      <div className="text-sm font-semibold text-gray-300">{title}</div>
-      <div className="mt-1 max-w-[34ch] text-xs leading-5 text-gray-600">{body}</div>
-      {action && onAction && <button onClick={onAction} className="mt-4 rounded-md bg-cyan-500 px-3 py-2 text-xs font-semibold text-gray-950 hover:bg-cyan-400">{action}</button>}
+    <div className="flex min-h-[220px] flex-col items-center justify-center rounded-md border border-dashed border-gray-800 bg-gray-950/40 p-6 text-center">
+      <Icon size={28} className="mb-3 text-gray-500" />
+      <div className="text-base font-semibold text-gray-100">{title}</div>
+      <div className="mt-2 max-w-[38ch] text-sm leading-6 text-gray-400">{body}</div>
+      {action && onAction && <button onClick={onAction} className="mt-5 rounded-md bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-gray-950 hover:bg-cyan-300">{action}</button>}
     </div>
   );
 }
 
 function LoopStep({ ok, label }: { ok: boolean; label: string }) {
-  return <div className="flex items-center gap-2 text-xs text-gray-400">{ok ? <CheckCircle2 size={13} className="text-green-400" /> : <XCircle size={13} className="text-gray-600" />}<span>{label}</span></div>;
+  return <div className="flex items-center gap-2 text-sm text-gray-300">{ok ? <CheckCircle2 size={15} className="text-green-400" /> : <XCircle size={15} className="text-gray-500" />}<span>{label}</span></div>;
 }
 
 function CheckRow({ ok, label, detail }: { ok: boolean; label: string; detail: string }) {
@@ -1264,8 +1265,8 @@ function CheckRow({ ok, label, detail }: { ok: boolean; label: string; detail: s
     <div className="flex items-start gap-2 rounded-md border border-gray-800 bg-gray-950/60 p-3">
       {ok ? <CheckCircle2 size={15} className="mt-0.5 text-green-400" /> : <AlertTriangle size={15} className="mt-0.5 text-amber-400" />}
       <div className="min-w-0">
-        <div className="text-xs font-semibold text-gray-200">{label}</div>
-        <div className="mt-0.5 truncate text-[11px] text-gray-500">{detail}</div>
+        <div className="text-sm font-semibold text-gray-100">{label}</div>
+        <div className="mt-1 truncate text-sm text-gray-400">{detail}</div>
       </div>
     </div>
   );

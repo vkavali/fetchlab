@@ -70,13 +70,14 @@ describe('AIWorkbench', () => {
   });
 
   it('renders the product workbench around active API context', async () => {
+    const onOpenRequestBuilder = vi.fn();
     render(
       <AIWorkbench
         onClose={() => undefined}
         onOpenAgent={() => undefined}
         onOpenLlmSettings={() => undefined}
         onOpenSecurity={() => undefined}
-        onOpenRequestBuilder={() => undefined}
+        onOpenRequestBuilder={onOpenRequestBuilder}
       />
     );
 
@@ -84,8 +85,14 @@ describe('AIWorkbench', () => {
     expect(screen.getAllByText('Prompt Lab').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Eval Lab').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Tool Builder').length).toBeGreaterThan(0);
+    expect(screen.getByText('Create API Request')).toBeTruthy();
     expect(screen.getAllByText('Get health').length).toBeGreaterThan(0);
     expect(screen.getAllByText('200 42 ms').length).toBeGreaterThan(0);
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Create API Request'));
+    });
+    expect(onOpenRequestBuilder).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       fireEvent.click(screen.getAllByText('Tool Builder')[0]);

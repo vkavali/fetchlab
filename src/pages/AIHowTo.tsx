@@ -3,8 +3,8 @@ import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 
 const SETUP_STEPS = [
   {
-    title: 'Sign in before using AI',
-    body: 'The AI Request Builder is hidden for guests because AI calls use authenticated server routes and workspace context.',
+    title: 'Open AI Workbench',
+    body: 'Sign in, open the app, and click AI Workbench in the header. The workbench is the main AI surface for prompts, evals, tool exports, and agent handoff.',
   },
   {
     title: 'Open LLM Provider / BYOK',
@@ -70,11 +70,27 @@ const SCOPE_COLUMNS = [
 
 const WORKFLOWS = [
   {
+    id: 'ai-workbench',
+    label: 'AI Workbench',
+    title: 'Use the AI Workbench as the AI development cockpit',
+    steps: [
+      'Open the app and click AI Workbench in the header.',
+      'Start in Overview to check the active model route, selected API request, latest response, eval count, and agent readiness.',
+      'Use Create API Request to draft a new API call from plain English or to import a cURL command.',
+      'Use Prompt Lab to run prompts with live API context and compare the active provider against the local baseline.',
+      'Use Eval Lab to seed test cases from the current request and response, then run pass/fail checks before changing prompts or models.',
+      'Use Tool Builder to export OpenAI tool schemas, MCP tool skeletons, agent framework snippets, cURL, or AI-ready context bundles.',
+      'Use Ops to configure BYOK providers, open the agent monitor, and review security controls.',
+    ],
+    example: 'Run GET /v1/orders, open AI Workbench, seed evals from the response, compare the active provider to the local baseline, then export an MCP tool.',
+    caution: 'Treat workbench outputs as reviewable engineering artifacts. Run evals and confirm the target environment before shipping AI changes.',
+  },
+  {
     id: 'request-builder',
     label: 'AI request builder',
     title: 'Generate a request from plain English',
     steps: [
-      'Click AI in the app header.',
+      'Open AI Workbench, then choose Create API Request.',
       'Choose Natural language.',
       'Describe the API call with method, endpoint, auth, headers, and payload requirements.',
       'Use Ctrl+Enter or Generate request.',
@@ -89,7 +105,7 @@ const WORKFLOWS = [
     label: 'cURL fallback',
     title: 'Import a cURL command without AI',
     steps: [
-      'Click AI in the app header.',
+      'Open AI Workbench, then choose Create API Request.',
       'Choose Paste cURL.',
       'Paste a complete curl command from docs, browser devtools, or another teammate.',
       'Generate the request.',
@@ -149,7 +165,7 @@ const WORKFLOWS = [
     label: 'AI Ops Agent',
     title: 'Use the AI Ops Agent for incident triage',
     steps: [
-      'Click Agent in the app header.',
+      'Open AI Workbench, then choose Ops and open the agent monitor.',
       'Check the AI, Slack, and GitHub status badges.',
       'Use Test Detection first with a sample incident message.',
       'Configure a Slack channel when you want the agent to monitor real messages.',
@@ -348,9 +364,9 @@ export default function AIHowTo() {
             </h1>
           </div>
           <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
-            Use AI to draft requests, parse cURL, explain failures, and triage API incidents.
-            Keep it review-first: configure the provider deliberately, inspect every generated request,
-            and avoid sending secrets unless your retention and provider setup allow it.
+            Use AI Workbench to draft requests, parse cURL, test prompts, run evals, export agent tools,
+            explain failures, and triage API incidents. Keep it review-first: configure the provider deliberately,
+            inspect every generated request, and avoid sending secrets unless your retention and provider setup allow it.
           </p>
         </section>
 
