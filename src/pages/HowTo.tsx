@@ -66,11 +66,13 @@ const FEATURES = [
     steps: [
       'Open the app and click AI Workbench in the header.',
       'Use Overview to confirm the active model route, selected API request, observed response, eval count, and agent readiness.',
+      'Use Launch Gate to see whether the workflow is ready, needs review, or is blocked before release.',
       'Use Create API Request when you want FetchLab to draft a request from plain English or paste a cURL command.',
       'Use Prompt Lab to run prompts against the active provider and compare them with the local baseline.',
       'Use Eval Lab to seed pass/fail cases from the active request and response before changing prompts or models.',
       'Use Tool Builder to export OpenAI tool schemas, MCP tools, agent framework snippets, cURL, or AI-ready context.',
       'Use Ops to configure BYOK providers, agent monitoring, and security controls.',
+      'Copy or download the Launch Gate packet when a teammate, manager, or security reviewer needs evidence.',
     ],
     note: 'Treat AI Workbench output as reviewable engineering evidence: run evals before shipping model, prompt, or agent changes.',
   },

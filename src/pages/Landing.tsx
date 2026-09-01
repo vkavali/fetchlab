@@ -892,7 +892,7 @@ function Declaration() {
             }}
           >
             One API Workbench for requests, collections, environments, protocols, and scripts.
-            One AI Workbench for providers, generated tests, evals, agent monitoring, and coding flows.
+            One AI Workbench for Launch Gates, provider routing, eval evidence, agent tools, and coding handoff.
           </p>
           <div
             className="font-mono"
@@ -922,12 +922,12 @@ const LOG_ENTRIES: LogEntry[] = [
   { t: '00:00:01', stage: 'web app',    line: '/app opens the full API Workbench in the browser', mark: 'ok' },
   { t: '00:00:06', stage: 'desktop',    line: 'Windows EXE and MSI installers are available from /download', mark: 'ok' },
   { t: '00:00:11', stage: 'api bench',  line: 'requests, collections, environments, scripts, WebSocket, SSE, OpenAPI', mark: 'ok' },
-  { t: '00:00:18', stage: 'ai bench',   line: 'BYOK providers, local mode, generated requests, tests, and diagnosis', mark: 'ok' },
+  { t: '00:00:18', stage: 'ai bench',   line: 'Launch Gate, BYOK providers, local mode, generated requests, evals, and diagnosis', mark: 'ok' },
   { t: '00:00:26', stage: 'teams',      line: 'workspace members use admin, member, and viewer roles', mark: 'ok' },
   { t: '00:00:31', stage: 'security',   line: 'JWT sessions, 2FA, lockouts, AES-256-GCM credential encryption', mark: 'ok' },
   { t: '00:00:37', stage: 'enterprise', line: 'PostgreSQL, audit logs, retention, OIDC SSO, and SCIM endpoints', mark: 'ok' },
   { t: '00:00:43', stage: 'agent',      line: 'Slack/API incident detector and coding-agent handoff workflows', mark: 'ok' },
-  { t: '00:00:50', stage: 'release',    line: 'lint, build, audit, runtime, local-file, and Postgres smoke checks pass', mark: 'ok' },
+  { t: '00:00:50', stage: 'release',    line: 'Launch packet, lint, build, audit, runtime, local-file, and Postgres smoke checks pass', mark: 'ok' },
   { t: '00:00:58', stage: 'ready',      line: 'one product surface for AI product engineering teams', mark: 'ok' },
 ];
 
@@ -1440,17 +1440,18 @@ function Features() {
 
         <Chapter
           num="02.02"
-          title="AI Workbench for models, evals, and coding agents."
+          title="AI Workbench with Launch Gate for models, evals, and agents."
           body={
             <>
               Configure Anthropic, OpenAI-compatible, AWS Bedrock, Google Vertex, or local providers.
               Generate requests and assertions, diagnose failed calls, explain response diffs,
-              export AI-ready context, and turn known-good API calls into agent tool wrappers.
+              run a Launch Gate with blockers and governance checks, export AI-ready context,
+              and turn known-good API calls into agent tool wrappers.
               <br /><br />
               Teams can route models through their own keys and keep provider control out of individual laptops.
             </>
           }
-          marginalia="The AI Workbench is not a chat sidebar. It is model-provider control, eval prep, agent context, and API-grounded debugging in one place."
+          marginalia="The AI Workbench is not a chat sidebar. It is model-provider control, Launch Gate review, eval prep, agent context, and API-grounded debugging in one place."
           figLabel="Fig. 02.02"
           figCaption="Model provider routing"
           figure={<ProviderVisual />}
@@ -1589,7 +1590,7 @@ const SPECIMENS = [
   { num: '0001', time: 'Live now', service: 'Browser app',      cause: 'Full API Workbench is available from /app without installing anything.',               pr: '/app',        fix: 'Web',        status: 'closed' },
   { num: '0002', time: 'v1.2.0',   service: 'Windows installer', cause: 'EXE and MSI packages are published for local workflows and managed rollouts.',         pr: '/download',   fix: 'EXE/MSI',    status: 'closed' },
   { num: '0003', time: 'API bench', service: 'Protocol testing',  cause: 'REST, GraphQL, WebSocket, SSE, collections, environments, scripts, and history.',       pr: 'Built in',    fix: 'API',        status: 'closed' },
-  { num: '0004', time: 'AI bench',  service: 'Model workflows',   cause: 'BYOK providers, generated requests, assertions, diagnosis, eval prep, and exports.',    pr: 'Built in',    fix: 'AI',         status: 'closed' },
+  { num: '0004', time: 'AI bench',  service: 'Model workflows',   cause: 'Launch Gate, BYOK providers, generated requests, assertions, diagnosis, eval prep, and exports.',    pr: 'Built in',    fix: 'AI',         status: 'closed' },
   { num: '0005', time: 'Teams',     service: 'Enterprise backend', cause: 'PostgreSQL accounts, workspace RBAC, encrypted credentials, audit logs, SSO, SCIM.',     pr: '/enterprise', fix: 'Governance', status: 'closed' },
   { num: '0006', time: 'Agents',    service: 'Coding handoffs',   cause: 'Turn known-good API calls, responses, and diagnostics into clean coding-agent context.',   pr: 'Built in',    fix: 'Context',    status: 'closed' },
 ];
@@ -1850,7 +1851,7 @@ function PullQuote() {
                 <span>Web</span>        <span style={{ color: 'var(--color-text)' }}>/app</span>
                 <span>Desktop</span>    <span style={{ color: 'var(--color-text)' }}>EXE + MSI</span>
                 <span>Enterprise</span> <span style={{ color: 'var(--color-accent)' }}>RBAC + SSO</span>
-                <span>AI</span>         <span style={{ color: 'var(--color-text)' }}>BYOK + evals</span>
+                <span>AI</span>         <span style={{ color: 'var(--color-text)' }}>Launch Gate + evals</span>
               </div>
             </div>
           </div>

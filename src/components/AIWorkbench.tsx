@@ -9,6 +9,7 @@ import {
   Copy,
   Cpu,
   Download,
+  FileCheck2,
   FileJson,
   FlaskConical,
   Gauge,
@@ -18,6 +19,7 @@ import {
   Play,
   Plus,
   RefreshCw,
+  Rocket,
   Shield,
   Sparkles,
   TerminalSquare,
@@ -82,7 +84,7 @@ interface PromptRunRecord extends PromptRunResponse {
   createdAt: number;
 }
 
-type WorkbenchTab = 'overview' | 'prompt' | 'evals' | 'tools' | 'ops';
+type WorkbenchTab = 'overview' | 'launch' | 'prompt' | 'evals' | 'tools' | 'ops';
 type EvalScorer = 'contains' | 'json' | 'nonempty';
 type ToolFormat = 'openai' | 'mcp' | 'langchain' | 'llamaindex' | 'crewai' | 'context' | 'curl';
 
@@ -107,7 +109,74 @@ interface EvalRunResult {
   createdAt: number;
 }
 
+type LaunchDecision = 'ready' | 'review' | 'blocked';
+type LaunchItemStatus = 'pass' | 'warn' | 'block';
+
+interface LaunchGateItem {
+  id: string;
+  label: string;
+  detail: string;
+  action: string;
+  status: LaunchItemStatus;
+  required: boolean;
+}
+
+interface LaunchGate {
+  decision: LaunchDecision;
+  score: number;
+  blockers: LaunchGateItem[];
+  warnings: LaunchGateItem[];
+  items: LaunchGateItem[];
+}
+
+interface LaunchControl {
+  id: string;
+  label: string;
+  detail: string;
+  required: boolean;
+}
+
 const EVAL_CASES_KEY = 'fetchlab_ai_eval_cases_v1';
+const LAUNCH_CONTROLS_KEY = 'fetchlab_ai_launch_controls_v1';
+
+const LAUNCH_CONTROLS: LaunchControl[] = [
+  {
+    id: 'owner',
+    label: 'Owner assigned',
+    detail: 'A named person owns approval, rollback, and post-launch review.',
+    required: true,
+  },
+  {
+    id: 'secrets',
+    label: 'Secrets reviewed',
+    detail: 'Prompts, request bodies, headers, exports, and logs have been checked for sensitive data.',
+    required: true,
+  },
+  {
+    id: 'fallback',
+    label: 'Fallback defined',
+    detail: 'The workflow has a non-AI fallback, retry path, or manual escalation path.',
+    required: true,
+  },
+  {
+    id: 'approval',
+    label: 'Human approval gate',
+    detail: 'High-risk model output or agent action requires explicit human approval.',
+    required: true,
+  },
+  {
+    id: 'rollback',
+    label: 'Rollback plan',
+    detail: 'The team knows how to disable the prompt, model route, tool, or agent workflow quickly.',
+    required: true,
+  },
+  {
+    id: 'monitoring',
+    label: 'Monitoring ready',
+    detail: 'Failures, latency, cost, and unexpected output can be reviewed after launch.',
+    required: false,
+  },
+];
 
 const providerLabel: Record<string, string> = {
   anthropic: 'Anthropic',
@@ -355,6 +424,153 @@ function buildSeedEvalCases(request?: RequestConfig | null, response?: ResponseD
   ];
 }
 
+function launchControlStorageKey(workspaceId?: string | null, requestId?: string | null) {
+  return `${LAUNCH_CONTROLS_KEY}:${workspaceId || 'local'}:${requestId || 'no-request'}`;
+}
+
+function loadLaunchApprovals(storageKey: string) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {} as Record<string, boolean>;
+    return parsed as Record<string, boolean>;
+  } catch {
+    return {} as Record<string, boolean>;
+  }
+}
+
+function launchItem(
+  id: string,
+  label: string,
+  detail: string,
+  action: string,
+  status: LaunchItemStatus,
+  required = true,
+): LaunchGateItem {
+  return { id, label, detail, action, status, required };
+}
+
+function buildLaunchGate({
+  request,
+  response,
+  providerConfigured,
+  activeProvider,
+  evalCases,
+  evalResults,
+  passRate,
+  agent,
+  approvals,
+  hasUser,
+}: {
+  request: RequestConfig | null;
+  response: ResponseData | null;
+  providerConfigured: boolean;
+  activeProvider: string;
+  evalCases: EvalCase[];
+  evalResults: EvalRunResult[];
+  passRate: number;
+  agent: AgentStatus | null;
+  approvals: Record<string, boolean>;
+  hasUser: boolean;
+}): LaunchGate {
+  const responseOk = !!response && response.status >= 200 && response.status < 400;
+  const evalSuiteOk = evalCases.length >= 3;
+  const evalEvidenceOk = evalResults.length > 0 && passRate >= 80;
+  const requiredControlsOk = LAUNCH_CONTROLS.filter(control => control.required).every(control => approvals[control.id]);
+  const agentConnected = !!agent?.githubEnabled || !!agent?.slackEnabled;
+  const items = [
+    launchItem(
+      'signed-in',
+      'Authenticated workspace',
+      hasUser ? 'User session is active.' : 'No signed-in user is available.',
+      'Sign in before running AI launch checks.',
+      hasUser ? 'pass' : 'block',
+    ),
+    launchItem(
+      'api-contract',
+      'API contract captured',
+      request ? `${request.method} ${request.url || request.name || 'untitled request'}` : 'No API request is selected.',
+      'Create or select the API request that backs this AI workflow.',
+      request ? 'pass' : 'block',
+    ),
+    launchItem(
+      'observed-response',
+      'Observed response captured',
+      response ? `${response.status} ${response.statusText || ''} in ${Math.round(response.time)} ms` : 'No response has been captured yet.',
+      'Send the request once and review the response before launching.',
+      response ? 'pass' : 'block',
+    ),
+    launchItem(
+      'response-health',
+      'Response health acceptable',
+      response ? `${response.status} response from active request.` : 'No response status is available.',
+      'Fix failed API responses before using the endpoint in an AI workflow.',
+      responseOk ? 'pass' : response ? 'block' : 'warn',
+    ),
+    launchItem(
+      'model-route',
+      'Approved model route',
+      providerConfigured ? `${providerLabel[activeProvider] || activeProvider} is available.` : 'No provider route is configured.',
+      'Configure BYOK, server default, or Local baseline before launch review.',
+      providerConfigured ? 'pass' : 'block',
+    ),
+    launchItem(
+      'eval-suite',
+      'Eval suite defined',
+      evalSuiteOk ? `${evalCases.length} eval cases are saved.` : `${evalCases.length} eval cases saved; 3 or more is the launch minimum.`,
+      'Seed evals from the current API context and add product-specific cases.',
+      evalSuiteOk ? 'pass' : evalCases.length ? 'warn' : 'block',
+    ),
+    launchItem(
+      'eval-evidence',
+      'Eval run evidence',
+      evalResults.length ? `${passRate}% pass rate across recent runs.` : 'No eval run evidence yet.',
+      'Run evals and keep a passing result before shipping.',
+      evalEvidenceOk ? 'pass' : 'block',
+    ),
+    launchItem(
+      'governance',
+      'Governance controls complete',
+      requiredControlsOk ? 'Required launch controls are checked.' : 'Required owner, secret, fallback, approval, or rollback checks are incomplete.',
+      'Complete every required launch control before shipping.',
+      requiredControlsOk ? 'pass' : 'block',
+    ),
+    launchItem(
+      'tool-export',
+      'Agent tool export ready',
+      request ? 'Tool Builder can generate schemas, MCP tools, and agent snippets from this request.' : 'Tool export needs an active request.',
+      'Open Tool Builder and export the artifact your AI product needs.',
+      request ? 'pass' : 'warn',
+      false,
+    ),
+    launchItem(
+      'agent-loop',
+      'Agent handoff connected',
+      agentConnected ? 'Slack or GitHub agent handoff is connected.' : 'Agent handoff is in manual mode.',
+      'Connect Slack or GitHub when this workflow needs incident intake or PR handoff.',
+      agentConnected ? 'pass' : 'warn',
+      false,
+    ),
+  ];
+  const weighted = items.reduce((total, item) => total + (item.status === 'pass' ? 1 : item.status === 'warn' ? 0.5 : 0), 0);
+  const score = Math.round((weighted / items.length) * 100);
+  const blockers = items.filter(item => item.status === 'block');
+  const warnings = items.filter(item => item.status === 'warn');
+  const decision = blockers.length ? 'blocked' : warnings.length ? 'review' : 'ready';
+  return { decision, score, blockers, warnings, items };
+}
+
+function launchDecisionLabel(decision: LaunchDecision) {
+  if (decision === 'ready') return 'Ready';
+  if (decision === 'review') return 'Needs review';
+  return 'Blocked';
+}
+
+function launchDecisionTone(decision: LaunchDecision) {
+  if (decision === 'ready') return 'border-green-500/30 bg-green-500/10 text-green-200';
+  if (decision === 'review') return 'border-amber-500/30 bg-amber-500/10 text-amber-200';
+  return 'border-red-500/30 bg-red-500/10 text-red-200';
+}
+
 function downloadText(text: string, filename: string, type = 'text/plain') {
   const blob = new Blob([text], { type });
   const url = URL.createObjectURL(blob);
@@ -365,6 +581,77 @@ function downloadText(text: string, filename: string, type = 'text/plain') {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+function buildLaunchPacket({
+  gate,
+  request,
+  response,
+  activeProvider,
+  evalCases,
+  evalResults,
+  passRate,
+  approvals,
+  workspaceId,
+}: {
+  gate: LaunchGate;
+  request: RequestConfig | null;
+  response: ResponseData | null;
+  activeProvider: string;
+  evalCases: EvalCase[];
+  evalResults: EvalRunResult[];
+  passRate: number;
+  approvals: Record<string, boolean>;
+  workspaceId?: string | null;
+}) {
+  const topKeys = topLevelKeys(response);
+  const resultLines = evalResults.slice(0, 8).map(result => (
+    `- ${result.passed ? 'PASS' : 'FAIL'} ${result.caseName}: ${result.reason} (${result.provider}, ${result.latencyMs} ms)`
+  ));
+  const controlLines = LAUNCH_CONTROLS.map(control => (
+    `- [${approvals[control.id] ? 'x' : ' '}] ${control.label}${control.required ? ' (required)' : ''}: ${control.detail}`
+  ));
+  const blockerLines = gate.blockers.length
+    ? gate.blockers.map(item => `- ${item.label}: ${item.action}`)
+    : ['- None'];
+  const warningLines = gate.warnings.length
+    ? gate.warnings.map(item => `- ${item.label}: ${item.action}`)
+    : ['- None'];
+
+  return [
+    '# FetchLab AI Launch Review',
+    '',
+    `Decision: ${launchDecisionLabel(gate.decision)}`,
+    `Launch score: ${gate.score}%`,
+    `Generated: ${new Date().toISOString()}`,
+    `Workspace: ${workspaceId || 'local'}`,
+    '',
+    '## API context',
+    `Request: ${request ? `${request.method} ${request.url || request.name || 'untitled request'}` : 'not selected'}`,
+    `Response: ${response ? `${response.status} ${response.statusText || ''} in ${Math.round(response.time)} ms` : 'not captured'}`,
+    `Top-level fields: ${topKeys.length ? topKeys.join(', ') : 'none detected'}`,
+    '',
+    '## Model route',
+    `Provider: ${providerLabel[activeProvider] || activeProvider}`,
+    '',
+    '## Eval evidence',
+    `Cases: ${evalCases.length}`,
+    `Recent results: ${evalResults.length}`,
+    `Pass rate: ${evalResults.length ? `${passRate}%` : 'not run'}`,
+    ...(resultLines.length ? resultLines : ['- No eval runs yet.']),
+    '',
+    '## Governance controls',
+    ...controlLines,
+    '',
+    '## Blockers',
+    ...blockerLines,
+    '',
+    '## Warnings',
+    ...warningLines,
+    '',
+    '## Required next step',
+    gate.blockers[0]?.action || gate.warnings[0]?.action || 'Attach this launch packet to the release review and monitor the workflow after launch.',
+  ].join('\n');
 }
 
 export default function AIWorkbench({ onClose, onOpenAgent, onOpenLlmSettings, onOpenSecurity, onOpenRequestBuilder }: Props) {
@@ -388,6 +675,7 @@ export default function AIWorkbench({ onClose, onOpenAgent, onOpenLlmSettings, o
   const [evalRunning, setEvalRunning] = useState(false);
   const [evalProvider, setEvalProvider] = useState<'active' | 'local'>('active');
   const [evalResults, setEvalResults] = useState<EvalRunResult[]>([]);
+  const [launchApprovals, setLaunchApprovals] = useState<Record<string, boolean>>({});
   const [newEval, setNewEval] = useState<EvalCase>(() => ({
     id: generateId(),
     name: 'Answers with concrete API risk',
@@ -409,6 +697,30 @@ export default function AIWorkbench({ onClose, onOpenAgent, onOpenLlmSettings, o
   const aiArtifact = request && response ? buildAiReadyMarkdown(request, response) : '';
   const artifactSummary = aiArtifact ? summarizeAiArtifact(aiArtifact) : null;
   const passRate = evalResults.length ? Math.round((evalResults.filter(r => r.passed).length / evalResults.length) * 100) : 0;
+  const launchStorageKey = useMemo(() => launchControlStorageKey(activeWorkspaceId, request?.id), [activeWorkspaceId, request?.id]);
+  const launchGate = useMemo(() => buildLaunchGate({
+    request,
+    response,
+    providerConfigured,
+    activeProvider,
+    evalCases,
+    evalResults,
+    passRate,
+    agent,
+    approvals: launchApprovals,
+    hasUser: !!user,
+  }), [activeProvider, agent, evalCases, evalResults, launchApprovals, passRate, providerConfigured, request, response, user]);
+  const launchPacket = useMemo(() => buildLaunchPacket({
+    gate: launchGate,
+    request,
+    response,
+    activeProvider,
+    evalCases,
+    evalResults,
+    passRate,
+    approvals: launchApprovals,
+    workspaceId: activeWorkspaceId,
+  }), [activeProvider, activeWorkspaceId, evalCases, evalResults, launchApprovals, launchGate, passRate, request, response]);
 
   const readiness = useMemo(() => [
     { label: 'Model route', ok: providerConfigured, detail: providerLabel[activeProvider] || activeProvider },
@@ -417,9 +729,11 @@ export default function AIWorkbench({ onClose, onOpenAgent, onOpenLlmSettings, o
     { label: 'Eval cases', ok: evalCases.length > 0, detail: `${evalCases.length} saved` },
     { label: 'Agent loop', ok: !!agent?.githubEnabled || !!agent?.slackEnabled, detail: agent?.githubEnabled ? 'GitHub connected' : agent?.slackEnabled ? 'Slack connected' : 'Manual mode' },
   ], [activeProvider, agent?.githubEnabled, agent?.slackEnabled, evalCases.length, providerConfigured, request, response]);
-  const readinessScore = Math.round((readiness.filter(item => item.ok).length / readiness.length) * 100);
-
   useEffect(() => { saveEvalCases(evalCases); }, [evalCases]);
+
+  useEffect(() => {
+    setLaunchApprovals(loadLaunchApprovals(launchStorageKey));
+  }, [launchStorageKey]);
 
   useEffect(() => {
     let alive = true;
@@ -555,6 +869,14 @@ export default function AIWorkbench({ onClose, onOpenAgent, onOpenLlmSettings, o
     }
   };
 
+  const toggleLaunchApproval = (id: string, checked: boolean) => {
+    setLaunchApprovals(prev => {
+      const next = { ...prev, [id]: checked };
+      try { localStorage.setItem(launchStorageKey, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
   const copy = async (text: string) => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
@@ -574,7 +896,7 @@ export default function AIWorkbench({ onClose, onOpenAgent, onOpenLlmSettings, o
                 <h2 className="text-lg font-semibold text-gray-100">AI Workbench</h2>
                 <span className="rounded border border-gray-700 px-2 py-0.5 text-xs uppercase tracking-wide text-gray-400">Beta</span>
               </div>
-              <div className="truncate text-sm text-gray-400">Prompts, evals, tools, and agent handoff from live API context</div>
+              <div className="truncate text-sm text-gray-400">Launch gates, prompts, evals, tools, and agent handoff from live API context</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -592,6 +914,7 @@ export default function AIWorkbench({ onClose, onOpenAgent, onOpenLlmSettings, o
           <aside className="w-[280px] shrink-0 border-r border-gray-800 bg-gray-950 px-4 py-5">
             <nav className="space-y-1">
               <NavButton active={activePane === 'overview'} icon={Gauge} label="Overview" onClick={() => setActivePane('overview')} />
+              <NavButton active={activePane === 'launch'} icon={Rocket} label="Launch Gate" onClick={() => setActivePane('launch')} />
               <NavButton active={activePane === 'prompt'} icon={Wand2} label="Prompt Lab" onClick={() => setActivePane('prompt')} />
               <NavButton active={activePane === 'evals'} icon={FlaskConical} label="Eval Lab" onClick={() => setActivePane('evals')} />
               <NavButton active={activePane === 'tools'} icon={Code2} label="Tool Builder" onClick={() => setActivePane('tools')} />
@@ -600,11 +923,11 @@ export default function AIWorkbench({ onClose, onOpenAgent, onOpenLlmSettings, o
 
             <div className="mt-5 rounded-md border border-gray-800 bg-gray-900/50 p-4">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Ship score</span>
-                <span className="font-mono text-base font-semibold text-gray-100">{readinessScore}%</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Launch score</span>
+                <span className="font-mono text-base font-semibold text-gray-100">{launchGate.score}%</span>
               </div>
               <div className="h-2 overflow-hidden rounded bg-gray-800">
-                <div className="h-full bg-cyan-400" style={{ width: `${readinessScore}%` }} />
+                <div className="h-full bg-cyan-400" style={{ width: `${launchGate.score}%` }} />
               </div>
               <div className="mt-3 space-y-2">
                 {readiness.map(item => (
@@ -659,11 +982,34 @@ export default function AIWorkbench({ onClose, onOpenAgent, onOpenLlmSettings, o
                 evalCount={evalCases.length}
                 passRate={passRate}
                 artifactSummary={artifactSummary?.label || ''}
+                launchGate={launchGate}
+                onOpenLaunch={() => setActivePane('launch')}
                 onOpenPrompt={() => setActivePane('prompt')}
                 onOpenEvals={() => setActivePane('evals')}
                 onOpenTools={() => setActivePane('tools')}
                 onOpenOps={() => setActivePane('ops')}
                 onSeedEvals={seedEvalCases}
+                onOpenRequestBuilder={onOpenRequestBuilder}
+              />
+            )}
+            {activePane === 'launch' && (
+              <LaunchGatePane
+                gate={launchGate}
+                controls={LAUNCH_CONTROLS}
+                approvals={launchApprovals}
+                packet={launchPacket}
+                copied={copied}
+                evalRunning={evalRunning}
+                hasUser={!!user}
+                onToggleControl={toggleLaunchApproval}
+                onCopyPacket={() => copy(launchPacket)}
+                onDownloadPacket={() => downloadText(launchPacket, `fetchlab-launch-review-${toolFunctionName(request)}.md`, 'text/markdown')}
+                onOpenPrompt={() => setActivePane('prompt')}
+                onOpenEvals={() => setActivePane('evals')}
+                onOpenTools={() => setActivePane('tools')}
+                onOpenOps={() => setActivePane('ops')}
+                onSeedEvals={seedEvalCases}
+                onRunEvals={runEvals}
                 onOpenRequestBuilder={onOpenRequestBuilder}
               />
             )}
@@ -743,6 +1089,8 @@ function OverviewPane({
   evalCount,
   passRate,
   artifactSummary,
+  launchGate,
+  onOpenLaunch,
   onOpenPrompt,
   onOpenEvals,
   onOpenTools,
@@ -760,6 +1108,8 @@ function OverviewPane({
   evalCount: number;
   passRate: number;
   artifactSummary: string;
+  launchGate: LaunchGate;
+  onOpenLaunch: () => void;
   onOpenPrompt: () => void;
   onOpenEvals: () => void;
   onOpenTools: () => void;
@@ -771,15 +1121,17 @@ function OverviewPane({
     <div className="p-6">
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         <section className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <Metric icon={Cpu} label="Model route" value={providerLabel[activeProvider] || activeProvider} tone={providerConfigured ? 'cyan' : 'amber'} />
             <Metric icon={Layers3} label="API assets" value={`${collectionCount} collections`} tone="blue" />
             <Metric icon={FlaskConical} label="Eval cases" value={`${evalCount} saved`} tone={evalCount ? 'green' : 'amber'} />
             <Metric icon={BarChart3} label="Last pass rate" value={passRate ? `${passRate}%` : 'No runs'} tone={passRate >= 80 ? 'green' : passRate ? 'amber' : 'gray'} />
+            <Metric icon={Rocket} label="Launch gate" value={`${launchGate.score}% ${launchDecisionLabel(launchGate.decision)}`} tone={launchGate.decision === 'ready' ? 'green' : launchGate.decision === 'review' ? 'amber' : 'gray'} />
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
             <WorkCard icon={Sparkles} title="Create API Request" label="Plain English or cURL import" detail="Draft a new request from a description, import a cURL command, then review the generated method, URL, auth, headers, params, and body before sending." cta="Create request" onClick={onOpenRequestBuilder} />
+            <WorkCard icon={Rocket} title="Launch Gate" label="Ship decision and evidence packet" detail="See blockers, warnings, governance checks, eval evidence, and the exact next action needed before an AI workflow can launch." cta="Review launch" onClick={onOpenLaunch} />
             <WorkCard icon={Wand2} title="Prompt Lab" label="Run active route vs local baseline" detail="Use the selected API request and response as prompt context, then compare provider output to a deterministic local baseline." cta="Open Prompt Lab" onClick={onOpenPrompt} />
             <WorkCard icon={FlaskConical} title="Eval Lab" label="Turn behavior into release gates" detail="Seed cases from the current endpoint, run them against the model route, and keep pass/fail evidence for review." cta={evalCount ? 'Open Eval Lab' : 'Seed evals'} onClick={evalCount ? onOpenEvals : onSeedEvals} />
             <WorkCard icon={Code2} title="Tool Builder" label="Export agent-ready tools" detail="Generate OpenAI function schemas, MCP tool skeletons, framework snippets, cURL, and AI-ready context bundles." cta="Build tools" onClick={onOpenTools} />
@@ -830,6 +1182,144 @@ function OverviewPane({
           </Panel>
         </aside>
       </div>
+    </div>
+  );
+}
+
+function LaunchGatePane({
+  gate,
+  controls,
+  approvals,
+  packet,
+  copied,
+  evalRunning,
+  hasUser,
+  onToggleControl,
+  onCopyPacket,
+  onDownloadPacket,
+  onOpenPrompt,
+  onOpenEvals,
+  onOpenTools,
+  onOpenOps,
+  onSeedEvals,
+  onRunEvals,
+  onOpenRequestBuilder,
+}: {
+  gate: LaunchGate;
+  controls: LaunchControl[];
+  approvals: Record<string, boolean>;
+  packet: string;
+  copied: boolean;
+  evalRunning: boolean;
+  hasUser: boolean;
+  onToggleControl: (id: string, checked: boolean) => void;
+  onCopyPacket: () => void;
+  onDownloadPacket: () => void;
+  onOpenPrompt: () => void;
+  onOpenEvals: () => void;
+  onOpenTools: () => void;
+  onOpenOps: () => void;
+  onSeedEvals: () => void;
+  onRunEvals: () => void;
+  onOpenRequestBuilder: () => void;
+}) {
+  const nextItems = gate.blockers.length ? gate.blockers : gate.warnings;
+  return (
+    <div className="grid min-h-full gap-5 p-6 xl:grid-cols-[0.92fr_1.08fr]">
+      <section className="space-y-5">
+        <div className={`rounded-lg border p-6 ${launchDecisionTone(gate.decision)}`}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide opacity-80">Enterprise launch gate</div>
+              <h2 className="mt-2 text-3xl font-semibold text-gray-100">Launch Decision</h2>
+              <p className="mt-2 max-w-[58ch] text-sm leading-6 text-gray-300">
+                Review the API evidence, model route, eval run, tool export path, and governance controls before this AI workflow ships.
+              </p>
+            </div>
+            <div className="shrink-0 text-right">
+              <div className="font-mono text-4xl font-semibold text-gray-100">{gate.score}%</div>
+              <DecisionPill decision={gate.decision} />
+            </div>
+          </div>
+        </div>
+
+        <Panel title="Gate checklist" icon={ClipboardCheck}>
+          <div className="space-y-3">
+            {gate.items.map(item => <LaunchGateRow key={item.id} item={item} />)}
+          </div>
+        </Panel>
+
+        <Panel title="Governance controls" icon={Shield}>
+          <div className="space-y-3">
+            {controls.map(control => (
+              <label key={control.id} className="flex items-start gap-3 rounded-md border border-gray-800 bg-gray-950/70 p-4 text-left">
+                <input
+                  type="checkbox"
+                  checked={!!approvals[control.id]}
+                  onChange={event => onToggleControl(control.id, event.target.checked)}
+                  className="mt-1 h-4 w-4 accent-cyan-400"
+                />
+                <span className="min-w-0">
+                  <span className="flex items-center gap-2 text-sm font-semibold text-gray-100">
+                    {control.label}
+                    {control.required && <span className="rounded bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-300">Required</span>}
+                  </span>
+                  <span className="mt-1 block text-sm leading-6 text-gray-400">{control.detail}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </Panel>
+      </section>
+
+      <section className="space-y-5">
+        <Panel title="Next actions" icon={Rocket}>
+          {nextItems.length ? (
+            <div className="space-y-3">
+              {nextItems.map(item => (
+                <div key={item.id} className="rounded-md border border-gray-800 bg-gray-950/70 p-4">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-100">
+                    {item.status === 'block' ? <XCircle size={16} className="text-red-400" /> : <AlertTriangle size={16} className="text-amber-300" />}
+                    {item.label}
+                  </div>
+                  <div className="mt-2 text-sm leading-6 text-gray-400">{item.action}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Notice tone="amber" icon={CheckCircle2}>No blockers. Attach the launch packet to review and monitor after launch.</Notice>
+          )}
+        </Panel>
+
+        <Panel title="Launch actions" icon={Play}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ActionButton icon={Sparkles} label="Create request" onClick={onOpenRequestBuilder} />
+            <ActionButton icon={Wand2} label="Open Prompt Lab" onClick={onOpenPrompt} />
+            <ActionButton icon={FlaskConical} label="Open Eval Lab" onClick={onOpenEvals} />
+            <ActionButton icon={Sparkles} label="Seed evals" onClick={onSeedEvals} />
+            <ActionButton icon={Play} label={evalRunning ? 'Running evals' : 'Run evals'} onClick={onRunEvals} disabled={evalRunning || !hasUser} />
+            <ActionButton icon={Code2} label="Build tool" onClick={onOpenTools} />
+            <ActionButton icon={Shield} label="Open Ops" onClick={onOpenOps} />
+          </div>
+          {!hasUser && <div className="mt-3"><Notice tone="amber" icon={AlertTriangle}>Sign in to run model-backed evals and complete launch evidence.</Notice></div>}
+        </Panel>
+
+        <Panel title="Launch packet" icon={FileCheck2}>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="text-sm leading-6 text-gray-400">Copy or download the release review artifact.</div>
+            <div className="flex items-center gap-2">
+              <button onClick={onCopyPacket} className="flex h-10 items-center gap-2 rounded-md border border-gray-600 bg-gray-900 px-4 text-sm font-medium text-gray-100 hover:border-cyan-400">
+                {copied ? <CheckCircle2 size={16} className="text-green-400" /> : <Copy size={16} />}
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+              <button onClick={onDownloadPacket} className="flex h-10 items-center gap-2 rounded-md bg-cyan-400 px-4 text-sm font-semibold text-gray-950 hover:bg-cyan-300">
+                <Download size={16} /> Download
+              </button>
+            </div>
+          </div>
+          <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-md border border-gray-800 bg-black/30 p-5 text-sm leading-6 text-gray-200">{packet}</pre>
+        </Panel>
+      </section>
     </div>
   );
 }
@@ -1171,6 +1661,44 @@ function Panel({ title, icon: Icon, children }: { title: string; icon: LucideIco
 function NavButton({ active, icon: Icon, label, onClick }: { active: boolean; icon: LucideIcon; label: string; onClick: () => void }) {
   return (
     <button onClick={onClick} className={`flex h-11 w-full items-center gap-2.5 rounded-md px-3 text-left text-sm font-medium transition-colors ${active ? 'bg-cyan-500/10 text-cyan-200 ring-1 ring-cyan-500/20' : 'text-gray-300 hover:bg-gray-900 hover:text-gray-100'}`}>
+      <Icon size={16} />
+      {label}
+    </button>
+  );
+}
+
+function DecisionPill({ decision }: { decision: LaunchDecision }) {
+  return (
+    <div className={`mt-2 inline-flex rounded-md border px-3 py-1.5 text-sm font-semibold ${launchDecisionTone(decision)}`}>
+      {launchDecisionLabel(decision)}
+    </div>
+  );
+}
+
+function LaunchGateRow({ item }: { item: LaunchGateItem }) {
+  const icon = item.status === 'pass'
+    ? <CheckCircle2 size={17} className="mt-0.5 text-green-400" />
+    : item.status === 'warn'
+      ? <AlertTriangle size={17} className="mt-0.5 text-amber-300" />
+      : <XCircle size={17} className="mt-0.5 text-red-400" />;
+  return (
+    <div className="flex items-start gap-3 rounded-md border border-gray-800 bg-gray-950/70 p-4">
+      {icon}
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="text-sm font-semibold text-gray-100">{item.label}</div>
+          {item.required && <span className="rounded bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-300">Required</span>}
+        </div>
+        <div className="mt-1 text-sm leading-6 text-gray-400">{item.detail}</div>
+        {item.status !== 'pass' && <div className="mt-2 text-sm leading-6 text-gray-200">{item.action}</div>}
+      </div>
+    </div>
+  );
+}
+
+function ActionButton({ icon: Icon, label, onClick, disabled = false }: { icon: LucideIcon; label: string; onClick: () => void; disabled?: boolean }) {
+  return (
+    <button onClick={onClick} disabled={disabled} className="flex h-11 items-center justify-center gap-2 rounded-md border border-gray-600 bg-gray-900 px-4 text-sm font-medium text-gray-100 hover:border-cyan-400 disabled:cursor-not-allowed disabled:opacity-50">
       <Icon size={16} />
       {label}
     </button>

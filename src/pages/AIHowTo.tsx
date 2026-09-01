@@ -38,6 +38,7 @@ const SCOPE_COLUMNS = [
       'Generating LangChain, LlamaIndex, and CrewAI tool wrappers from tested requests.',
       'Triage of Slack incident messages through the AI Ops Agent.',
       'Summarizing agent findings and proposed next steps.',
+      'Preparing Launch Gate packets with blockers, eval evidence, governance checks, and next actions.',
     ],
   },
   {
@@ -51,6 +52,7 @@ const SCOPE_COLUMNS = [
       'It does not make unsafe secrets safe if they are included in request bodies or prompts.',
       'It does not train a model inside FetchLab. Provider retention depends on the configured provider.',
       'It prepares repeatable evidence for security review; your team remains the final approval gate.',
+      'It does not declare a launch safe when required evals, rollback, owner, or approval checks are missing.',
     ],
   },
   {
@@ -76,14 +78,31 @@ const WORKFLOWS = [
     steps: [
       'Open the app and click AI Workbench in the header.',
       'Start in Overview to check the active model route, selected API request, latest response, eval count, and agent readiness.',
+      'Open Launch Gate to see blockers, warnings, governance controls, and the launch score.',
       'Use Create API Request to draft a new API call from plain English or to import a cURL command.',
       'Use Prompt Lab to run prompts with live API context and compare the active provider against the local baseline.',
       'Use Eval Lab to seed test cases from the current request and response, then run pass/fail checks before changing prompts or models.',
       'Use Tool Builder to export OpenAI tool schemas, MCP tool skeletons, agent framework snippets, cURL, or AI-ready context bundles.',
       'Use Ops to configure BYOK providers, open the agent monitor, and review security controls.',
+      'Copy or download the Launch Gate packet for release review.',
     ],
     example: 'Run GET /v1/orders, open AI Workbench, seed evals from the response, compare the active provider to the local baseline, then export an MCP tool.',
     caution: 'Treat workbench outputs as reviewable engineering artifacts. Run evals and confirm the target environment before shipping AI changes.',
+  },
+  {
+    id: 'launch-gate',
+    label: 'Launch Gate',
+    title: 'Prepare an enterprise AI launch review',
+    steps: [
+      'Open AI Workbench, then choose Launch Gate.',
+      'Review the launch score and decision: Ready, Needs review, or Blocked.',
+      'Clear hard blockers by selecting an API request, capturing a response, configuring the model route, and running evals.',
+      'Complete the required governance controls: owner, secrets review, fallback, human approval, and rollback plan.',
+      'Use the Launch actions to seed evals, run evals, build tools, or open Ops without leaving the review workflow.',
+      'Copy or download the Launch packet and attach it to the release, security, or implementation review.',
+    ],
+    example: 'Before launching an AI support assistant, capture the billing API response, run prompt evals, check fallback and rollback, then export the Launch packet for approval.',
+    caution: 'Launch Gate is a decision workflow, not a waiver. A human owner still approves production release.',
   },
   {
     id: 'request-builder',
@@ -364,8 +383,8 @@ export default function AIHowTo() {
             </h1>
           </div>
           <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
-            Use AI Workbench to draft requests, parse cURL, test prompts, run evals, export agent tools,
-            explain failures, and triage API incidents. Keep it review-first: configure the provider deliberately,
+            Use AI Workbench to draft requests, parse cURL, test prompts, run evals, review Launch Gate readiness,
+            export agent tools, explain failures, and triage API incidents. Keep it review-first: configure the provider deliberately,
             inspect every generated request, and avoid sending secrets unless your retention and provider setup allow it.
           </p>
         </section>

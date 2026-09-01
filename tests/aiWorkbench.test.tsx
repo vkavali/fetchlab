@@ -83,6 +83,7 @@ describe('AIWorkbench', () => {
 
     expect(screen.getByText('AI Workbench')).toBeTruthy();
     expect(screen.getAllByText('Prompt Lab').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Launch Gate').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Eval Lab').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Tool Builder').length).toBeGreaterThan(0);
     expect(screen.getByText('Create API Request')).toBeTruthy();
@@ -93,6 +94,14 @@ describe('AIWorkbench', () => {
       fireEvent.click(screen.getByText('Create API Request'));
     });
     expect(onOpenRequestBuilder).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      fireEvent.click(screen.getAllByText('Launch Gate')[0]);
+    });
+    expect(screen.getByText('Launch Decision')).toBeTruthy();
+    expect(screen.getByText('Gate checklist')).toBeTruthy();
+    expect(screen.getByText('Governance controls')).toBeTruthy();
+    expect(screen.getByText('Launch packet')).toBeTruthy();
 
     await act(async () => {
       fireEvent.click(screen.getAllByText('Tool Builder')[0]);

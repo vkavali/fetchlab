@@ -157,8 +157,8 @@ export default function Enterprise() {
             <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
               FetchLab is a browser app and Windows desktop installer for teams building AI products.
               It combines an API Workbench for requests, collections, environments, and protocol testing
-              with an AI Workbench for model providers, AI-assisted tests, agent monitoring, eval prep, and coding-agent workflows.
-              Enterprise pilots add self-hosted deployment, PostgreSQL, RBAC, encrypted secrets, audit logs, SCIM, retention controls, and OIDC SSO.
+              with an AI Workbench for Launch Gate reviews, model providers, AI-assisted tests, agent monitoring, eval prep, and coding-agent workflows.
+              Enterprise pilots add self-hosted deployment, PostgreSQL, RBAC, encrypted secrets, audit logs, SCIM, retention controls, OIDC SSO, and launch evidence packets.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <a
