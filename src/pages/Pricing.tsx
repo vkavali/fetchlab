@@ -177,6 +177,9 @@ type Cell = string | { USD: string; INR: string } | boolean | null;
 const PLAN_ROWS: { label: string; cells: [Cell, Cell, Cell, Cell] }[] = [
   { label: 'Local requests',         cells: ['unlimited', 'unlimited', 'unlimited', 'unlimited'] },
   { label: 'Collections',            cells: ['3', 'unlimited', 'unlimited', 'unlimited'] },
+  { label: 'Autonomy studies',       cells: ['1', 'unlimited', 'unlimited', 'unlimited'] },
+  { label: 'Autonomy Contract export', cells: [true, true, true, true] },
+  { label: 'Shared pilot evidence',  cells: [null, null, true, true] },
   { label: 'AI request builder',     cells: [null, true, true, true] },
   { label: 'Test generation',        cells: [null, true, true, true] },
   { label: 'Error diagnosis (AI)',   cells: [null, true, true, true] },

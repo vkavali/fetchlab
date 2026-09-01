@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/useApp';
 import { useAuth } from '../auth/useAuth';
-import { PanelLeftClose, PanelLeft, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, LogOut, LogIn, User as UserIcon, Users, Bot, Shield, Cpu } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, LogOut, LogIn, User as UserIcon, Users, Scale, Shield, Cpu } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import HelpMenu from './HelpMenu';
 import HealthDashboard from './HealthDashboard';
@@ -12,6 +12,7 @@ import FlowBuilder from './FlowBuilder';
 import AIRequestBuilder from './AIRequestBuilder';
 import AgentDashboard from './AgentDashboard';
 import AIWorkbench from './AIWorkbench';
+import AutonomyLab from './AutonomyLab';
 import SecuritySettings from './SecuritySettings';
 import LLMSettings from './LLMSettings';
 import { FetchLabLogo } from './FetchLabLogo';
@@ -47,6 +48,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
   const [showAi, setShowAi] = useState(false);
   const [showAgent, setShowAgent] = useState(false);
   const [showAIWorkbench, setShowAIWorkbench] = useState(false);
+  const [showAutonomyLab, setShowAutonomyLab] = useState(false);
   const [showSecurity, setShowSecurity] = useState(false);
   const [showLlmSettings, setShowLlmSettings] = useState(false);
 
@@ -92,15 +94,15 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
         </div>
 
         <div className="flex items-center gap-0.5" style={{ color: 'var(--color-text-muted)' }}>
-          {/* AI Workbench */}
+          {/* Autonomy Lab */}
           <button
-            onClick={() => setShowAIWorkbench(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
-            style={{ color: 'var(--color-text-muted)' }}
-            title="AI Workbench - model gateway, evals, agents, and coding flows"
+            onClick={() => setShowAutonomyLab(true)}
+            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] font-semibold hover:bg-[color:var(--color-surface-3)]"
+            style={{ color: 'var(--color-text)' }}
+            title="Test and approve an AI workflow's operating authority"
           >
-            <Bot size={13} />
-            <span className="hidden sm:inline">AI Workbench</span>
+            <Scale size={14} style={{ color: 'var(--color-accent)' }} />
+            <span className="hidden sm:inline">Autonomy Lab</span>
           </button>
 
           <button
@@ -335,6 +337,15 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
         <AIRequestBuilder onClose={() => setShowAi(false)} />
       )}
 
+      {/* Autonomy Lab */}
+      {showAutonomyLab && (
+        <AutonomyLab
+          key={activeWorkspaceId || 'local'}
+          onClose={() => setShowAutonomyLab(false)}
+          onOpenAdvanced={() => { setShowAutonomyLab(false); setShowAIWorkbench(true); }}
+          onOpenRequestBuilder={() => { setShowAutonomyLab(false); setShowAi(true); }}
+        />
+      )}
       {/* AI Workbench */}
       {showAIWorkbench && (
         <AIWorkbench

@@ -29,5 +29,7 @@ describe('PostgreSQL schema migrations', () => {
     expect(schema).toContain('ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ');
     expect(schema).toContain('ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret_enc TEXT');
     expect(schema).toContain("ALTER TABLE users ADD COLUMN IF NOT EXISTS recovery_codes_hashed JSONB NOT NULL DEFAULT '[]'::jsonb");
+    expect(schema).toContain('CREATE TABLE IF NOT EXISTS autonomy_studies');
+    expect(schema).toContain('idx_autonomy_studies_workspace');
   });
 });

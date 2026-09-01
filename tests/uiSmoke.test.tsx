@@ -46,7 +46,7 @@ describe('client route smoke', () => {
 
   it('renders the landing page', () => {
     renderAt('/');
-    expect(screen.getByText('Build AI products faster.')).toBeTruthy();
+    expect(screen.getByText('Decide how your AI should act.')).toBeTruthy();
     expect(screen.getAllByText('Start free').length).toBeGreaterThan(0);
     expect(document.body.textContent).not.toMatch(/[\u00e2\u00c2\u00c3\ufffd]/);
   });
@@ -76,7 +76,7 @@ describe('client route smoke', () => {
 
   it('renders the enterprise page', () => {
     renderAt('/enterprise');
-    expect(screen.getByText('One workbench for API and AI engineering teams.')).toBeTruthy();
+    expect(screen.getByText('Prove AI authority before production.')).toBeTruthy();
     expect(screen.getByText('What teams get today')).toBeTruthy();
     expect(screen.getByText('How enterprise pilots run')).toBeTruthy();
   });

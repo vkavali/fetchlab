@@ -128,6 +128,122 @@ export function buildWorkspacesRouter() {
     res.json({ ok: true });
   });
 
+  // Autonomy studies
+  router.get('/:id/autonomy-studies', async (req, res) => {
+    if (!(await memberOrFail(req, res, req.params.id))) return;
+    const rows = await db.listAutonomyStudies(req.params.id);
+    res.json({ studies: rows.map(row => ({ ...row, data: decryptSecrets(row.data) })) });
+  });
+
+  router.post('/:id/autonomy-studies', async (req, res) => {
+    if (!(await memberOrFail(req, res, req.params.id, 'member'))) return;
+    const { id, name, status = 'draft', data } = req.body || {};
+    if (!name || typeof name !== 'string') return res.status(400).json({ error: 'name required' });
+    if (!['draft', 'rehearsal', 'pilot', 'decided'].includes(status)) {
+      return res.status(400).json({ error: 'invalid status' });
+    }
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return res.status(400).json({ error: 'data object required' });
+    }
+    const study = await db.upsertAutonomyStudy({
+      id,
+      workspace_id: req.params.id,
+      created_by: req.user.id,
+      name: name.trim(),
+      status,
+      data: encryptSecrets(data),
+    });
+    if (!study) return res.status(409).json({ error: 'Study id belongs to another workspace' });
+    await appendAudit({
+      user_id: req.user.id,
+      workspace_id: req.params.id,
+      action: 'autonomy.study.upsert',
+      target_type: 'autonomy_study',
+      target_id: study.id,
+      detail: { name: name.trim(), status },
+      ip: req.ip,
+    });
+    res.json({ study: { ...study, data: decryptSecrets(study.data) } });
+  });
+
+  router.delete('/:id/autonomy-studies/:studyId', async (req, res) => {
+    if (!(await memberOrFail(req, res, req.params.id, 'member'))) return;
+    const removed = await db.deleteAutonomyStudy(req.params.studyId, req.params.id);
+    if (!removed) return res.status(404).json({ error: 'Study not found' });
+    await appendAudit({
+      user_id: req.user.id,
+      workspace_id: req.params.id,
+      action: 'autonomy.study.delete',
+      target_type: 'autonomy_study',
+      target_id: req.params.studyId,
+      ip: req.ip,
+    });
+    res.json({ ok: true });
+  });
+
+  router.post('/:id/autonomy-studies/:studyId/tunnel', async (req, res) => {
+    if (!(await memberOrFail(req, res, req.params.id, 'member'))) return;
+    if (!process.env.TUNNEL_URL) {
+      return res.status(503).json({ error: 'Tunnel integration is not configured', fallback: 'copy' });
+    }
+
+    const studies = await db.listAutonomyStudies(req.params.id);
+    const stored = studies.find(study => study.id === req.params.studyId);
+    if (!stored) return res.status(404).json({ error: 'Study not found' });
+
+    const { handoff } = req.body || {};
+    const contract = handoff?.autonomy_contract;
+    if (handoff?.kind !== 'agent-tunnel.task' || typeof handoff.objective !== 'string' || !handoff.objective.trim()) {
+      return res.status(400).json({ error: 'Valid Tunnel handoff required' });
+    }
+    if (handoff.objective.length > 100000) return res.status(413).json({ error: 'Tunnel objective is too large' });
+    if (contract?.study_id !== stored.id || contract?.authority?.selected_level !== stored.data?.selectedLevel) {
+      return res.status(409).json({ error: 'Handoff authority does not match the saved study' });
+    }
+
+    let endpoint;
+    try {
+      const base = new URL(process.env.TUNNEL_URL);
+      if (!['http:', 'https:'].includes(base.protocol)) throw new Error('unsupported protocol');
+      endpoint = new URL('/api/tasks', base).toString();
+    } catch {
+      return res.status(500).json({ error: 'TUNNEL_URL is invalid' });
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    try {
+      const upstream = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          objective: handoff.objective,
+          agents: [],
+          budget_mode: 'standard',
+        }),
+        signal: controller.signal,
+      });
+      const payload = await upstream.json().catch(() => ({}));
+      if (!upstream.ok || !payload.task_id) {
+        return res.status(502).json({ error: 'Tunnel rejected the handoff', status: upstream.status });
+      }
+      await appendAudit({
+        user_id: req.user.id,
+        workspace_id: req.params.id,
+        action: 'autonomy.study.handoff',
+        target_type: 'autonomy_study',
+        target_id: stored.id,
+        detail: { tunnel_task_id: payload.task_id, authority: stored.data?.selectedLevel },
+        ip: req.ip,
+      });
+      return res.json({ task_id: payload.task_id });
+    } catch (error) {
+      const message = error?.name === 'AbortError' ? 'Tunnel handoff timed out' : 'Tunnel is unreachable';
+      return res.status(502).json({ error: message });
+    } finally {
+      clearTimeout(timeout);
+    }
+  });
   // Environments
   router.get('/:id/environments', async (req, res) => {
     if (!(await memberOrFail(req, res, req.params.id))) return;

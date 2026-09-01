@@ -23,6 +23,7 @@ function freshMemStore() {
     api_tokens: [],
     audit_log: [],
     oidc_configs: [],
+    autonomy_studies: [],
     sessions: [],
     login_attempts: [],
     agent_issues: [],
@@ -155,6 +156,17 @@ CREATE TABLE IF NOT EXISTS api_tokens (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS autonomy_studies (
+  id UUID PRIMARY KEY,
+  workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft',
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS audit_log (
   id UUID PRIMARY KEY,
   user_id UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -275,6 +287,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAU
 CREATE INDEX IF NOT EXISTS idx_audit_log_workspace ON audit_log(workspace_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_log_user ON audit_log(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_collections_workspace ON collections(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_autonomy_studies_workspace ON autonomy_studies(workspace_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_history_workspace ON history(workspace_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_issues_workspace ON agent_issues(workspace_id, detected_at DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_issues_status ON agent_issues(status);
@@ -645,6 +658,75 @@ export async function deleteCollection(id) {
     memStore.collections = memCollection('collections').filter(c => c.id !== id);
     await persistFile();
   }
+}
+
+// ============ Autonomy Studies ============
+export async function listAutonomyStudies(workspaceId) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT * FROM autonomy_studies WHERE workspace_id = $1 ORDER BY updated_at DESC`,
+      [workspaceId]
+    );
+    return rows;
+  }
+  return memCollection('autonomy_studies')
+    .filter(study => study.workspace_id === workspaceId)
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+}
+
+export async function upsertAutonomyStudy({ id, workspace_id, created_by, name, status = 'draft', data }) {
+  const studyId = id || newId();
+  const now = new Date().toISOString();
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `INSERT INTO autonomy_studies (id, workspace_id, created_by, name, status, data, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
+       ON CONFLICT (id) DO UPDATE SET
+         name = EXCLUDED.name,
+         status = EXCLUDED.status,
+         data = EXCLUDED.data,
+         updated_at = EXCLUDED.updated_at
+       WHERE autonomy_studies.workspace_id = EXCLUDED.workspace_id
+       RETURNING *`,
+      [studyId, workspace_id, created_by || null, name, status, data || {}, now]
+    );
+    return rows[0] || null;
+  }
+
+  const list = memCollection('autonomy_studies');
+  const index = list.findIndex(study => study.id === studyId);
+  if (index >= 0 && list[index].workspace_id !== workspace_id) return null;
+  if (index >= 0) {
+    list[index] = { ...list[index], name, status, data: data || {}, updated_at: now };
+  } else {
+    list.push({
+      id: studyId,
+      workspace_id,
+      created_by: created_by || null,
+      name,
+      status,
+      data: data || {},
+      created_at: now,
+      updated_at: now,
+    });
+  }
+  await persistFile();
+  return list.find(study => study.id === studyId) || null;
+}
+
+export async function deleteAutonomyStudy(id, workspaceId) {
+  if (mode === 'pg') {
+    const { rowCount } = await pgQuery(
+      `DELETE FROM autonomy_studies WHERE id = $1 AND workspace_id = $2`,
+      [id, workspaceId]
+    );
+    return rowCount > 0;
+  }
+  const list = memCollection('autonomy_studies');
+  const before = list.length;
+  memStore.autonomy_studies = list.filter(study => study.id !== id || study.workspace_id !== workspaceId);
+  await persistFile();
+  return memStore.autonomy_studies.length < before;
 }
 
 export async function listEnvironments(workspaceId) {

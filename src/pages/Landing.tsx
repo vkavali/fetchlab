@@ -408,321 +408,132 @@ function Nav() {
   );
 }
 
-/* ---------- Hero visual: the Postmortem Specimen ----------
- *
- * Not a screenshot of the tool. Not a "look, JSON" hero.
- * The agent's deliverable - a printed-incident-report card. The product
- * is the agent's investigation; we show its output.
- * ------------------------------------------------------------------ */
+/* ---------- Hero visual: Autonomy Study decision record ---------- */
 
-function PostmortemSpecimen() {
-  const [progress, setProgress] = useState(0); // 0..5 reveal stages
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [scanY, setScanY] = useState(0);
-  const [scanOpacity, setScanOpacity] = useState(0);
-  const { country } = useCountry();
-  const tz = country === 'IN' ? 'IST' : 'UTC';
-
-  // Progressive row reveal
-  useEffect(() => {
-    let n = 0;
-    const id = setInterval(() => {
-      n += 1;
-      setProgress(n);
-      if (n >= 5) clearInterval(id);
-    }, 320);
-    return () => clearInterval(id);
-  }, []);
-
-  // Scanner pass - one-shot forensic line that travels top->bottom
-  useEffect(() => {
-    if (!cardRef.current) return;
-    const cardHeight = cardRef.current.offsetHeight;
-    const dur = 1500;
-    const delay = 700;
-    const start = performance.now();
-    let raf = 0;
-    const tick = (now: number) => {
-      const elapsed = now - start;
-      if (elapsed < delay) {
-        raf = requestAnimationFrame(tick);
-        return;
-      }
-      const t = Math.min(1, (elapsed - delay) / dur);
-      const eased = 1 - Math.pow(1 - t, 5); // ease-out-quint
-      setScanY(eased * cardHeight);
-      // Fade-in over first 8%, hold, fade-out over last 12%
-      let op = 0;
-      if (t < 0.08) op = (t / 0.08) * 0.7;
-      else if (t > 0.88) op = ((1 - t) / 0.12) * 0.7;
-      else op = 0.7;
-      setScanOpacity(op);
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  const border = '1px solid var(--color-border)';
-  const borderStrong = '1px solid var(--color-border-strong)';
-
-  const renderRow = ({ k, v, mono = false, valueColor, revealed }: { k: string; v: React.ReactNode; mono?: boolean; valueColor?: string; revealed: boolean }) => (
-    <div className="grid" style={{ gridTemplateColumns: '108px 1fr', padding: '10px 18px', borderBottom: border, alignItems: 'baseline', gap: 18 }}>
-      <span
-        className="font-mono"
-        style={{
-          fontSize: 10.5,
-          letterSpacing: '0.16em',
-          textTransform: 'uppercase',
-          color: 'var(--color-text-subtle)',
-          display: 'inline-flex',
-          alignItems: 'center',
-        }}
-      >
-        {/* Tiny L-bracket marker that rotates into place when the row reveals */}
-        <span
-          aria-hidden
-          style={{
-            display: 'inline-block',
-            width: 6, height: 6,
-            borderTop: '1px solid var(--color-accent)',
-            borderLeft: '1px solid var(--color-accent)',
-            marginRight: 8,
-            opacity: revealed ? 0.85 : 0,
-            transform: revealed ? 'rotate(0deg)' : 'rotate(-90deg)',
-            transition: `opacity 360ms ${EASE} 80ms, transform 420ms ${EASE}`,
-          }}
-        />
-        {k}
-      </span>
-      <span
-        className={mono ? 'font-mono' : ''}
-        style={{
-          fontSize: mono ? 13 : 13.5,
-          color: valueColor ?? 'var(--color-text)',
-          lineHeight: 1.55,
-        }}
-      >
-        {v}
-      </span>
-    </div>
-  );
+function AutonomySpecimen() {
+  const variants = [
+    { label: 'Recommend only', pilot: 3, success: '86%', policy: '0', selected: false },
+    { label: 'Draft for review', pilot: 5, success: '92%', policy: '0', selected: false },
+    { label: 'Act after approval', pilot: 8, success: '94%', policy: '0', selected: true },
+    { label: 'Bounded autonomous', pilot: 3, success: '67%', policy: '2', selected: false },
+  ];
 
   return (
     <div
-      ref={cardRef}
       style={{
         background: 'var(--color-surface)',
-        border: borderStrong,
+        border: '1px solid var(--color-border-strong)',
         borderRadius: 8,
-        position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Scanner pass - a single forensic line travels top->bottom once */}
-      <span
-        aria-hidden
-        style={{
-          position: 'absolute',
-          left: 0, right: 0, top: 0,
-          height: 1,
-          background: 'var(--color-accent)',
-          transform: `translateY(${scanY}px)`,
-          opacity: scanOpacity,
-          pointerEvents: 'none',
-          zIndex: 5,
-          willChange: 'transform, opacity',
-        }}
-      />
-      {/* Plate / sheet header - like the top of a printed form */}
       <div
         className="flex items-center justify-between"
-        style={{
-          padding: '14px 18px 12px',
-          borderBottom: border,
-          background: 'var(--color-surface-2)',
-        }}
+        style={{ padding: '13px 16px', borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}
       >
-        <div className="flex items-baseline gap-3">
+        <div className="flex items-center gap-3">
           <span
             className="font-mono"
-            style={{
-              fontSize: 11,
-              letterSpacing: '0.20em',
-              textTransform: 'uppercase',
-              color: 'var(--color-accent)',
-              fontWeight: 600,
-            }}
+            style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 650 }}
           >
-            POSTMORTEM
+            Autonomy study
           </span>
-          <span
-            className="font-mono"
-            style={{ fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--color-text-subtle)' }}
-          >
-            - SPECIMEN <Counter target="0042" pad={4} duration={900} />
+          <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.1em' }}>
+            Study 0042
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--color-success)' }} />
-          <span
-            className="font-mono"
-            style={{ fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}
-          >
-            Closed - 4m 12s
+          <span style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--color-success)' }} />
+          <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-success)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            Decision ready
           </span>
         </div>
       </div>
 
-      {/* Subject - what was hurting */}
-      <div style={{ padding: '20px 18px 14px', borderBottom: border }}>
+      <div style={{ padding: '18px 16px 15px' }}>
+        <div className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 7 }}>
+          Workflow
+        </div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 650, lineHeight: 1.2 }}>
+          Refund exception handling
+        </div>
+        <div className="flex flex-wrap gap-4" style={{ marginTop: 9, color: 'var(--color-text-muted)', fontSize: 12.5 }}>
+          <span>Owner: Revenue operations</span>
+          <span>Risk: Medium</span>
+          <span>Source: POST /v1/refunds</span>
+        </div>
+      </div>
+
+      <div
+        style={{
+          padding: '15px 16px',
+          borderTop: '1px solid var(--color-border)',
+          borderBottom: '1px solid var(--color-border)',
+          borderLeft: '4px solid var(--color-accent)',
+          background: 'var(--color-accent-soft)',
+        }}
+      >
+        <div className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          Selected authority ceiling
+        </div>
+        <div className="flex items-end justify-between gap-4" style={{ marginTop: 5 }}>
+          <div>
+            <strong style={{ display: 'block', fontSize: 17 }}>Act after approval</strong>
+            <span style={{ color: 'var(--color-text-muted)', fontSize: 12.5 }}>Human approves the exact action. AI executes and verifies it.</span>
+          </div>
+          <span className="font-mono" style={{ color: 'var(--color-success)', fontSize: 11, letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>
+            8 PILOT
+          </span>
+        </div>
+      </div>
+
+      <div>
         <div
-          className="font-mono"
-          style={{ fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--color-text-subtle)', marginBottom: 8 }}
+          className="grid"
+          style={{ gridTemplateColumns: 'minmax(0, 1fr) 58px 62px 58px', gap: 8, padding: '9px 16px', borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-subtle)', fontSize: 10.5 }}
         >
-          Subject
+          <span>Authority variant</span><span>Pilot</span><span>Success</span><span>Events</span>
         </div>
-        <div
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 19,
-            letterSpacing: '-0.015em',
-            fontWeight: 600,
-            color: 'var(--color-text)',
-            lineHeight: 1.25,
-          }}
-        >
-          <span className="font-mono" style={{ fontSize: 14, color: 'var(--color-error)', marginRight: 6 }}>500</span>
-          cascade on <span className="font-mono" style={{ fontSize: 14, color: 'var(--color-text)' }}>POST /v1/orders</span>
-          <br />
-          for <span style={{ color: 'var(--color-text-muted)' }}>84% of write traffic</span>
-        </div>
-      </div>
-
-      <div
-        style={{
-          opacity: progress >= 1 ? 1 : 0,
-          transform: progress >= 1 ? 'translateY(0)' : 'translateY(4px)',
-          transition: `opacity 360ms ${EASE}, transform 360ms ${EASE}`,
-        }}
-      >
-        {renderRow({ revealed: progress >= 1, k: 'Detected', v: <>14:02 {tz} - validator threw <span className="font-mono">SchemaError</span></> })}
-      </div>
-      <div
-        style={{
-          opacity: progress >= 2 ? 1 : 0,
-          transform: progress >= 2 ? 'translateY(0)' : 'translateY(4px)',
-          transition: `opacity 360ms ${EASE}, transform 360ms ${EASE}`,
-        }}
-      >
-        {renderRow({ revealed: progress >= 2, k: 'Reproduced', v: <>4 of 4 calls - 100% repro - staging mirrored</> })}
-      </div>
-      <div
-        style={{
-          opacity: progress >= 3 ? 1 : 0,
-          transform: progress >= 3 ? 'translateY(0)' : 'translateY(4px)',
-          transition: `opacity 360ms ${EASE}, transform 360ms ${EASE}`,
-        }}
-      >
-        {renderRow({
-          revealed: progress >= 3,
-          k: 'Root cause',
-          v: <>deploy <span className="font-mono">a3f2c</span> removed <span className="font-mono">customer_id</span> from the request validator</>,
-        })}
-      </div>
-
-      {/* The diff - small, instrument-clean */}
-      <div
-        style={{
-          padding: '14px 18px',
-          borderBottom: border,
-          background: 'var(--color-surface-2)',
-          opacity: progress >= 4 ? 1 : 0,
-          transform: progress >= 4 ? 'translateY(0)' : 'translateY(4px)',
-          transition: `opacity 360ms ${EASE}, transform 360ms ${EASE}`,
-        }}
-      >
-        <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
-          <span
-            className="font-mono"
-            style={{ fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}
+        {variants.map((variant) => (
+          <div
+            key={variant.label}
+            className="grid"
+            style={{
+              gridTemplateColumns: 'minmax(0, 1fr) 58px 62px 58px',
+              gap: 8,
+              alignItems: 'center',
+              padding: '11px 16px',
+              borderBottom: '1px solid var(--color-border)',
+              background: variant.selected ? 'var(--color-accent-soft)' : 'transparent',
+              boxShadow: variant.selected ? 'inset 4px 0 0 var(--color-accent)' : 'none',
+              fontSize: 12.5,
+            }}
           >
-            Proposed diff
-          </span>
-          <span
-            className="font-mono"
-            style={{ fontSize: 10.5, color: 'var(--color-text-subtle)' }}
-          >
-            schemas/order.ts - +1 -0
-          </span>
-        </div>
-        <div
-          className="font-mono"
-          style={{ fontSize: 12, lineHeight: 1.65, color: 'var(--color-text)' }}
-        >
-          {[
-            { text: '  qty:        z.number().int().positive(),', kind: 'ctx' as const },
-            { text: '+ customer_id: z.string().uuid(),',          kind: 'add' as const },
-            { text: '  metadata:   z.record(z.string()).optional(),', kind: 'ctx' as const },
-          ].map((line, i) => {
-            const reveal = progress >= 4;
-            const delay = 90 * i;
-            const style: React.CSSProperties = {
-              opacity: reveal ? 1 : 0,
-              transform: reveal ? 'translateX(0)' : 'translateX(-3px)',
-              transition: `opacity 360ms ${EASE} ${delay}ms, transform 360ms ${EASE} ${delay}ms`,
-              whiteSpace: 'pre',
-            };
-            if (line.kind === 'add') {
-              return (
-                <div
-                  key={i}
-                  style={{
-                    ...style,
-                    background: 'color-mix(in oklch, var(--color-success) 14%, transparent)',
-                    color: 'var(--color-success)',
-                  }}
-                >
-                  {line.text}
-                </div>
-              );
-            }
-            return (
-              <div key={i} style={style}>
-                {line.text}
-              </div>
-            );
-          })}
-        </div>
+            <span style={{ fontWeight: variant.selected ? 700 : 500 }}>{variant.label}</span>
+            <span className="font-mono">{variant.pilot}</span>
+            <span className="font-mono" style={{ color: variant.success === '67%' ? 'var(--color-warning)' : 'var(--color-success)' }}>{variant.success}</span>
+            <span className="font-mono" style={{ color: variant.policy === '0' ? 'var(--color-text-muted)' : 'var(--color-error)' }}>{variant.policy}</span>
+          </div>
+        ))}
       </div>
 
-      {/* Resolution */}
-      <div
-        className="flex items-center justify-between"
-        style={{
-          padding: '14px 18px',
-          opacity: progress >= 5 ? 1 : 0,
-          transform: progress >= 5 ? 'translateY(0)' : 'translateY(4px)',
-          transition: `opacity 360ms ${EASE}, transform 360ms ${EASE}`,
-        }}
-      >
-        <span style={{ fontSize: 13, color: 'var(--color-text)' }}>
-          <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--color-text-subtle)', marginRight: 10 }}>
-            Resolution
+      <div className="flex items-center justify-between gap-4" style={{ padding: '14px 16px', background: 'var(--color-surface-2)' }}>
+        <div>
+          <span className="font-mono" style={{ display: 'block', fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            Autonomy contract
           </span>
-          PR <span className="font-mono" style={{ color: 'var(--color-accent)' }}>#1284</span> opened by FetchLab - merged by @ada
-        </span>
+          <strong style={{ display: 'block', marginTop: 4, fontSize: 13.5 }}>4 policy rules - 5 acceptance checks</strong>
+        </div>
         <span
           className="font-mono"
-          style={{ fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}
+          style={{ padding: '7px 9px', border: '1px solid var(--color-accent)', borderRadius: 4, color: 'var(--color-accent)', fontSize: 10.5, letterSpacing: '0.1em', whiteSpace: 'nowrap' }}
         >
-          Form A-7
+          TUNNEL HANDOFF READY
         </span>
       </div>
     </div>
   );
 }
-
 /* ---------- Hero ---------- */
 
 function Hero() {
@@ -758,38 +569,38 @@ function Hero() {
                 paddingLeft: 16,
               }}
             >
-              API + AI workbench
+              API Workbench + Autonomy Lab
             </span>
           </div>
         </Reveal>
 
         <Reveal delay={40}>
           <div style={{ marginBottom: 32 }}>
-            <Eyebrow index="00">Browser app + Windows installer + enterprise backend</Eyebrow>
+            <Eyebrow index="00">Test the API. Prove the authority. Hand off the build.</Eyebrow>
           </div>
         </Reveal>
 
         <Reveal delay={100}>
           <h1
+            className="text-[48px] md:text-[72px] lg:text-[96px]"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(46px, 9vw, 132px)',
-              lineHeight: 0.92,
-              letterSpacing: '-0.04em',
+              lineHeight: 0.95,
+              letterSpacing: 0,
               fontWeight: 600,
               color: 'var(--color-text)',
               marginBottom: 0,
             }}
           >
-            Build AI products faster.<br />
+            Decide how your AI should act.<br />
             <span style={{ color: 'var(--color-text-muted)' }}>
-              Test APIs, models, and agents in one app.
+              Prove it before you build.
             </span>
           </h1>
         </Reveal>
 
         <div
-          className="grid lg:grid-cols-[1fr_1.05fr] gap-12 lg:gap-16 items-end"
+          className="grid lg:grid-cols-[1fr_1.05fr] gap-12 lg:gap-16 items-start"
           style={{ marginTop: 56 }}
         >
           <Reveal delay={180}>
@@ -803,9 +614,9 @@ function Hero() {
                   marginBottom: 30,
                 }}
               >
-                FetchLab is the web and desktop workbench for teams building AI products. Send requests,
-                organize collections, compare responses, configure model providers, generate tests,
-                monitor incidents, and hand clean context to coding agents.
+                FetchLab turns a real workflow into a tested operating boundary for AI. Use the API Workbench
+                to capture evidence, compare human and AI authority levels in Autonomy Lab, then issue a contract
+                that security, product, and engineering can review before Tunnel or another coding agent builds it.
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -819,7 +630,7 @@ function Hero() {
           </Reveal>
 
           <Reveal delay={240}>
-            <PostmortemSpecimen />
+            <AutonomySpecimen />
           </Reveal>
         </div>
       </div>
@@ -892,7 +703,7 @@ function Declaration() {
             }}
           >
             One API Workbench for requests, collections, environments, protocols, and scripts.
-            One AI Workbench for Launch Gates, provider routing, eval evidence, agent tools, and coding handoff.
+            One Autonomy Lab for authority experiments, pilot evidence, policy limits, contracts, and build handoff.
           </p>
           <div
             className="font-mono"
@@ -922,11 +733,11 @@ const LOG_ENTRIES: LogEntry[] = [
   { t: '00:00:01', stage: 'web app',    line: '/app opens the full API Workbench in the browser', mark: 'ok' },
   { t: '00:00:06', stage: 'desktop',    line: 'Windows EXE and MSI installers are available from /download', mark: 'ok' },
   { t: '00:00:11', stage: 'api bench',  line: 'requests, collections, environments, scripts, WebSocket, SSE, OpenAPI', mark: 'ok' },
-  { t: '00:00:18', stage: 'ai bench',   line: 'Launch Gate, BYOK providers, local mode, generated requests, evals, and diagnosis', mark: 'ok' },
+  { t: '00:00:18', stage: 'autonomy',   line: 'recommend, draft, approval, and bounded-autonomous variants compared', mark: 'ok' },
   { t: '00:00:26', stage: 'teams',      line: 'workspace members use admin, member, and viewer roles', mark: 'ok' },
   { t: '00:00:31', stage: 'security',   line: 'JWT sessions, 2FA, lockouts, AES-256-GCM credential encryption', mark: 'ok' },
   { t: '00:00:37', stage: 'enterprise', line: 'PostgreSQL, audit logs, retention, OIDC SSO, and SCIM endpoints', mark: 'ok' },
-  { t: '00:00:43', stage: 'agent',      line: 'Slack/API incident detector and coding-agent handoff workflows', mark: 'ok' },
+  { t: '00:00:43', stage: 'handoff',    line: 'Autonomy Contract exported as a policy-bounded Tunnel build task', mark: 'ok' },
   { t: '00:00:50', stage: 'release',    line: 'Launch packet, lint, build, audit, runtime, local-file, and Postgres smoke checks pass', mark: 'ok' },
   { t: '00:00:58', stage: 'ready',      line: 'one product surface for AI product engineering teams', mark: 'ok' },
 ];
@@ -1151,54 +962,57 @@ function AIBuilderVisual() {
   );
 }
 
-function ProviderVisual() {
+function AutonomyVisual() {
   const items = [
-    { name: 'Anthropic',     active: true,  tag: 'BYOK' },
-    { name: 'AWS Bedrock',   active: false, tag: 'AWS' },
-    { name: 'Google Vertex', active: false, tag: 'GCP' },
-    { name: 'OpenAI',        active: false, tag: 'BYOK' },
+    { name: 'Recommend only',    pilots: '3 pilot', active: false },
+    { name: 'Draft for review',  pilots: '4 pilot', active: false },
+    { name: 'Act after approval', pilots: '8 pilot', active: true },
+    { name: 'Bounded autonomous', pilots: '0 pilot', active: false },
   ];
   return (
     <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-strong)', borderRadius: 8 }}>
       <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--color-border)' }}>
         <div className="font-mono" style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
-          LLM Provider
+          Refund exception study
         </div>
         <div style={{ fontSize: 12.5, color: 'var(--color-text-subtle)', marginTop: 4 }}>
-          Keys never leave your machine.
+          Selected authority ceiling
         </div>
       </div>
       <div>
-        {items.map((p, i) => (
+        {items.map((item, index) => (
           <div
-            key={p.name}
+            key={item.name}
             className="flex items-center justify-between"
             style={{
               padding: '12px 14px',
-              borderBottom: i < items.length - 1 ? '1px solid var(--color-border)' : 'none',
-              background: p.active ? 'var(--color-accent-soft)' : 'transparent',
+              borderBottom: index < items.length - 1 ? '1px solid var(--color-border)' : 'none',
+              background: item.active ? 'var(--color-accent-soft)' : 'transparent',
             }}
           >
             <div className="flex items-center gap-3">
               <span
                 style={{
-                  width: 12, height: 12, borderRadius: 999,
-                  border: p.active ? '3px solid var(--color-accent)' : '1.5px solid var(--color-border-strong)',
-                  background: p.active ? 'var(--color-surface)' : 'transparent',
+                  width: 16, height: 16, borderRadius: 999,
+                  border: item.active ? '5px solid var(--color-accent)' : '1.5px solid var(--color-border-strong)',
+                  background: 'var(--color-surface)',
                 }}
               />
-              <span style={{ fontSize: 13.5, color: 'var(--color-text)', fontWeight: p.active ? 500 : 400 }}>{p.name}</span>
+              <span style={{ fontSize: 13.5, color: 'var(--color-text)', fontWeight: item.active ? 650 : 400 }}>{item.name}</span>
             </div>
-            <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--color-text-subtle)' }}>
-              {p.tag}
+            <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.12em', color: item.active ? 'var(--color-accent)' : 'var(--color-text-subtle)' }}>
+              {item.pilots}
             </span>
           </div>
         ))}
       </div>
+      <div className="flex items-center justify-between" style={{ padding: '12px 14px', borderTop: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}>
+        <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>Evidence recommendation</span>
+        <strong style={{ color: 'var(--color-success)', fontSize: 12.5 }}>Act after approval</strong>
+      </div>
     </div>
   );
 }
-
 function AgentVisual() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.45 });
   const stage = (i: number): React.CSSProperties => ({
@@ -1416,7 +1230,7 @@ function Features() {
                 maxWidth: '20ch',
               }}
             >
-              API and AI work,<br />in one product.
+              API evidence and AI authority,<br />in one product.
             </h2>
           </div>
         </Reveal>
@@ -1440,21 +1254,21 @@ function Features() {
 
         <Chapter
           num="02.02"
-          title="AI Workbench with Launch Gate for models, evals, and agents."
+          title="Autonomy Lab for decisions teams can defend."
           body={
             <>
-              Configure Anthropic, OpenAI-compatible, AWS Bedrock, Google Vertex, or local providers.
-              Generate requests and assertions, diagnose failed calls, explain response diffs,
-              run a Launch Gate with blockers and governance checks, export AI-ready context,
-              and turn known-good API calls into agent tool wrappers.
+              Define a real workflow, its users, accountable owner, risk, and observable outcome.
+              Compare recommend-only, draft, approval-gated, and bounded-autonomous variants using
+              real pilot evidence, override rates, policy events, and time saved.
               <br /><br />
-              Teams can route models through their own keys and keep provider control out of individual laptops.
+              Finalize a machine-readable Autonomy Contract with authority ceilings, stop rules, verification,
+              rollback, and acceptance criteria, then export the implementation task to Tunnel or another coding system.
             </>
           }
-          marginalia="The AI Workbench is not a chat sidebar. It is model-provider control, Launch Gate review, eval prep, agent context, and API-grounded debugging in one place."
+          marginalia="FetchLab decides what should be built and how much authority it may have. Tunnel coordinates coding agents to implement that approved contract. The products do not compete for the same job."
           figLabel="Fig. 02.02"
-          figCaption="Model provider routing"
-          figure={<ProviderVisual />}
+          figCaption="Authority variants and pilot evidence"
+          figure={<AutonomyVisual />}
         />
 
         <Chapter

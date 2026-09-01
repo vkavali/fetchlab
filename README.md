@@ -109,6 +109,7 @@ FetchLab can run in two modes:
 | `APP_ENCRYPTION_KEY` | Required in production. 32 bytes (hex or base64) used for AES-256-GCM credential encryption. |
 | `ANTHROPIC_API_KEY` | Optional. Enables `/api/ai/*` endpoints (diagnose, generate-tests). |
 | `ANTHROPIC_MODEL` | Optional. Defaults to `claude-haiku-4-5-20251001`. |
+| `TUNNEL_URL` | Optional base URL for Agent Tunnel. Enables validated, audited Autonomy Contract handoff to `POST /api/tasks`. |
 | `VITE_API_BASE_URL` | Optional frontend build variable. Set this to the backend origin when the web frontend and API run as separate Railway services. Leave unset for the normal single-service deployment. |
 | `FETCHLAB_ALLOWED_ORIGINS` | Optional comma-separated backend allowlist for split deployments, for example `https://your-web-service.up.railway.app,https://fetchlab.app`. |
 | `AUTH_DISABLED=1` | Skips auth checks server-side (single-user / dev only). |
@@ -119,6 +120,7 @@ FetchLab can run in two modes:
 - `POST /api/auth/register` — first user becomes admin. 8+ char password.
 - `POST /api/auth/login` / `POST /api/auth/logout` / `GET /api/auth/me`
 - `GET /api/workspaces`, `POST /api/workspaces`, members at `/api/workspaces/:id/members` (admin role to invite)
+- Autonomy Studies: `GET/POST /api/workspaces/:id/autonomy-studies`, delete by study ID, and optional Tunnel handoff at `POST /api/workspaces/:id/autonomy-studies/:studyId/tunnel`.
 - OIDC SSO: admin configures providers via `POST /api/auth/sso/admin`; users log in at `/api/auth/sso/start/:configId`.
 
 ### Tests

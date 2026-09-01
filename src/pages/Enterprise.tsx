@@ -3,6 +3,9 @@ import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 
 const READY = [
   'Browser-hosted web app plus Windows EXE/MSI installer for desktop teams.',
+  'Autonomy Lab studies compare recommend, draft, approval-gated, and bounded-autonomous workflow variants.',
+  'Workspace-scoped pilot evidence, policy rules, decision records, and machine-readable Autonomy Contracts.',
+  'Tunnel-ready implementation handoffs with an explicit authority ceiling and acceptance criteria.',
   'Bring-your-own-key AI provider setup, including local mode for no external AI calls.',
   '2FA, session controls, account lockout tests, and encrypted local settings.',
   'Admin-only audit logs for auth, workspace, enterprise settings, retention, SCIM, and SOC 2 evidence events.',
@@ -16,29 +19,29 @@ const READY = [
 ];
 
 const PILOT_PACKAGE = [
-  'Private workspace setup with admin, member, and viewer roles.',
-  'OIDC SSO setup support and 2FA policy for all users.',
-  'Encrypted credentials with bring-your-own-key LLM provider routing.',
-  'Audit log review for auth, workspace changes, AI usage, and agent actions.',
-  '30-day guided rollout for one engineering team.',
-  'Security questionnaire support for pilot and vendor review.',
+  'Choose one high-value workflow and name its accountable product and operational owners.',
+  'Map the real API evidence, users, risk, success state, stop conditions, and rollback path.',
+  'Compare four authority levels without changing production behavior.',
+  'Run a controlled pilot and measure task success, human overrides, policy events, and time saved.',
+  'Approve an Autonomy Contract that security, product, and engineering can review together.',
+  'Export the policy-bounded build task to Tunnel or your existing coding-agent workflow.',
 ];
 
 const ROADMAP = [
   {
     phase: 'Day 1',
-    title: 'Launch a workspace',
-    body: 'Create the team workspace, connect your model provider, import collections, and invite the first engineering group.',
+    title: 'Define the decision',
+    body: 'Create the workspace, select one real workflow, attach known API behavior, and define the owner, users, risk, and observable outcome.',
   },
   {
     phase: 'Week 1',
-    title: 'Prove the workflow',
-    body: 'Run API tests, generate AI-assisted assertions, configure agent monitoring, and review audit/security controls with admins.',
+    title: 'Run the authority pilot',
+    body: 'Test recommend, draft, approval, and bounded-autonomous variants. Record real success, overrides, policy events, and time saved.',
   },
   {
     phase: 'Month 1',
-    title: 'Expand adoption',
-    body: 'Roll out to more teams, standardize provider routing, use SCIM provisioning, and export evidence for vendor/security review.',
+    title: 'Standardize the contract',
+    body: 'Approve reusable policy rules, export the implementation handoff, and retain the evidence and audit trail for every production AI workflow.',
   },
 ];
 
@@ -150,15 +153,15 @@ export default function Enterprise() {
                 maxWidth: '11ch',
               }}
             >
-              One workbench for API and AI engineering teams.
+              Prove AI authority before production.
             </h1>
           </div>
           <div>
             <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
-              FetchLab is a browser app and Windows desktop installer for teams building AI products.
-              It combines an API Workbench for requests, collections, environments, and protocol testing
-              with an AI Workbench for Launch Gate reviews, model providers, AI-assisted tests, agent monitoring, eval prep, and coding-agent workflows.
-              Enterprise pilots add self-hosted deployment, PostgreSQL, RBAC, encrypted secrets, audit logs, SCIM, retention controls, OIDC SSO, and launch evidence packets.
+              FetchLab gives product, security, operations, and engineering one decision record for every AI workflow.
+              The API Workbench captures real system behavior. Autonomy Lab compares how much work the AI may own,
+              separates simulation from real pilot evidence, and issues a policy-bounded Autonomy Contract before implementation.
+              Enterprise pilots add self-hosted deployment, PostgreSQL, RBAC, encrypted secrets, audit logs, SCIM, retention controls, OIDC SSO, and workspace evidence history.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <a
@@ -173,7 +176,7 @@ export default function Enterprise() {
                   borderRadius: 5,
                 }}
               >
-                Start free
+                Start an autonomy study
               </a>
               <a
                 href="mailto:hello@fetchlab.dev?subject=FetchLab%20Enterprise%20Pilot"
@@ -211,7 +214,7 @@ export default function Enterprise() {
               Simple rollout
             </div>
             <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.04em', margin: 0 }}>
-              From trial to team standard
+              From workflow hypothesis to approved contract
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-px" style={{ background: 'var(--color-border)' }}>

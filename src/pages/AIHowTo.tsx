@@ -3,8 +3,8 @@ import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 
 const SETUP_STEPS = [
   {
-    title: 'Open AI Workbench',
-    body: 'Sign in, open the app, and click AI Workbench in the header. The workbench is the main AI surface for prompts, evals, tool exports, and agent handoff.',
+    title: 'Open Autonomy Lab',
+    body: 'Open the app and click Autonomy Lab in the header. Start with the workflow, accountable owner, target users, and observable business outcome.',
   },
   {
     title: 'Open LLM Provider / BYOK',
@@ -39,6 +39,8 @@ const SCOPE_COLUMNS = [
       'Triage of Slack incident messages through the AI Ops Agent.',
       'Summarizing agent findings and proposed next steps.',
       'Preparing Launch Gate packets with blockers, eval evidence, governance checks, and next actions.',
+      'Comparing recommend, draft, approval, and bounded-autonomous operating models.',
+      'Issuing an executable Autonomy Contract and a Tunnel implementation handoff.',
     ],
   },
   {
@@ -72,22 +74,22 @@ const SCOPE_COLUMNS = [
 
 const WORKFLOWS = [
   {
-    id: 'ai-workbench',
-    label: 'AI Workbench',
-    title: 'Use the AI Workbench as the AI development cockpit',
+    id: 'autonomy-lab',
+    label: 'Autonomy Lab',
+    title: 'Decide how much authority an AI workflow should have',
     steps: [
-      'Open the app and click AI Workbench in the header.',
-      'Start in Overview to check the active model route, selected API request, latest response, eval count, and agent readiness.',
-      'Open Launch Gate to see blockers, warnings, governance controls, and the launch score.',
-      'Use Create API Request to draft a new API call from plain English or to import a cURL command.',
-      'Use Prompt Lab to run prompts with live API context and compare the active provider against the local baseline.',
-      'Use Eval Lab to seed test cases from the current request and response, then run pass/fail checks before changing prompts or models.',
-      'Use Tool Builder to export OpenAI tool schemas, MCP tool skeletons, agent framework snippets, cURL, or AI-ready context bundles.',
-      'Use Ops to configure BYOK providers, open the agent monitor, and review security controls.',
-      'Copy or download the Launch Gate packet for release review.',
+      'Open the app and click Autonomy Lab in the header.',
+      'Define the real workflow, target users, accountable owner, risk, and observable success outcome.',
+      'Attach the active API request when the workflow depends on a tested endpoint. FetchLab records request metadata and response status, not credentials.',
+      'Compare four operating boundaries: recommend, draft, act after approval, and bounded autonomous.',
+      'Select the owner-approved authority ceiling. FetchLab never raises it automatically.',
+      'Run a synthetic rehearsal to expose likely tradeoffs, then record real pilot observations separately.',
+      'Review success, override, policy-event, and time-saved evidence for every authority level.',
+      'Edit the stop, escalation, approval, verification, and rollback policy rules.',
+      'Finalize and export the Autonomy Contract, then copy the Tunnel task when the workflow is ready to build.',
     ],
-    example: 'Run GET /v1/orders, open AI Workbench, seed evals from the response, compare the active provider to the local baseline, then export an MCP tool.',
-    caution: 'Treat workbench outputs as reviewable engineering artifacts. Run evals and confirm the target environment before shipping AI changes.',
+    example: 'Study refund exceptions at four authority levels, pilot approval-based actions with support leads, then hand Tunnel a contract that forbids autonomous financial changes.',
+    caution: 'Synthetic rehearsal is non-authorizing. Only real pilot evidence and an accountable owner can approve a higher operating boundary.',
   },
   {
     id: 'launch-gate',
