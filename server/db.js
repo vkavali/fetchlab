@@ -24,6 +24,9 @@ function freshMemStore() {
     audit_log: [],
     oidc_configs: [],
     autonomy_studies: [],
+    authority_policy_revisions: [],
+    authority_events: [],
+    authority_change_reviews: [],
     sessions: [],
     login_attempts: [],
     agent_issues: [],
@@ -150,8 +153,13 @@ CREATE TABLE IF NOT EXISTS history (
 CREATE TABLE IF NOT EXISTS api_tokens (
   id UUID PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   token_hash TEXT NOT NULL,
+  token_prefix TEXT,
+  scopes JSONB NOT NULL DEFAULT '[]'::jsonb,
+  expires_at TIMESTAMPTZ,
+  revoked_at TIMESTAMPTZ,
   last_used_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -163,8 +171,61 @@ CREATE TABLE IF NOT EXISTS autonomy_studies (
   name TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'draft',
   data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  draft_policy JSONB NOT NULL DEFAULT '{"version":1,"mode":"shadow","defaultDecision":"deny","rules":[]}'::jsonb,
+  published_revision INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS authority_policy_revisions (
+  id UUID PRIMARY KEY,
+  workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  study_id UUID NOT NULL REFERENCES autonomy_studies(id) ON DELETE CASCADE,
+  revision INTEGER NOT NULL,
+  fingerprint TEXT NOT NULL,
+  policy JSONB NOT NULL,
+  published_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  prior_fingerprint TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (study_id, revision)
+);
+
+CREATE TABLE IF NOT EXISTS authority_events (
+  id UUID PRIMARY KEY,
+  workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  study_id UUID NOT NULL REFERENCES autonomy_studies(id) ON DELETE CASCADE,
+  agent_id TEXT NOT NULL,
+  session_id TEXT,
+  source TEXT NOT NULL DEFAULT 'runtime',
+  idempotency_key TEXT,
+  action_data JSONB NOT NULL,
+  action_hash TEXT NOT NULL,
+  decision TEXT NOT NULL,
+  matched_rule_id TEXT,
+  mode TEXT NOT NULL,
+  policy_revision INTEGER NOT NULL,
+  policy_fingerprint TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  review_status TEXT NOT NULL DEFAULT 'not_required',
+  reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  reviewed_at TIMESTAMPTZ,
+  review_note TEXT,
+  approval_expires_at TIMESTAMPTZ,
+  consumed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS authority_change_reviews (
+  id UUID PRIMARY KEY,
+  workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  study_id UUID NOT NULL REFERENCES autonomy_studies(id) ON DELETE CASCADE,
+  event_id UUID NOT NULL REFERENCES authority_events(id) ON DELETE CASCADE,
+  draft_fingerprint TEXT NOT NULL,
+  verdict TEXT NOT NULL,
+  note TEXT,
+  reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (event_id, draft_fingerprint)
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (
@@ -283,11 +344,27 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS recovery_codes_hashed JSONB NOT NULL 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_count INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE api_tokens ADD COLUMN IF NOT EXISTS workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE;
+ALTER TABLE api_tokens ADD COLUMN IF NOT EXISTS token_prefix TEXT;
+ALTER TABLE api_tokens ADD COLUMN IF NOT EXISTS scopes JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE api_tokens ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
+ALTER TABLE api_tokens ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMPTZ;
+ALTER TABLE autonomy_studies ADD COLUMN IF NOT EXISTS draft_policy JSONB NOT NULL DEFAULT '{"version":1,"mode":"shadow","defaultDecision":"deny","rules":[]}'::jsonb;
+ALTER TABLE autonomy_studies ADD COLUMN IF NOT EXISTS published_revision INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE authority_events ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'runtime';
+ALTER TABLE authority_events ADD COLUMN IF NOT EXISTS idempotency_key TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_audit_log_workspace ON audit_log(workspace_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_log_user ON audit_log(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_collections_workspace ON collections(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_autonomy_studies_workspace ON autonomy_studies(workspace_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_api_tokens_hash ON api_tokens(token_hash);
+CREATE INDEX IF NOT EXISTS idx_api_tokens_workspace ON api_tokens(workspace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_authority_policy_revisions_study ON authority_policy_revisions(study_id, revision DESC);
+CREATE INDEX IF NOT EXISTS idx_authority_events_study ON authority_events(study_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_authority_events_workspace ON authority_events(workspace_id, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_authority_events_idempotency ON authority_events(workspace_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_authority_change_reviews_draft ON authority_change_reviews(study_id, draft_fingerprint);
 CREATE INDEX IF NOT EXISTS idx_history_workspace ON history(workspace_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_issues_workspace ON agent_issues(workspace_id, detected_at DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_issues_status ON agent_issues(status);
@@ -339,6 +416,10 @@ async function pgQuery(text, params) {
 function memCollection(name) {
   if (!memStore[name]) memStore[name] = [];
   return memStore[name];
+}
+
+function emptyAuthorityPolicy() {
+  return { version: 1, mode: 'shadow', defaultDecision: 'deny', rules: [] };
 }
 
 // ============ Users ============
@@ -660,6 +741,99 @@ export async function deleteCollection(id) {
   }
 }
 
+// ============ Workspace authority tokens ============
+export async function createApiToken({
+  user_id,
+  workspace_id,
+  name,
+  token_hash,
+  token_prefix,
+  scopes = ['authority:check', 'authority:read', 'authority:consume'],
+  expires_at = null,
+}) {
+  const id = newId();
+  const created_at = new Date().toISOString();
+  const row = {
+    id,
+    user_id,
+    workspace_id,
+    name,
+    token_hash,
+    token_prefix,
+    scopes,
+    expires_at,
+    revoked_at: null,
+    last_used_at: null,
+    created_at,
+  };
+  if (mode === 'pg') {
+    await pgQuery(
+      `INSERT INTO api_tokens
+        (id, user_id, workspace_id, name, token_hash, token_prefix, scopes, expires_at, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [id, user_id, workspace_id, name, token_hash, token_prefix, scopes, expires_at, created_at]
+    );
+  } else {
+    memCollection('api_tokens').push(row);
+    await persistFile();
+  }
+  return row;
+}
+
+export async function listApiTokens(workspaceId) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT id, user_id, workspace_id, name, token_prefix, scopes, expires_at,
+              revoked_at, last_used_at, created_at
+       FROM api_tokens WHERE workspace_id = $1 ORDER BY created_at DESC`,
+      [workspaceId]
+    );
+    return rows;
+  }
+  return memCollection('api_tokens')
+    .filter((token) => token.workspace_id === workspaceId)
+    .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+    .map(({ token_hash: _tokenHash, ...token }) => token);
+}
+
+export async function findApiTokenByHash(tokenHash) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(`SELECT * FROM api_tokens WHERE token_hash = $1`, [tokenHash]);
+    return rows[0] || null;
+  }
+  return memCollection('api_tokens').find((token) => token.token_hash === tokenHash) || null;
+}
+
+export async function touchApiToken(id) {
+  const last_used_at = new Date().toISOString();
+  if (mode === 'pg') {
+    await pgQuery(`UPDATE api_tokens SET last_used_at = $1 WHERE id = $2`, [last_used_at, id]);
+    return;
+  }
+  const token = memCollection('api_tokens').find((entry) => entry.id === id);
+  if (token) {
+    token.last_used_at = last_used_at;
+    await persistFile();
+  }
+}
+
+export async function revokeApiToken(id, workspaceId) {
+  const revoked_at = new Date().toISOString();
+  if (mode === 'pg') {
+    const { rowCount } = await pgQuery(
+      `UPDATE api_tokens SET revoked_at = COALESCE(revoked_at, $1)
+       WHERE id = $2 AND workspace_id = $3`,
+      [revoked_at, id, workspaceId]
+    );
+    return rowCount > 0;
+  }
+  const token = memCollection('api_tokens').find((entry) => entry.id === id && entry.workspace_id === workspaceId);
+  if (!token) return false;
+  if (!token.revoked_at) token.revoked_at = revoked_at;
+  await persistFile();
+  return true;
+}
+
 // ============ Autonomy Studies ============
 export async function listAutonomyStudies(workspaceId) {
   if (mode === 'pg') {
@@ -667,11 +841,41 @@ export async function listAutonomyStudies(workspaceId) {
       `SELECT * FROM autonomy_studies WHERE workspace_id = $1 ORDER BY updated_at DESC`,
       [workspaceId]
     );
-    return rows;
+    return rows.map((study) => ({
+      ...study,
+      draft_policy: study.draft_policy || emptyAuthorityPolicy(),
+      published_revision: Number(study.published_revision || 0),
+    }));
   }
   return memCollection('autonomy_studies')
     .filter(study => study.workspace_id === workspaceId)
+    .map((study) => ({
+      ...study,
+      draft_policy: study.draft_policy || emptyAuthorityPolicy(),
+      published_revision: Number(study.published_revision || 0),
+    }))
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+}
+
+export async function getAutonomyStudy(id, workspaceId) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT * FROM autonomy_studies WHERE id = $1 AND workspace_id = $2`,
+      [id, workspaceId]
+    );
+    const study = rows[0];
+    return study ? {
+      ...study,
+      draft_policy: study.draft_policy || emptyAuthorityPolicy(),
+      published_revision: Number(study.published_revision || 0),
+    } : null;
+  }
+  const study = memCollection('autonomy_studies').find((entry) => entry.id === id && entry.workspace_id === workspaceId);
+  return study ? {
+    ...study,
+    draft_policy: study.draft_policy || emptyAuthorityPolicy(),
+    published_revision: Number(study.published_revision || 0),
+  } : null;
 }
 
 export async function upsertAutonomyStudy({ id, workspace_id, created_by, name, status = 'draft', data }) {
@@ -706,12 +910,353 @@ export async function upsertAutonomyStudy({ id, workspace_id, created_by, name, 
       name,
       status,
       data: data || {},
+      draft_policy: emptyAuthorityPolicy(),
+      published_revision: 0,
       created_at: now,
       updated_at: now,
     });
   }
   await persistFile();
   return list.find(study => study.id === studyId) || null;
+}
+
+export async function updateAutonomyDraftPolicy(id, workspaceId, policy) {
+  const updated_at = new Date().toISOString();
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `UPDATE autonomy_studies SET draft_policy = $1, updated_at = $2
+       WHERE id = $3 AND workspace_id = $4 RETURNING *`,
+      [policy, updated_at, id, workspaceId]
+    );
+    return rows[0] || null;
+  }
+  const study = memCollection('autonomy_studies').find((entry) => entry.id === id && entry.workspace_id === workspaceId);
+  if (!study) return null;
+  study.draft_policy = policy;
+  study.updated_at = updated_at;
+  await persistFile();
+  return study;
+}
+
+export async function getAuthorityPolicyRevision(studyId, revision = null) {
+  if (mode === 'pg') {
+    const query = revision == null
+      ? `SELECT * FROM authority_policy_revisions WHERE study_id = $1 ORDER BY revision DESC LIMIT 1`
+      : `SELECT * FROM authority_policy_revisions WHERE study_id = $1 AND revision = $2`;
+    const params = revision == null ? [studyId] : [studyId, revision];
+    const { rows } = await pgQuery(query, params);
+    return rows[0] ? { ...rows[0], revision: Number(rows[0].revision) } : null;
+  }
+  let rows = memCollection('authority_policy_revisions').filter((entry) => entry.study_id === studyId);
+  if (revision != null) rows = rows.filter((entry) => entry.revision === Number(revision));
+  rows.sort((a, b) => b.revision - a.revision);
+  return rows[0] || null;
+}
+
+export async function publishAuthorityPolicy({
+  workspace_id,
+  study_id,
+  expected_revision,
+  fingerprint,
+  policy,
+  published_by,
+}) {
+  const created_at = new Date().toISOString();
+  if (mode === 'pg') {
+    const client = await pgPool.connect();
+    try {
+      await client.query('BEGIN');
+      const { rows: studyRows } = await client.query(
+        `SELECT * FROM autonomy_studies WHERE id = $1 AND workspace_id = $2 FOR UPDATE`,
+        [study_id, workspace_id]
+      );
+      const study = studyRows[0];
+      if (!study) {
+        await client.query('ROLLBACK');
+        return { status: 'not_found' };
+      }
+      const currentRevision = Number(study.published_revision || 0);
+      if (currentRevision !== Number(expected_revision)) {
+        await client.query('ROLLBACK');
+        return { status: 'conflict', current_revision: currentRevision };
+      }
+      const prior = currentRevision > 0
+        ? await client.query(
+          `SELECT fingerprint FROM authority_policy_revisions WHERE study_id = $1 AND revision = $2`,
+          [study_id, currentRevision]
+        )
+        : { rows: [] };
+      const nextRevision = currentRevision + 1;
+      const id = newId();
+      const priorFingerprint = prior.rows[0]?.fingerprint || null;
+      await client.query(
+        `INSERT INTO authority_policy_revisions
+          (id, workspace_id, study_id, revision, fingerprint, policy, published_by, prior_fingerprint, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [id, workspace_id, study_id, nextRevision, fingerprint, policy, published_by, priorFingerprint, created_at]
+      );
+      await client.query(
+        `UPDATE autonomy_studies SET published_revision = $1, updated_at = $2 WHERE id = $3`,
+        [nextRevision, created_at, study_id]
+      );
+      await client.query('COMMIT');
+      return {
+        status: 'published',
+        revision: {
+          id,
+          workspace_id,
+          study_id,
+          revision: nextRevision,
+          fingerprint,
+          policy,
+          published_by,
+          prior_fingerprint: priorFingerprint,
+          created_at,
+        },
+      };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  const study = memCollection('autonomy_studies').find((entry) => entry.id === study_id && entry.workspace_id === workspace_id);
+  if (!study) return { status: 'not_found' };
+  const currentRevision = Number(study.published_revision || 0);
+  if (currentRevision !== Number(expected_revision)) {
+    return { status: 'conflict', current_revision: currentRevision };
+  }
+  const prior = currentRevision > 0
+    ? memCollection('authority_policy_revisions').find((entry) => entry.study_id === study_id && entry.revision === currentRevision)
+    : null;
+  const revision = {
+    id: newId(),
+    workspace_id,
+    study_id,
+    revision: currentRevision + 1,
+    fingerprint,
+    policy,
+    published_by,
+    prior_fingerprint: prior?.fingerprint || null,
+    created_at,
+  };
+  memCollection('authority_policy_revisions').push(revision);
+  study.published_revision = revision.revision;
+  study.updated_at = created_at;
+  await persistFile();
+  return { status: 'published', revision };
+}
+
+export async function appendAuthorityEvent(event) {
+  const id = newId();
+  const created_at = new Date().toISOString();
+  const row = {
+    id,
+    workspace_id: event.workspace_id,
+    study_id: event.study_id,
+    agent_id: event.agent_id,
+    session_id: event.session_id || null,
+    source: event.source || 'runtime',
+    idempotency_key: event.idempotency_key || null,
+    action_data: event.action_data,
+    action_hash: event.action_hash,
+    decision: event.decision,
+    matched_rule_id: event.matched_rule_id || null,
+    mode: event.mode,
+    policy_revision: Number(event.policy_revision),
+    policy_fingerprint: event.policy_fingerprint,
+    reason: event.reason,
+    review_status: event.review_status || 'not_required',
+    reviewed_by: null,
+    reviewed_at: null,
+    review_note: null,
+    approval_expires_at: null,
+    consumed_at: null,
+    created_at,
+  };
+  if (mode === 'pg') {
+    await pgQuery(
+      `INSERT INTO authority_events
+        (id, workspace_id, study_id, agent_id, session_id, source, idempotency_key, action_data, action_hash,
+         decision, matched_rule_id, mode, policy_revision, policy_fingerprint, reason,
+         review_status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+      [
+        id, row.workspace_id, row.study_id, row.agent_id, row.session_id, row.source,
+        row.idempotency_key, row.action_data, row.action_hash, row.decision, row.matched_rule_id,
+        row.mode, row.policy_revision, row.policy_fingerprint, row.reason, row.review_status, created_at,
+      ]
+    );
+  } else {
+    memCollection('authority_events').push(row);
+    await persistFile();
+  }
+  return row;
+}
+
+export async function listAuthorityEvents(workspaceId, studyId, limit = 200) {
+  const boundedLimit = Math.max(1, Math.min(Number(limit) || 200, 10000));
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT * FROM authority_events
+       WHERE workspace_id = $1 AND study_id = $2
+       ORDER BY created_at DESC LIMIT $3`,
+      [workspaceId, studyId, boundedLimit]
+    );
+    return rows.map((row) => ({ ...row, policy_revision: Number(row.policy_revision) }));
+  }
+  return memCollection('authority_events')
+    .filter((event) => event.workspace_id === workspaceId && event.study_id === studyId)
+    .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+    .slice(0, boundedLimit);
+}
+
+export async function countAuthorityEvents(workspaceId, studyId) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT COUNT(*)::INTEGER AS count FROM authority_events WHERE workspace_id = $1 AND study_id = $2`,
+      [workspaceId, studyId]
+    );
+    return Number(rows[0]?.count || 0);
+  }
+  return memCollection('authority_events').filter((event) => (
+    event.workspace_id === workspaceId && event.study_id === studyId
+  )).length;
+}
+
+export async function getAuthorityEvent(id, workspaceId) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT * FROM authority_events WHERE id = $1 AND workspace_id = $2`,
+      [id, workspaceId]
+    );
+    return rows[0] ? { ...rows[0], policy_revision: Number(rows[0].policy_revision) } : null;
+  }
+  return memCollection('authority_events').find((event) => event.id === id && event.workspace_id === workspaceId) || null;
+}
+
+export async function findAuthorityEventByIdempotency(workspaceId, idempotencyKey) {
+  if (!idempotencyKey) return null;
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT * FROM authority_events WHERE workspace_id = $1 AND idempotency_key = $2`,
+      [workspaceId, idempotencyKey]
+    );
+    return rows[0] || null;
+  }
+  return memCollection('authority_events').find((event) => (
+    event.workspace_id === workspaceId && event.idempotency_key === idempotencyKey
+  )) || null;
+}
+
+export async function reviewAuthorityEvent({ id, workspace_id, reviewed_by, verdict, note = null, expires_at = null }) {
+  const reviewed_at = new Date().toISOString();
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `UPDATE authority_events
+       SET review_status = $1, reviewed_by = $2, reviewed_at = $3, review_note = $4,
+           approval_expires_at = $5
+       WHERE id = $6 AND workspace_id = $7 AND decision = 'require_approval'
+         AND review_status = 'pending'
+       RETURNING *`,
+      [verdict, reviewed_by, reviewed_at, note, expires_at, id, workspace_id]
+    );
+    return rows[0] || null;
+  }
+  const event = memCollection('authority_events').find((entry) => entry.id === id && entry.workspace_id === workspace_id);
+  if (!event || event.decision !== 'require_approval' || event.review_status !== 'pending') return null;
+  event.review_status = verdict;
+  event.reviewed_by = reviewed_by;
+  event.reviewed_at = reviewed_at;
+  event.review_note = note;
+  event.approval_expires_at = expires_at;
+  await persistFile();
+  return event;
+}
+
+export async function consumeAuthorityApproval({ id, workspace_id, action_hash }) {
+  const consumed_at = new Date().toISOString();
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `UPDATE authority_events SET consumed_at = $1
+       WHERE id = $2 AND workspace_id = $3 AND action_hash = $4
+         AND review_status = 'approved' AND consumed_at IS NULL
+         AND approval_expires_at IS NOT NULL AND approval_expires_at > $1
+       RETURNING *`,
+      [consumed_at, id, workspace_id, action_hash]
+    );
+    return rows[0] || null;
+  }
+  const event = memCollection('authority_events').find((entry) => (
+    entry.id === id
+    && entry.workspace_id === workspace_id
+    && entry.action_hash === action_hash
+    && entry.review_status === 'approved'
+    && !entry.consumed_at
+    && entry.approval_expires_at
+    && entry.approval_expires_at > consumed_at
+  ));
+  if (!event) return null;
+  event.consumed_at = consumed_at;
+  await persistFile();
+  return event;
+}
+
+export async function upsertAuthorityChangeReview({
+  workspace_id,
+  study_id,
+  event_id,
+  draft_fingerprint,
+  verdict,
+  note = null,
+  reviewed_by,
+}) {
+  const id = newId();
+  const created_at = new Date().toISOString();
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `INSERT INTO authority_change_reviews
+        (id, workspace_id, study_id, event_id, draft_fingerprint, verdict, note, reviewed_by, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (event_id, draft_fingerprint) DO UPDATE SET
+         verdict = EXCLUDED.verdict,
+         note = EXCLUDED.note,
+         reviewed_by = EXCLUDED.reviewed_by,
+         created_at = EXCLUDED.created_at
+       RETURNING *`,
+      [id, workspace_id, study_id, event_id, draft_fingerprint, verdict, note, reviewed_by, created_at]
+    );
+    return rows[0];
+  }
+  const rows = memCollection('authority_change_reviews');
+  const existing = rows.find((entry) => entry.event_id === event_id && entry.draft_fingerprint === draft_fingerprint);
+  if (existing) {
+    Object.assign(existing, { verdict, note, reviewed_by, created_at });
+    await persistFile();
+    return existing;
+  }
+  const row = { id, workspace_id, study_id, event_id, draft_fingerprint, verdict, note, reviewed_by, created_at };
+  rows.push(row);
+  await persistFile();
+  return row;
+}
+
+export async function listAuthorityChangeReviews(workspaceId, studyId, draftFingerprint) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT * FROM authority_change_reviews
+       WHERE workspace_id = $1 AND study_id = $2 AND draft_fingerprint = $3`,
+      [workspaceId, studyId, draftFingerprint]
+    );
+    return rows;
+  }
+  return memCollection('authority_change_reviews').filter((review) => (
+    review.workspace_id === workspaceId
+    && review.study_id === studyId
+    && review.draft_fingerprint === draftFingerprint
+  ));
 }
 
 export async function deleteAutonomyStudy(id, workspaceId) {
@@ -725,6 +1270,14 @@ export async function deleteAutonomyStudy(id, workspaceId) {
   const list = memCollection('autonomy_studies');
   const before = list.length;
   memStore.autonomy_studies = list.filter(study => study.id !== id || study.workspace_id !== workspaceId);
+  if (memStore.autonomy_studies.length < before) {
+    memStore.authority_policy_revisions = memCollection('authority_policy_revisions')
+      .filter(revision => revision.study_id !== id || revision.workspace_id !== workspaceId);
+    memStore.authority_events = memCollection('authority_events')
+      .filter(event => event.study_id !== id || event.workspace_id !== workspaceId);
+    memStore.authority_change_reviews = memCollection('authority_change_reviews')
+      .filter(review => review.study_id !== id || review.workspace_id !== workspaceId);
+  }
   await persistFile();
   return memStore.autonomy_studies.length < before;
 }

@@ -408,14 +408,13 @@ function Nav() {
   );
 }
 
-/* ---------- Hero visual: Autonomy Study decision record ---------- */
+/* ---------- Hero visual: Agent Change Gate release review ---------- */
 
-function AutonomySpecimen() {
-  const variants = [
-    { label: 'Recommend only', pilot: 3, success: '86%', policy: '0', selected: false },
-    { label: 'Draft for review', pilot: 5, success: '92%', policy: '0', selected: false },
-    { label: 'Act after approval', pilot: 8, success: '94%', policy: '0', selected: true },
-    { label: 'Bounded autonomous', pilot: 3, success: '67%', policy: '2', selected: false },
+function AgentGateSpecimen() {
+  const changes = [
+    { tool: 'stripe.refunds.create', target: 'charges/*/refund', published: 'Approval', draft: 'Allow', change: 'Expansion', warning: true },
+    { tool: 'stripe.customers.read', target: 'customers/*', published: 'Allow', draft: 'Allow', change: 'Unchanged', warning: false },
+    { tool: 'stripe.payouts.create', target: 'accounts/*/payout', published: 'Deny', draft: 'Approval', change: 'Expansion', warning: true },
   ];
 
   return (
@@ -436,31 +435,31 @@ function AutonomySpecimen() {
             className="font-mono"
             style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 650 }}
           >
-            Autonomy study
+            Agent Change Gate
           </span>
           <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.1em' }}>
-            Study 0042
+            Illustrative: refund agent - production
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--color-success)' }} />
           <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-success)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-            Decision ready
+            Published policy
           </span>
         </div>
       </div>
 
       <div style={{ padding: '18px 16px 15px' }}>
         <div className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 7 }}>
-          Workflow
+          Illustrative release review
         </div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 650, lineHeight: 1.2 }}>
-          Refund exception handling
+          refund-agent / candidate build
         </div>
         <div className="flex flex-wrap gap-4" style={{ marginTop: 9, color: 'var(--color-text-muted)', fontSize: 12.5 }}>
-          <span>Owner: Revenue operations</span>
-          <span>Risk: Medium</span>
-          <span>Source: POST /v1/refunds</span>
+          <span>Recorded runtime evidence</span>
+          <span>Policy mode: Enforce</span>
+          <span>Named release owner</span>
         </div>
       </div>
 
@@ -474,61 +473,63 @@ function AutonomySpecimen() {
         }}
       >
         <div className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-          Selected authority ceiling
+          Release decision
         </div>
         <div className="flex items-end justify-between gap-4" style={{ marginTop: 5 }}>
           <div>
-            <strong style={{ display: 'block', fontSize: 17 }}>Act after approval</strong>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: 12.5 }}>Human approves the exact action. AI executes and verifies it.</span>
+            <strong style={{ display: 'block', fontSize: 17 }}>Blocked by authority expansion</strong>
+            <span style={{ color: 'var(--color-text-muted)', fontSize: 12.5 }}>The draft would allow actions that the published policy stopped or required approval for.</span>
           </div>
-          <span className="font-mono" style={{ color: 'var(--color-success)', fontSize: 11, letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>
-            8 PILOT
+          <span className="font-mono" style={{ color: 'var(--color-warning)', fontSize: 11, letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>
+            REVIEW REQUIRED
           </span>
         </div>
       </div>
 
-      <div>
+      <div className="landing-gate-table">
         <div
-          className="grid"
-          style={{ gridTemplateColumns: 'minmax(0, 1fr) 58px 62px 58px', gap: 8, padding: '9px 16px', borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-subtle)', fontSize: 10.5 }}
+          className="grid landing-gate-row"
+          style={{ gap: 8, padding: '9px 16px', borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-subtle)', fontSize: 10.5 }}
         >
-          <span>Authority variant</span><span>Pilot</span><span>Success</span><span>Events</span>
+          <span>Observed action</span><span>Published</span><span>Draft</span><span>Change</span>
         </div>
-        {variants.map((variant) => (
+        {changes.map((row) => (
           <div
-            key={variant.label}
-            className="grid"
+            key={row.tool}
+            className="grid landing-gate-row"
             style={{
-              gridTemplateColumns: 'minmax(0, 1fr) 58px 62px 58px',
               gap: 8,
               alignItems: 'center',
               padding: '11px 16px',
               borderBottom: '1px solid var(--color-border)',
-              background: variant.selected ? 'var(--color-accent-soft)' : 'transparent',
-              boxShadow: variant.selected ? 'inset 4px 0 0 var(--color-accent)' : 'none',
+              background: row.warning ? 'var(--color-warning-soft)' : 'transparent',
+              boxShadow: row.warning ? 'inset 4px 0 0 var(--color-warning)' : 'none',
               fontSize: 12.5,
             }}
           >
-            <span style={{ fontWeight: variant.selected ? 700 : 500 }}>{variant.label}</span>
-            <span className="font-mono">{variant.pilot}</span>
-            <span className="font-mono" style={{ color: variant.success === '67%' ? 'var(--color-warning)' : 'var(--color-success)' }}>{variant.success}</span>
-            <span className="font-mono" style={{ color: variant.policy === '0' ? 'var(--color-text-muted)' : 'var(--color-error)' }}>{variant.policy}</span>
+            <span style={{ minWidth: 0 }}>
+              <strong className="font-mono" style={{ display: 'block', fontSize: 11.5 }}>{row.tool}</strong>
+              <span className="font-mono" style={{ display: 'block', marginTop: 3, fontSize: 10, color: 'var(--color-text-subtle)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.target}</span>
+            </span>
+            <span className="font-mono">{row.published}</span>
+            <span className="font-mono">{row.draft}</span>
+            <span className="font-mono" style={{ color: row.warning ? 'var(--color-warning)' : 'var(--color-text-muted)' }}>{row.change}</span>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center justify-between gap-4" style={{ padding: '14px 16px', background: 'var(--color-surface-2)' }}>
+      <div className="flex flex-wrap items-center justify-between gap-4" style={{ padding: '14px 16px', background: 'var(--color-surface-2)' }}>
         <div>
           <span className="font-mono" style={{ display: 'block', fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-            Autonomy contract
+            Deterministic policy diff
           </span>
-          <strong style={{ display: 'block', marginTop: 4, fontSize: 13.5 }}>4 policy rules - 5 acceptance checks</strong>
+          <strong style={{ display: 'block', marginTop: 4, fontSize: 13.5 }}>Default deny - exact-action approvals - immutable revisions</strong>
         </div>
         <span
           className="font-mono"
-          style={{ padding: '7px 9px', border: '1px solid var(--color-accent)', borderRadius: 4, color: 'var(--color-accent)', fontSize: 10.5, letterSpacing: '0.1em', whiteSpace: 'nowrap' }}
+          style={{ padding: '7px 9px', border: '1px solid var(--color-warning)', borderRadius: 4, color: 'var(--color-warning)', fontSize: 10.5, letterSpacing: '0.1em', whiteSpace: 'nowrap' }}
         >
-          TUNNEL HANDOFF READY
+          RELEASE BLOCKED
         </span>
       </div>
     </div>
@@ -569,14 +570,14 @@ function Hero() {
                 paddingLeft: 16,
               }}
             >
-              API Workbench + Autonomy Lab
+              API Workbench + Agent Change Gate
             </span>
           </div>
         </Reveal>
 
         <Reveal delay={40}>
           <div style={{ marginBottom: 32 }}>
-            <Eyebrow index="00">Test the API. Prove the authority. Hand off the build.</Eyebrow>
+            <Eyebrow index="00">Test the API. Gate the action. Prove the change.</Eyebrow>
           </div>
         </Reveal>
 
@@ -592,9 +593,9 @@ function Hero() {
               marginBottom: 0,
             }}
           >
-            Decide how your AI should act.<br />
+            The release gate for AI agents<br />
             <span style={{ color: 'var(--color-text-muted)' }}>
-              Prove it before you build.
+              that take real actions.
             </span>
           </h1>
         </Reveal>
@@ -614,13 +615,13 @@ function Hero() {
                   marginBottom: 30,
                 }}
               >
-                FetchLab turns a real workflow into a tested operating boundary for AI. Use the API Workbench
-                to capture evidence, compare human and AI authority levels in Autonomy Lab, then issue a contract
-                that security, product, and engineering can review before Tunnel or another coding agent builds it.
+                A prompt, model, tool, or code change can silently give an agent more power. FetchLab records
+                exact action attempts, enforces deterministic allow, approval, or deny rules, and blocks a release
+                when the new version expands authority without review.
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
-                <CTA href="/app">Open web app</CTA>
+                <CTA href="/app">Open Agent Gate</CTA>
                 <GhostCTA href="/download">Download installer</GhostCTA>
                 <GhostCTA href="/enterprise">Enterprise pilot</GhostCTA>
               </div>
@@ -630,7 +631,7 @@ function Hero() {
           </Reveal>
 
           <Reveal delay={240}>
-            <AutonomySpecimen />
+            <AgentGateSpecimen />
           </Reveal>
         </div>
       </div>
@@ -703,7 +704,7 @@ function Declaration() {
             }}
           >
             One API Workbench for requests, collections, environments, protocols, and scripts.
-            One Autonomy Lab for authority experiments, pilot evidence, policy limits, contracts, and build handoff.
+            One Agent Change Gate for runtime decisions, exact-action approval, authority diffs, and controlled releases.
           </p>
           <div
             className="font-mono"
@@ -733,13 +734,13 @@ const LOG_ENTRIES: LogEntry[] = [
   { t: '00:00:01', stage: 'web app',    line: '/app opens the full API Workbench in the browser', mark: 'ok' },
   { t: '00:00:06', stage: 'desktop',    line: 'Windows EXE and MSI installers are available from /download', mark: 'ok' },
   { t: '00:00:11', stage: 'api bench',  line: 'requests, collections, environments, scripts, WebSocket, SSE, OpenAPI', mark: 'ok' },
-  { t: '00:00:18', stage: 'autonomy',   line: 'recommend, draft, approval, and bounded-autonomous variants compared', mark: 'ok' },
+  { t: '00:00:18', stage: 'agent gate', line: 'observed actions replay against published and draft policies', mark: 'ok' },
   { t: '00:00:26', stage: 'teams',      line: 'workspace members use admin, member, and viewer roles', mark: 'ok' },
   { t: '00:00:31', stage: 'security',   line: 'JWT sessions, 2FA, lockouts, AES-256-GCM credential encryption', mark: 'ok' },
   { t: '00:00:37', stage: 'enterprise', line: 'PostgreSQL, audit logs, retention, OIDC SSO, and SCIM endpoints', mark: 'ok' },
-  { t: '00:00:43', stage: 'handoff',    line: 'Autonomy Contract exported as a policy-bounded Tunnel build task', mark: 'ok' },
-  { t: '00:00:50', stage: 'release',    line: 'Launch packet, lint, build, audit, runtime, local-file, and Postgres smoke checks pass', mark: 'ok' },
-  { t: '00:00:58', stage: 'ready',      line: 'one product surface for AI product engineering teams', mark: 'ok' },
+  { t: '00:00:43', stage: 'release',    line: 'authority expansions wait for named reviewer approval', mark: 'ok' },
+  { t: '00:00:50', stage: 'release',    line: 'the release record binds evidence, reviews, and an immutable policy revision', mark: 'ok' },
+  { t: '00:00:58', stage: 'ready',      line: 'API understanding and agent authority control stay connected', mark: 'ok' },
 ];
 
 function HowItWorks() {
@@ -962,21 +963,20 @@ function AIBuilderVisual() {
   );
 }
 
-function AutonomyVisual() {
+function AuthorityDiffVisual() {
   const items = [
-    { name: 'Recommend only',    pilots: '3 pilot', active: false },
-    { name: 'Draft for review',  pilots: '4 pilot', active: false },
-    { name: 'Act after approval', pilots: '8 pilot', active: true },
-    { name: 'Bounded autonomous', pilots: '0 pilot', active: false },
+    { name: 'stripe.refunds.create', transition: 'Approval -> Allow', active: true },
+    { name: 'stripe.customers.read', transition: 'Allow -> Allow', active: false },
+    { name: 'stripe.payouts.create', transition: 'Deny -> Approval', active: true },
   ];
   return (
     <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-strong)', borderRadius: 8 }}>
       <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--color-border)' }}>
         <div className="font-mono" style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
-          Refund exception study
+          Refund agent release
         </div>
         <div style={{ fontSize: 12.5, color: 'var(--color-text-subtle)', marginTop: 4 }}>
-          Selected authority ceiling
+          Illustrative published policy vs draft
         </div>
       </div>
       <div>
@@ -993,22 +993,22 @@ function AutonomyVisual() {
             <div className="flex items-center gap-3">
               <span
                 style={{
-                  width: 16, height: 16, borderRadius: 999,
-                  border: item.active ? '5px solid var(--color-accent)' : '1.5px solid var(--color-border-strong)',
+                  width: 16, height: 16, borderRadius: 3,
+                  border: item.active ? '4px solid var(--color-warning)' : '1.5px solid var(--color-border-strong)',
                   background: 'var(--color-surface)',
                 }}
               />
-              <span style={{ fontSize: 13.5, color: 'var(--color-text)', fontWeight: item.active ? 650 : 400 }}>{item.name}</span>
+              <span className="font-mono" style={{ fontSize: 12.5, color: 'var(--color-text)', fontWeight: item.active ? 650 : 400 }}>{item.name}</span>
             </div>
             <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.12em', color: item.active ? 'var(--color-accent)' : 'var(--color-text-subtle)' }}>
-              {item.pilots}
+              {item.transition}
             </span>
           </div>
         ))}
       </div>
       <div className="flex items-center justify-between" style={{ padding: '12px 14px', borderTop: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}>
-        <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>Evidence recommendation</span>
-        <strong style={{ color: 'var(--color-success)', fontSize: 12.5 }}>Act after approval</strong>
+        <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>Release status</span>
+        <strong style={{ color: 'var(--color-warning)', fontSize: 12.5 }}>2 reviews required</strong>
       </div>
     </div>
   );
@@ -1254,21 +1254,20 @@ function Features() {
 
         <Chapter
           num="02.02"
-          title="Autonomy Lab for decisions teams can defend."
+          title="Agent Change Gate for releases teams can defend."
           body={
             <>
-              Define a real workflow, its users, accountable owner, risk, and observable outcome.
-              Compare recommend-only, draft, approval-gated, and bounded-autonomous variants using
-              real pilot evidence, override rates, policy events, and time saved.
+              Give every tool action a deterministic allow, approval, or deny result. Runtime credentials are
+              hashed, action secrets are encrypted, retries require idempotency keys, and approvals bind to one exact action.
               <br /><br />
-              Finalize a machine-readable Autonomy Contract with authority ceilings, stop rules, verification,
-              rollback, and acceptance criteria, then export the implementation task to Tunnel or another coding system.
+              Before a prompt, model, tool, or code release, replay real action evidence through the published and draft
+              policies. Any expansion from deny to approval, deny to allow, or approval to allow must be reviewed before publish.
             </>
           }
-          marginalia="FetchLab decides what should be built and how much authority it may have. Tunnel coordinates coding agents to implement that approved contract. The products do not compete for the same job."
+          marginalia="FetchLab does not build or host the agent. It is the independent control point that proves what changed in the agent's effective authority and decides whether each exact action may execute."
           figLabel="Fig. 02.02"
-          figCaption="Authority variants and pilot evidence"
-          figure={<AutonomyVisual />}
+          figCaption="Real-action authority diff"
+          figure={<AuthorityDiffVisual />}
         />
 
         <Chapter
@@ -1302,9 +1301,9 @@ function TickerBar() {
     'WEB APP - /APP - LIVE WORKBENCH',
     'DESKTOP - WINDOWS EXE + MSI',
     'API BENCH - REST + GRAPHQL + WEBSOCKET + SSE',
-    'AI BENCH - PROVIDERS + TESTS + EVAL PREP',
+    'AGENT GATE - ACTION POLICY + APPROVAL + RELEASE DIFF',
     'ENTERPRISE - POSTGRES + RBAC + AUDIT + SSO',
-    'AGENTS - TOOL CONTEXT + CODING HANDOFFS',
+    'RUNTIME - DEFAULT DENY + EXACT ACTION + IDEMPOTENT RETRIES',
   ];
   const seq = [...tickerItems, ...tickerItems];
 
@@ -1404,7 +1403,7 @@ const SPECIMENS = [
   { num: '0001', time: 'Live now', service: 'Browser app',      cause: 'Full API Workbench is available from /app without installing anything.',               pr: '/app',        fix: 'Web',        status: 'closed' },
   { num: '0002', time: 'v1.2.0',   service: 'Windows installer', cause: 'EXE and MSI packages are published for local workflows and managed rollouts.',         pr: '/download',   fix: 'EXE/MSI',    status: 'closed' },
   { num: '0003', time: 'API bench', service: 'Protocol testing',  cause: 'REST, GraphQL, WebSocket, SSE, collections, environments, scripts, and history.',       pr: 'Built in',    fix: 'API',        status: 'closed' },
-  { num: '0004', time: 'AI bench',  service: 'Model workflows',   cause: 'Launch Gate, BYOK providers, generated requests, assertions, diagnosis, eval prep, and exports.',    pr: 'Built in',    fix: 'AI',         status: 'closed' },
+  { num: '0004', time: 'Agent gate', service: 'Action control',    cause: 'Runtime decisions, exact-action approvals, authority diffs, and immutable policy revisions.',         pr: 'Built in',    fix: 'Gate',       status: 'closed' },
   { num: '0005', time: 'Teams',     service: 'Enterprise backend', cause: 'PostgreSQL accounts, workspace RBAC, encrypted credentials, audit logs, SSO, SCIM.',     pr: '/enterprise', fix: 'Governance', status: 'closed' },
   { num: '0006', time: 'Agents',    service: 'Coding handoffs',   cause: 'Turn known-good API calls, responses, and diagnostics into clean coding-agent context.',   pr: 'Built in',    fix: 'Context',    status: 'closed' },
 ];
@@ -1574,11 +1573,6 @@ function ChapterMarker({ num, label }: { num: string; label: string }) {
 
 function PullQuote() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.4 });
-  const { country } = useCountry();
-  const isIN = country === 'IN';
-  const attribution = isIN
-    ? 'Engineering lead - Bangalore fintech'
-    : 'Engineering lead - series-B fintech';
   return (
     <section style={{ position: 'relative' }}>
       <SectionRule />
@@ -1594,9 +1588,9 @@ function PullQuote() {
                 transition: `opacity 600ms ${EASE}, transform 600ms ${EASE}`,
               }}
             >
-              <Eyebrow index="*">Field note - forwarded</Eyebrow>
+              <Eyebrow index="*">Release principle</Eyebrow>
             </div>
-            <blockquote
+            <div
               style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: 'clamp(28px, 4.8vw, 64px)',
@@ -1611,11 +1605,8 @@ function PullQuote() {
                 transition: `opacity 700ms ${EASE} 120ms, transform 700ms ${EASE} 120ms`,
               }}
             >
-              <span style={{ color: 'var(--color-accent)', display: 'inline-block', marginRight: 8 }}>"</span>
-              We stopped switching between API clients, model playgrounds, docs, and incident threads.
-              FetchLab became the shared bench for API and AI work.
-              <span style={{ color: 'var(--color-accent)', display: 'inline-block', marginLeft: 4 }}>"</span>
-            </blockquote>
+              An agent should never gain new authority because a prompt, model, tool, or code change slipped through an answer-quality review.
+            </div>
             <div
               style={{
                 marginTop: 28,
@@ -1632,7 +1623,7 @@ function PullQuote() {
                 className="font-mono"
                 style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}
               >
-                {attribution}
+                FetchLab release model
               </span>
             </div>
           </div>
@@ -1665,7 +1656,7 @@ function PullQuote() {
                 <span>Web</span>        <span style={{ color: 'var(--color-text)' }}>/app</span>
                 <span>Desktop</span>    <span style={{ color: 'var(--color-text)' }}>EXE + MSI</span>
                 <span>Enterprise</span> <span style={{ color: 'var(--color-accent)' }}>RBAC + SSO</span>
-                <span>AI</span>         <span style={{ color: 'var(--color-text)' }}>Launch Gate + evals</span>
+                <span>Agent gate</span> <span style={{ color: 'var(--color-text)' }}>Decide + approve</span>
               </div>
             </div>
           </div>
@@ -1759,7 +1750,7 @@ function Footer() {
             className="font-mono"
             style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}
           >
-            FetchLab - API + AI Workbench - (c) 2026
+            FetchLab - API Workbench + Agent Change Gate - (c) 2026
           </div>
         </div>
       </div>

@@ -1,21 +1,32 @@
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { useApp } from '../store/useApp';
 import { useAuth } from '../auth/useAuth';
-import { PanelLeftClose, PanelLeft, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, LogOut, LogIn, User as UserIcon, Users, Scale, Shield, Cpu } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, LogOut, LogIn, User as UserIcon, Users, Scale, Shield, Cpu, Loader2 } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
-import HelpMenu from './HelpMenu';
-import HealthDashboard from './HealthDashboard';
-import Integrations from './Integrations';
-import WebSocketTester from './WebSocketTester';
-import SSEViewer from './SSEViewer';
-import FlowBuilder from './FlowBuilder';
-import AIRequestBuilder from './AIRequestBuilder';
-import AgentDashboard from './AgentDashboard';
-import AIWorkbench from './AIWorkbench';
-import AutonomyLab from './AutonomyLab';
-import SecuritySettings from './SecuritySettings';
-import LLMSettings from './LLMSettings';
 import { FetchLabLogo } from './FetchLabLogo';
+
+const HelpMenu = lazy(() => import('./HelpMenu'));
+const HealthDashboard = lazy(() => import('./HealthDashboard'));
+const Integrations = lazy(() => import('./Integrations'));
+const WebSocketTester = lazy(() => import('./WebSocketTester'));
+const SSEViewer = lazy(() => import('./SSEViewer'));
+const FlowBuilder = lazy(() => import('./FlowBuilder'));
+const AIRequestBuilder = lazy(() => import('./AIRequestBuilder'));
+const AgentDashboard = lazy(() => import('./AgentDashboard'));
+const AIWorkbench = lazy(() => import('./AIWorkbench'));
+const AutonomyLab = lazy(() => import('./AutonomyLab'));
+const SecuritySettings = lazy(() => import('./SecuritySettings'));
+const LLMSettings = lazy(() => import('./LLMSettings'));
+
+function ToolLoading() {
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'var(--color-bg)' }}>
+      <div role="status" aria-live="polite" className="flex items-center gap-3 text-sm" style={{ color: 'var(--color-text-muted)' }}>
+        <Loader2 size={18} className="animate-spin" /> Loading tool
+      </div>
+    </div>
+  );
+}
 
 export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
   const { state, dispatch } = useApp();
@@ -94,15 +105,19 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
         </div>
 
         <div className="flex items-center gap-0.5" style={{ color: 'var(--color-text-muted)' }}>
-          {/* Autonomy Lab */}
+          {/* Agent Change Gate */}
           <button
             onClick={() => setShowAutonomyLab(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] font-semibold hover:bg-[color:var(--color-surface-3)]"
-            style={{ color: 'var(--color-text)' }}
-            title="Test and approve an AI workflow's operating authority"
+            className="flex items-center gap-2 px-3 h-8 rounded text-[13px] font-semibold hover:bg-[color:var(--color-surface-3)]"
+            style={{
+              color: 'var(--color-text)',
+              border: '1px solid var(--color-border)',
+              background: 'var(--color-accent-soft)',
+            }}
+            title="Review and enforce changes to an AI agent's actions"
           >
-            <Scale size={14} style={{ color: 'var(--color-accent)' }} />
-            <span className="hidden sm:inline">Autonomy Lab</span>
+            <Scale size={15} style={{ color: 'var(--color-accent)' }} />
+            <span className="hidden sm:inline">Agent Gate</span>
           </button>
 
           <button
@@ -294,10 +309,11 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
         </div>
       </header>
 
-      {/* Welcome guide - shown on first launch */}
-      {showGuide && (
-        <WelcomeGuide onClose={() => setShowGuide(false)} />
-      )}
+      <Suspense fallback={<ToolLoading />}>
+        {/* Welcome guide - shown on first launch */}
+        {showGuide && (
+          <WelcomeGuide onClose={() => setShowGuide(false)} />
+        )}
 
       {/* Integrations */}
       {showIntegrations && (
@@ -337,7 +353,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
         <AIRequestBuilder onClose={() => setShowAi(false)} />
       )}
 
-      {/* Autonomy Lab */}
+      {/* Agent Change Gate */}
       {showAutonomyLab && (
         <AutonomyLab
           key={activeWorkspaceId || 'local'}
@@ -368,9 +384,10 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
       )}
 
       {/* LLM Settings / BYOK */}
-      {showLlmSettings && (
-        <LLMSettings onClose={() => setShowLlmSettings(false)} />
-      )}
+        {showLlmSettings && (
+          <LLMSettings onClose={() => setShowLlmSettings(false)} />
+        )}
+      </Suspense>
     </>
   );
 }

@@ -1,8 +1,8 @@
-# ⚡ FetchLab — API + AI Workbench
+# FetchLab - API Workbench + Agent Change Gate
 
-FetchLab is a team workbench for modern engineering orgs: one **API Workbench** for requests, collections, environments, WebSocket/SSE, flows, and OpenAPI, plus one **AI Workbench** for model providers, AI-assisted tests, debugging, agent monitoring, and coding-agent workflows.
+FetchLab gives engineering teams two connected benches: an **API Workbench** for understanding the systems agents call, and an **Agent Change Gate** for deciding whether exact tool actions may execute and whether a prompt, model, tool, or code release expands authority.
 
-It runs local-first for individual developers and self-hosted for teams that need auth, workspaces, encrypted secrets, audit logs, rate limits, OIDC SSO, SCIM surfaces, and bring-your-own-key model routing.
+It runs as an encrypted local simulation with no database, or as a self-hosted team service with PostgreSQL, runtime credentials, immutable policy revisions, exact-action approvals, audit logs, RBAC, rate limits, OIDC SSO, and SCIM surfaces.
 
 ![FetchLab](https://img.shields.io/badge/FetchLab-v1.1.0-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![AI](https://img.shields.io/badge/AI-Claude%20Sonnet%204.6-purple) ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
 
@@ -13,14 +13,14 @@ It runs local-first for individual developers and self-hosted for teams that nee
 FetchLab has two benches in one app:
 
 - **API Workbench** — send requests, manage collections, run scripts, compare responses, test WebSocket/SSE streams, build flows, generate OpenAPI specs.
-- **AI Workbench** — run prompts against approved model routes, compare local baselines, seed eval cases from live API traffic, export OpenAI/MCP/framework tools, configure providers, diagnose failures, and monitor API issues with the AI Ops Agent.
+- **Agent Change Gate** — enforce default-deny action policies, review exact actions once, replay real evidence across policy revisions, and block releases with unreviewed authority expansion.
 
-AI features are optional. Configure a provider in the app or set server-side provider keys. The rest of FetchLab works without external AI.
+Optional prompt, eval, request-generation, and incident tools remain under **Advanced**. Agent authorization is deterministic and does not require an AI provider.
 
-### 🪄 AI Workbench
-Click **AI Workbench** in the header. It gives the team one place to run prompt experiments, seed eval cases from the active API request/response, export agent-ready tools, and check provider/agent/security status. The request builder is available inside the workbench and can:
-- **Paste a cURL command** — it's auto-parsed into a fully editable FetchLab request (URL, method, headers, body, query params).
-- **Describe in plain English** — `"GET all users from the GitHub API with auth token"` becomes a real request with the right URL, method, headers, and a placeholder for your token.
+### Agent Change Gate
+Click **Agent Gate** in the header. Create a gate, issue a runtime credential, and place `POST /api/authority/check` immediately before tool execution. Policies match tool, operation, target, and typed argument constraints. Unmatched actions are denied. Approval grants are bound to one action hash and policy revision, expire, and can be consumed once.
+
+Release review replays stored real actions through the published and draft policies. A change from deny to approval, deny to allow, or approval to allow is an authority expansion and must be reviewed before an administrator can publish the next immutable revision.
 
 ### 🧪 AI Test Generation
 After any successful response, click **Generate Tests** in the response status bar. FetchLab analyzes the actual response body, status, and headers, then writes a complete `fl.test()` script with assertions like:
@@ -72,7 +72,10 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ```bash
 docker build -t fetchlab .
-docker run -p 3000:3000 -e ANTHROPIC_API_KEY=sk-ant-... fetchlab
+docker run -p 3000:3000 \
+  -e JWT_SECRET=replace-with-a-long-random-secret \
+  -e APP_ENCRYPTION_KEY=replace-with-32-byte-hex-or-base64 \
+  fetchlab
 ```
 
 ### Deploy to Railway
@@ -80,8 +83,8 @@ docker run -p 3000:3000 -e ANTHROPIC_API_KEY=sk-ant-... fetchlab
 1. Push to GitHub
 2. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
 3. Select `vkavali/fetchlab` → Railway auto-detects the Dockerfile
-4. Set the `ANTHROPIC_API_KEY` env var in Railway → Variables
-5. Done — your team gets a public URL with full AI features
+4. Add PostgreSQL and set `DATABASE_URL`, `JWT_SECRET`, and `APP_ENCRYPTION_KEY`
+5. Optionally set an AI provider key for Advanced features
 
 > Without `ANTHROPIC_API_KEY`, AI endpoints return 503 and the UI degrades gracefully — the rest of FetchLab still works perfectly.
 
@@ -94,9 +97,9 @@ FetchLab can run in two modes:
 
 ### Sellable packages
 
-- **Free** — local API Workbench for individual developers.
-- **Pro** — AI-assisted API development for one developer.
-- **Team** — shared workspaces, RBAC, audit log, and BYOK model setup for an engineering team.
+- **Free** — local API Workbench plus one encrypted local action gate.
+- **Pro** — unlimited local action gates and optional AI-assisted API development.
+- **Team** — runtime decision API, exact-action approvals, authority release diffs, shared workspaces, RBAC, and audit history.
 - **Enterprise Pilot** — self-hosted setup, SSO/SCIM configuration support, security review support, and guided rollout.
 
 ### Environment variables
@@ -109,7 +112,6 @@ FetchLab can run in two modes:
 | `APP_ENCRYPTION_KEY` | Required in production. 32 bytes (hex or base64) used for AES-256-GCM credential encryption. |
 | `ANTHROPIC_API_KEY` | Optional. Enables `/api/ai/*` endpoints (diagnose, generate-tests). |
 | `ANTHROPIC_MODEL` | Optional. Defaults to `claude-haiku-4-5-20251001`. |
-| `TUNNEL_URL` | Optional base URL for Agent Tunnel. Enables validated, audited Autonomy Contract handoff to `POST /api/tasks`. |
 | `VITE_API_BASE_URL` | Optional frontend build variable. Set this to the backend origin when the web frontend and API run as separate Railway services. Leave unset for the normal single-service deployment. |
 | `FETCHLAB_ALLOWED_ORIGINS` | Optional comma-separated backend allowlist for split deployments, for example `https://your-web-service.up.railway.app,https://fetchlab.app`. |
 | `AUTH_DISABLED=1` | Skips auth checks server-side (single-user / dev only). |
@@ -120,7 +122,8 @@ FetchLab can run in two modes:
 - `POST /api/auth/register` — first user becomes admin. 8+ char password.
 - `POST /api/auth/login` / `POST /api/auth/logout` / `GET /api/auth/me`
 - `GET /api/workspaces`, `POST /api/workspaces`, members at `/api/workspaces/:id/members` (admin role to invite)
-- Autonomy Studies: `GET/POST /api/workspaces/:id/autonomy-studies`, delete by study ID, and optional Tunnel handoff at `POST /api/workspaces/:id/autonomy-studies/:studyId/tunnel`.
+- Action gates: `GET/POST /api/workspaces/:id/autonomy-studies`, policy state/draft/publish under `/api/workspaces/:id/autonomy-studies/:studyId/authority`, and runtime credentials at `/api/workspaces/:id/authority-tokens`.
+- Runtime enforcement: `POST /api/authority/check`, `GET /api/authority/events/:eventId`, and one-time approval consumption at `POST /api/authority/events/:eventId/consume`.
 - OIDC SSO: admin configures providers via `POST /api/auth/sso/admin`; users log in at `/api/auth/sso/start/:configId`.
 
 ### Tests
@@ -129,7 +132,7 @@ FetchLab can run in two modes:
 npm test
 ```
 
-Runs vitest across the encryption layer, JWT auth flow, script runner (`fl.*`), curl parser, and AI endpoints (Anthropic call mocked).
+Runs Vitest across server and browser encryption, JWT auth, workspaces, Agent Change Gate policy evaluation and runtime behavior, UI acceptance paths, the script runner (`fl.*`), curl parser, and mocked AI endpoints.
 
 ---
 

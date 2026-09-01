@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import {
-  Zap, Send, FolderOpen, Key, Code, GitCompare, FileText, Puzzle,
+  Zap, Send, FolderOpen, Key, Code, GitCompare,
   ChevronRight, ChevronLeft, Rocket, ArrowRight, Terminal, Globe,
-  Link2, FlaskConical, BookOpen, X
+  Link2, FlaskConical, BookOpen, X, ShieldCheck, LockKeyhole
 } from 'lucide-react';
 
 interface Props {
@@ -12,13 +12,13 @@ interface Props {
 const STEPS = [
   {
     title: 'Welcome to FetchLab',
-    subtitle: 'A modern API client that actually respects developers',
+    subtitle: 'API evidence and agent authority in one product',
     icon: Zap,
     iconColor: 'from-brand-500 to-accent-500',
     content: (
       <div className="space-y-4">
         <p className="text-sm text-gray-300 leading-relaxed">
-          FetchLab is a fast, free, and fully local API testing tool. No accounts, no cloud, no telemetry — your data never leaves your machine.
+          The API Workbench proves how services behave. Agent Change Gate controls which exact tool actions an AI agent may execute and whether a release expands its authority.
         </p>
         <div className="grid grid-cols-2 gap-3">
           {[
@@ -26,8 +26,8 @@ const STEPS = [
             { icon: Key, label: 'Auto-auth', desc: 'Token profiles fetch & inject tokens' },
             { icon: Code, label: 'Test scripts', desc: 'Write assertions in JavaScript' },
             { icon: GitCompare, label: 'Response diff', desc: 'Compare API responses visually' },
-            { icon: FileText, label: 'Generate docs', desc: 'HTML/Markdown from collections' },
-            { icon: Puzzle, label: 'Snippets', desc: 'Reusable headers, params, auth' },
+            { icon: ShieldCheck, label: 'Gate actions', desc: 'Allow, approve, or deny exact tool calls' },
+            { icon: LockKeyhole, label: 'Review releases', desc: 'Block unreviewed authority expansion' },
           ].map(f => (
             <div key={f.label} className="flex items-start gap-2.5 p-3 rounded-lg bg-gray-800/30 border border-gray-800">
               <f.icon size={16} className="text-brand-400 mt-0.5 flex-shrink-0" />
@@ -35,6 +35,32 @@ const STEPS = [
                 <p className="text-xs font-medium text-gray-200">{f.label}</p>
                 <p className="text-[10px] text-gray-500 mt-0.5">{f.desc}</p>
               </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+  },
+  {
+    title: 'Agent Change Gate',
+    subtitle: 'Put a deterministic decision before tool execution',
+    icon: ShieldCheck,
+    iconColor: 'from-emerald-500 to-cyan-500',
+    content: (
+      <div className="space-y-4">
+        <p className="text-sm text-gray-300 leading-relaxed">
+          Click <strong className="text-gray-100">Agent Gate</strong> in the header. Local mode is an encrypted simulation. A connected workspace adds runtime credentials, team review, durable evidence, and server enforcement.
+        </p>
+        <div className="space-y-2">
+          {[
+            { step: '1', text: 'Create one action gate for one agent and deployment boundary.' },
+            { step: '2', text: 'Start in Shadow and define narrow tool, operation, target, and argument rules.' },
+            { step: '3', text: 'Review pending exact actions and approve a request once when necessary.' },
+            { step: '4', text: 'Review authority expansion before publishing a new immutable policy revision.' },
+          ].map(item => (
+            <div key={item.step} className="flex items-start gap-3 p-2.5 border-b border-gray-800 last:border-0">
+              <span className="w-7 h-7 rounded bg-brand-500/20 text-brand-400 text-xs font-bold flex items-center justify-center flex-shrink-0">{item.step}</span>
+              <p className="text-sm text-gray-300 leading-relaxed">{item.text}</p>
             </div>
           ))}
         </div>
@@ -171,7 +197,7 @@ const STEPS = [
     content: (
       <div className="space-y-4">
         <p className="text-sm text-gray-300 leading-relaxed">
-          Everything is saved locally in your browser. Your history, collections, environments, and token configs persist across restarts.
+          Local mode stores encrypted gate data on this device. Sign in to a configured workspace for shared runtime enforcement, approvals, audit history, and role-based access.
         </p>
         <div className="p-4 rounded-xl bg-brand-500/10 border border-brand-500/20">
           <p className="text-xs font-medium text-brand-400 mb-2">Quick keyboard shortcuts</p>

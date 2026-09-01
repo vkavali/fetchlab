@@ -12,8 +12,12 @@ interface Props {
 
 const FAQ_ITEMS = [
   {
+    q: 'What does Agent Gate do?',
+    a: 'It evaluates the exact tool, operation, target, and arguments an AI agent is about to use. A published deterministic policy returns allow, require approval, or deny. Release review blocks policy changes that expand authority until they are reviewed.',
+  },
+  {
     q: 'Where is my data stored?',
-    a: 'Everything is stored locally in your browser\'s localStorage. No data ever leaves your machine. No accounts, no cloud, no telemetry.',
+    a: 'Without a configured server, API data and encrypted action-gate state stay on this device. With a workspace server, shared collections, policies, decisions, approvals, and audit records are stored by that deployment.',
   },
   {
     q: 'How do I import a cURL command?',
@@ -53,7 +57,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Is this free?',
-    a: 'Yes, completely free and open source. No paid tiers, no feature gates, no limits.',
+    a: 'Local API work and one encrypted local action gate are available free. Shared runtime enforcement, team approvals, durable policy history, and enterprise identity controls are workspace features.',
   },
 ];
 
@@ -84,7 +88,7 @@ export default function HelpMenu({ onClose, onShowGuide }: Props) {
             </div>
             <div className="text-left flex-1">
               <p className="text-sm font-medium text-brand-400">Interactive Guide</p>
-              <p className="text-[10px] text-gray-500">Step-by-step walkthrough of all features</p>
+              <p className="text-xs text-gray-400">API Workbench and Agent Gate walkthrough</p>
             </div>
             <ExternalLink size={14} className="text-gray-600 group-hover:text-brand-400 transition-colors" />
           </button>
@@ -171,11 +175,11 @@ export default function HelpMenu({ onClose, onShowGuide }: Props) {
               <div className="flex items-center gap-3">
                 <div>
                   <FetchLabLogo markSize={36} wordmarkSize={14} />
-                  <p className="text-xs text-gray-500">Version 1.0.0</p>
+                  <p className="text-xs text-gray-500">Version 1.2.0</p>
                 </div>
               </div>
               <p className="text-xs text-gray-400 leading-relaxed">
-                A modern, open-source API client built for developers who want speed, privacy, and powerful features without the bloat.
+                An API Workbench and Agent Change Gate for teams building AI systems that act through tools and APIs.
               </p>
               <div className="p-3 rounded-lg bg-gray-800/30 border border-gray-800 space-y-2">
                 <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Built with</p>
@@ -186,8 +190,8 @@ export default function HelpMenu({ onClose, onShowGuide }: Props) {
                 </div>
               </div>
               <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/20">
-                <p className="text-xs text-green-400 font-medium">100% Local & Private</p>
-                <p className="text-[10px] text-gray-500 mt-1">No accounts. No cloud. No telemetry. Your data stays on your machine in localStorage.</p>
+                <p className="text-xs text-green-400 font-medium">Local-first, workspace-ready</p>
+                <p className="text-xs text-gray-400 mt-1">Use encrypted device simulation without a server, or connect a managed workspace for runtime enforcement and team controls.</p>
               </div>
             </div>
           )}

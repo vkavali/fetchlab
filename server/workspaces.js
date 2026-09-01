@@ -22,7 +22,7 @@ async function memberOrFail(req, res, workspaceId, requireRole = null) {
 
 // Encrypt sensitive fields in any persisted JSON blob.
 // Walks the object tree and encrypts string values whose key matches sensitive patterns.
-const SENSITIVE_KEY_RE = /password|secret|token|api[_-]?key|client[_-]?secret|access[_-]?token|refresh[_-]?token/i;
+const SENSITIVE_KEY_RE = /password|secret|token|api[_-]?key|client[_-]?secret|access[_-]?token|refresh[_-]?token|authorization|cookie|credential|private[_-]?key/i;
 
 function transformSecrets(value, op) {
   if (value == null) return value;
@@ -167,7 +167,7 @@ export function buildWorkspacesRouter() {
   });
 
   router.delete('/:id/autonomy-studies/:studyId', async (req, res) => {
-    if (!(await memberOrFail(req, res, req.params.id, 'member'))) return;
+    if (!(await memberOrFail(req, res, req.params.id, 'admin'))) return;
     const removed = await db.deleteAutonomyStudy(req.params.studyId, req.params.id);
     if (!removed) return res.status(404).json({ error: 'Study not found' });
     await appendAudit({

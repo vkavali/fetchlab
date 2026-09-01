@@ -14,7 +14,7 @@ function tokenSubject(req) {
   }
 }
 
-const userKey = (req) => req.user?.id || tokenSubject(req) || req.ip;
+const userKey = (req) => req.gateToken?.id || req.user?.id || tokenSubject(req) || req.ip;
 const isDisabled = () => process.env.RATE_LIMIT_DISABLED === '1' || process.env.NODE_ENV === 'test';
 
 const passthrough = (_req, _res, next) => next();
@@ -43,4 +43,12 @@ export const apiLimiter = isDisabled() ? passthrough : rateLimit({
   legacyHeaders: false,
   keyGenerator: userKey,
   message: { error: 'API rate limit exceeded (100/min).' },
+});
+
+export const gateCredentialLimiter = isDisabled() ? passthrough : rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authority credential attempts. Try again in a minute.' },
 });

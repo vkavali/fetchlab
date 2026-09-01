@@ -12,6 +12,7 @@ import { authLimiter, aiLimiter, apiLimiter } from './rateLimit.js';
 import { buildIntegrationsRouter } from './integrations.js';
 import { buildAgentRouter } from './agent/routes.js';
 import { buildLlmSettingsRouter } from './llmRoutes.js';
+import { buildAuthorityRuntimeRouter, buildAuthorityWorkspaceRouter } from './authority.js';
 import { registerAiRoutes } from '../ai-routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -56,7 +57,7 @@ function corsForSplitDeployments(req, res, next) {
   return next();
 }
 
-export async function buildApp({ skipDbInit = false } = {}) {
+export async function buildApp({ skipDbInit = false, staticRoot = join(ROOT, 'dist') } = {}) {
   assertRuntimeConfig();
   if (!skipDbInit) await initDb();
 
@@ -157,6 +158,8 @@ export async function buildApp({ skipDbInit = false } = {}) {
 
   // Workspace + audit + integrations
   app.use('/api/workspaces', apiLimiter, buildWorkspacesRouter());
+  app.use('/api/workspaces', buildAuthorityWorkspaceRouter());
+  app.use('/api/authority', buildAuthorityRuntimeRouter());
   app.use('/api/audit', apiLimiter, buildAuditRouter());
   app.use('/api/enterprise', apiLimiter, buildEnterpriseRouter());
   app.use('/api/agent', apiLimiter, buildAgentRouter());
@@ -168,9 +171,9 @@ export async function buildApp({ skipDbInit = false } = {}) {
   //   /privacy   -> privacy policy
   //   /terms     -> terms of service
   //   /app, *    -> API client app (with auth gate)
-  app.use(express.static(join(ROOT, 'dist')));
+  app.use(express.static(staticRoot));
   app.get('/{*path}', (_req, res) => {
-    res.sendFile(join(ROOT, 'dist', 'index.html'));
+    res.sendFile('index.html', { root: staticRoot });
   });
 
   return app;

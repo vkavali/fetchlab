@@ -7,7 +7,7 @@ describe('PostgreSQL schema migrations', () => {
     delete process.env.DATABASE_URL;
   });
 
-  it('backfills auth columns on existing users tables', async () => {
+  it('backfills auth and authority columns on existing installations', async () => {
     const queries = [];
     class Pool {
       async query(sql) {
@@ -31,5 +31,13 @@ describe('PostgreSQL schema migrations', () => {
     expect(schema).toContain("ALTER TABLE users ADD COLUMN IF NOT EXISTS recovery_codes_hashed JSONB NOT NULL DEFAULT '[]'::jsonb");
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS autonomy_studies');
     expect(schema).toContain('idx_autonomy_studies_workspace');
+    expect(schema).toContain('ALTER TABLE api_tokens ADD COLUMN IF NOT EXISTS workspace_id UUID');
+    expect(schema).toContain("ALTER TABLE api_tokens ADD COLUMN IF NOT EXISTS scopes JSONB NOT NULL DEFAULT '[]'::jsonb");
+    expect(schema).toContain('ALTER TABLE autonomy_studies ADD COLUMN IF NOT EXISTS draft_policy JSONB');
+    expect(schema).toContain('ALTER TABLE autonomy_studies ADD COLUMN IF NOT EXISTS published_revision INTEGER NOT NULL DEFAULT 0');
+    expect(schema).toContain('CREATE TABLE IF NOT EXISTS authority_policy_revisions');
+    expect(schema).toContain('CREATE TABLE IF NOT EXISTS authority_events');
+    expect(schema).toContain('CREATE TABLE IF NOT EXISTS authority_change_reviews');
+    expect(schema).toContain('idx_authority_events_idempotency');
   });
 });

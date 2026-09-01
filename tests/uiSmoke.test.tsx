@@ -44,29 +44,29 @@ describe('client route smoke', () => {
     vi.unstubAllGlobals();
   });
 
-  it('renders the landing page', () => {
+  it('renders the landing page', async () => {
     renderAt('/');
-    expect(screen.getByText('Decide how your AI should act.')).toBeTruthy();
+    expect(await screen.findByRole('heading', { level: 1, name: /The release gate for AI agents that take real actions/i })).toBeTruthy();
     expect(screen.getAllByText('Start free').length).toBeGreaterThan(0);
     expect(document.body.textContent).not.toMatch(/[\u00e2\u00c2\u00c3\ufffd]/);
   });
 
-  it('renders the download page', () => {
+  it('renders the download page', async () => {
     renderAt('/download');
-    expect(screen.getByText('Download FetchLab')).toBeTruthy();
+    expect(await screen.findByText('Download FetchLab')).toBeTruthy();
     expect(screen.getByText('Windows Installer')).toBeTruthy();
   });
 
-  it('renders the how-to page', () => {
+  it('renders the how-to page', async () => {
     renderAt('/how-to');
-    expect(screen.getByText('How to use FetchLab.')).toBeTruthy();
+    expect(await screen.findByText('How to use FetchLab.')).toBeTruthy();
     expect(screen.getByText('Send an API request')).toBeTruthy();
     expect(screen.getByText('Configure authentication')).toBeTruthy();
   });
 
-  it('renders the AI how-to page', () => {
+  it('renders the AI how-to page', async () => {
     renderAt('/ai-how-to');
-    expect(screen.getByText('How to use AI in FetchLab.')).toBeTruthy();
+    expect(await screen.findByText('How to use AI in FetchLab.')).toBeTruthy();
     expect(screen.getByText('What AI can and cannot do')).toBeTruthy();
     expect(screen.getByText('AI can assist with')).toBeTruthy();
     expect(screen.getByText('Human approval required')).toBeTruthy();
@@ -74,20 +74,20 @@ describe('client route smoke', () => {
     expect(screen.getByText('Use the AI Ops Agent for incident triage')).toBeTruthy();
   });
 
-  it('renders the enterprise page', () => {
+  it('renders the enterprise page', async () => {
     renderAt('/enterprise');
-    expect(screen.getByText('Prove AI authority before production.')).toBeTruthy();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Control what AI agents can do.' })).toBeTruthy();
     expect(screen.getByText('What teams get today')).toBeTruthy();
     expect(screen.getByText('How enterprise pilots run')).toBeTruthy();
   });
 
-  it('renders legal pages', () => {
+  it('renders legal pages', async () => {
     const { unmount } = renderAt('/privacy');
-    expect(screen.getByText('Privacy Policy')).toBeTruthy();
+    expect(await screen.findByText('Privacy Policy')).toBeTruthy();
     unmount();
 
     renderAt('/terms');
-    expect(screen.getByText('Terms of Service')).toBeTruthy();
+    expect(await screen.findByText('Terms of Service')).toBeTruthy();
   });
 
   it('renders the app shell', async () => {

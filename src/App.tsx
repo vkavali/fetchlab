@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { lazy, Suspense, useState, useCallback, useRef, useEffect } from 'react';
 import { AppProvider } from './store/AppContext';
 import { useApp } from './store/useApp';
 import { AuthProvider } from './auth/AuthContext';
@@ -11,23 +11,40 @@ import TabBar from './components/TabBar';
 import RequestBuilder from './components/RequestBuilder';
 import ResponseViewer from './components/ResponseViewer';
 import ResizeHandle from './components/ResizeHandle';
-import PrivacyPolicy from './components/legal/PrivacyPolicy';
-import TermsOfService from './components/legal/TermsOfService';
 import { extractSharedData, clearShareHash } from './utils/shareLink';
 import { generateId } from './utils/helpers';
 import type { Collection, RequestConfig } from './types';
-import Landing from './pages/Landing';
-import Pricing from './pages/Pricing';
-import Download from './pages/Download';
-import HowTo from './pages/HowTo';
-import AIHowTo from './pages/AIHowTo';
-import Enterprise from './pages/Enterprise';
 import ErrorBoundary from './components/ErrorBoundary';
+
+const Landing = lazy(() => import('./pages/Landing'));
+const Pricing = lazy(() => import('./pages/Pricing'));
+const Download = lazy(() => import('./pages/Download'));
+const HowTo = lazy(() => import('./pages/HowTo'));
+const AIHowTo = lazy(() => import('./pages/AIHowTo'));
+const Enterprise = lazy(() => import('./pages/Enterprise'));
+const PrivacyPolicy = lazy(() => import('./components/legal/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./components/legal/TermsOfService'));
 
 const SIDEBAR_MIN = 180;
 const SIDEBAR_MAX = 500;
 const SPLIT_MIN = 25;
 const SPLIT_MAX = 75;
+
+function PublicPage({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorBoundary>
+      <Suspense
+        fallback={(
+          <div role="status" aria-live="polite" className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-bg)', color: 'var(--color-text-muted)' }}>
+            Loading FetchLab
+          </div>
+        )}
+      >
+        {children}
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
 
 function usePersistentNumber(key: string, defaultValue: number): [number, (v: number | ((prev: number) => number)) => void] {
   const [value, setValue] = useState(() => {
@@ -276,14 +293,14 @@ export default function App() {
     const path = useCurrentPath();
 
     if (!isTauri) {
-      if (path === '/' || path === '') return <ErrorBoundary><Landing /></ErrorBoundary>;
-      if (path === '/how-to') return <ErrorBoundary><HowTo /></ErrorBoundary>;
-      if (path === '/ai-how-to') return <ErrorBoundary><AIHowTo /></ErrorBoundary>;
-      if (path === '/enterprise') return <ErrorBoundary><Enterprise /></ErrorBoundary>;
-      if (path === '/pricing') return <ErrorBoundary><Pricing /></ErrorBoundary>;
-      if (path === '/download') return <ErrorBoundary><Download /></ErrorBoundary>;
-      if (path === '/privacy') return <ErrorBoundary><PrivacyPolicy /></ErrorBoundary>;
-      if (path === '/terms') return <ErrorBoundary><TermsOfService /></ErrorBoundary>;
+      if (path === '/' || path === '') return <PublicPage><Landing /></PublicPage>;
+      if (path === '/how-to') return <PublicPage><HowTo /></PublicPage>;
+      if (path === '/ai-how-to') return <PublicPage><AIHowTo /></PublicPage>;
+      if (path === '/enterprise') return <PublicPage><Enterprise /></PublicPage>;
+      if (path === '/pricing') return <PublicPage><Pricing /></PublicPage>;
+      if (path === '/download') return <PublicPage><Download /></PublicPage>;
+      if (path === '/privacy') return <PublicPage><PrivacyPolicy /></PublicPage>;
+      if (path === '/terms') return <PublicPage><TermsOfService /></PublicPage>;
     }
 
     return (

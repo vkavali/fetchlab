@@ -3,8 +3,8 @@ import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 
 const SETUP_STEPS = [
   {
-    title: 'Open Autonomy Lab',
-    body: 'Open the app and click Autonomy Lab in the header. Start with the workflow, accountable owner, target users, and observable business outcome.',
+    title: 'Open Agent Gate',
+    body: 'Open the app and click Agent Gate in the header. Create one gate for one agent and deployment boundary.',
   },
   {
     title: 'Open LLM Provider / BYOK',
@@ -38,9 +38,9 @@ const SCOPE_COLUMNS = [
       'Generating LangChain, LlamaIndex, and CrewAI tool wrappers from tested requests.',
       'Triage of Slack incident messages through the AI Ops Agent.',
       'Summarizing agent findings and proposed next steps.',
-      'Preparing Launch Gate packets with blockers, eval evidence, governance checks, and next actions.',
-      'Comparing recommend, draft, approval, and bounded-autonomous operating models.',
-      'Issuing an executable Autonomy Contract and a Tunnel implementation handoff.',
+      'Capturing real tool actions and replaying them across policy revisions.',
+      'Showing whether a prompt, model, tool, or code change expands effective authority.',
+      'Enforcing deterministic allow, approval, and deny decisions before tool execution.',
     ],
   },
   {
@@ -55,6 +55,7 @@ const SCOPE_COLUMNS = [
       'It does not train a model inside FetchLab. Provider retention depends on the configured provider.',
       'It prepares repeatable evidence for security review; your team remains the final approval gate.',
       'It does not declare a launch safe when required evals, rollback, owner, or approval checks are missing.',
+      'It never uses an LLM to decide whether an action is authorized.',
     ],
   },
   {
@@ -68,35 +69,36 @@ const SCOPE_COLUMNS = [
       'Choose provider, retention posture, and BYOK setup with your security requirements in mind.',
       'Run the request or collection tests after applying an AI suggestion.',
       'Decide whether AI output is acceptable for customer-facing docs.',
+      'Review every authority expansion before an administrator publishes a policy revision.',
     ],
   },
 ];
 
 const WORKFLOWS = [
   {
-    id: 'autonomy-lab',
-    label: 'Autonomy Lab',
-    title: 'Decide how much authority an AI workflow should have',
+    id: 'agent-change-gate',
+    label: 'Agent Change Gate',
+    title: 'Control exact actions and gate agent releases',
     steps: [
-      'Open the app and click Autonomy Lab in the header.',
-      'Define the real workflow, target users, accountable owner, risk, and observable success outcome.',
-      'Attach the active API request when the workflow depends on a tested endpoint. FetchLab records request metadata and response status, not credentials.',
-      'Compare four operating boundaries: recommend, draft, act after approval, and bounded autonomous.',
-      'Select the owner-approved authority ceiling. FetchLab never raises it automatically.',
-      'Run a synthetic rehearsal to expose likely tradeoffs, then record real pilot observations separately.',
-      'Review success, override, policy-event, and time-saved evidence for every authority level.',
-      'Edit the stop, escalation, approval, verification, and rollback policy rules.',
-      'Finalize and export the Autonomy Contract, then copy the Tunnel task when the workflow is ready to build.',
+      'Open the app and click Agent Gate in the header.',
+      'Create a gate for one agent and environment, such as refund-agent production.',
+      'For shared enforcement, create a runtime credential and copy it immediately; FetchLab only shows it once.',
+      'Call POST /api/authority/check immediately before tool execution with an idempotency key and exact action packet.',
+      'Start the policy in Shadow mode to record what would happen without blocking the agent.',
+      'Define explicit rules for tool, operation, target, and typed argument limits. Unmatched actions are denied.',
+      'Move to Enforce mode after the observed action set matches the intended boundary.',
+      'Use Decisions to approve or deny pending exact actions. An approval expires and can be consumed once.',
+      'Use Release to compare the published policy with the draft across real evidence. Review every expansion before publishing.',
     ],
-    example: 'Study refund exceptions at four authority levels, pilot approval-based actions with support leads, then hand Tunnel a contract that forbids autonomous financial changes.',
-    caution: 'Synthetic rehearsal is non-authorizing. Only real pilot evidence and an accountable owner can approve a higher operating boundary.',
+    example: 'Allow customer reads, require one-use approval for refunds up to $100, deny payouts, then block any release that makes refunds autonomous.',
+    caution: 'Local mode is encrypted device simulation, not shared runtime enforcement. Use a workspace server for team approval and durable audit history.',
   },
   {
     id: 'launch-gate',
     label: 'Launch Gate',
     title: 'Prepare an enterprise AI launch review',
     steps: [
-      'Open AI Workbench, then choose Launch Gate.',
+      'Open Agent Gate, click Advanced, then choose Launch Gate.',
       'Review the launch score and decision: Ready, Needs review, or Blocked.',
       'Clear hard blockers by selecting an API request, capturing a response, configuring the model route, and running evals.',
       'Complete the required governance controls: owner, secrets review, fallback, human approval, and rollback plan.',
@@ -111,7 +113,7 @@ const WORKFLOWS = [
     label: 'AI request builder',
     title: 'Generate a request from plain English',
     steps: [
-      'Open AI Workbench, then choose Create API Request.',
+      'Open Agent Gate, click Advanced, then choose Create API Request.',
       'Choose Natural language.',
       'Describe the API call with method, endpoint, auth, headers, and payload requirements.',
       'Use Ctrl+Enter or Generate request.',
@@ -126,7 +128,7 @@ const WORKFLOWS = [
     label: 'cURL fallback',
     title: 'Import a cURL command without AI',
     steps: [
-      'Open AI Workbench, then choose Create API Request.',
+      'Open Agent Gate, click Advanced, then choose Create API Request.',
       'Choose Paste cURL.',
       'Paste a complete curl command from docs, browser devtools, or another teammate.',
       'Generate the request.',
@@ -186,7 +188,7 @@ const WORKFLOWS = [
     label: 'AI Ops Agent',
     title: 'Use the AI Ops Agent for incident triage',
     steps: [
-      'Open AI Workbench, then choose Ops and open the agent monitor.',
+      'Open Agent Gate, click Advanced, then choose Ops and open the agent monitor.',
       'Check the AI, Slack, and GitHub status badges.',
       'Use Test Detection first with a sample incident message.',
       'Configure a Slack channel when you want the agent to monitor real messages.',
@@ -385,9 +387,9 @@ export default function AIHowTo() {
             </h1>
           </div>
           <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
-            Use AI Workbench to draft requests, parse cURL, test prompts, run evals, review Launch Gate readiness,
-            export agent tools, explain failures, and triage API incidents. Keep it review-first: configure the provider deliberately,
-            inspect every generated request, and avoid sending secrets unless your retention and provider setup allow it.
+            Use Agent Change Gate to control exact tool actions and prove whether a prompt, model, tool, or code release
+            expands authority. Use Advanced for optional prompt tests, request generation, evals, tool export, and incident triage.
+            Authorization remains deterministic and does not depend on an AI provider.
           </p>
         </section>
 

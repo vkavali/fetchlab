@@ -59,22 +59,22 @@ const FEATURES = [
     note: 'Use environment variables for credentials so requests can be shared without exposing secrets.',
   },
   {
-    id: 'ai-workbench',
-    label: 'AI Workbench',
-    title: 'Use the AI Workbench for AI product development',
-    summary: 'Turn live API behavior into prompts, evals, agent tools, and release evidence from one workspace.',
+    id: 'agent-gate',
+    label: 'Agent Gate',
+    title: 'Control and release a tool-using AI agent',
+    summary: 'Decide whether exact agent actions may run and block releases that expand authority without review.',
     steps: [
-      'Open the app and click AI Workbench in the header.',
-      'Use Overview to confirm the active model route, selected API request, observed response, eval count, and agent readiness.',
-      'Use Launch Gate to see whether the workflow is ready, needs review, or is blocked before release.',
-      'Use Create API Request when you want FetchLab to draft a request from plain English or paste a cURL command.',
-      'Use Prompt Lab to run prompts against the active provider and compare them with the local baseline.',
-      'Use Eval Lab to seed pass/fail cases from the active request and response before changing prompts or models.',
-      'Use Tool Builder to export OpenAI tool schemas, MCP tools, agent framework snippets, cURL, or AI-ready context.',
-      'Use Ops to configure BYOK providers, agent monitoring, and security controls.',
-      'Copy or download the Launch Gate packet when a teammate, manager, or security reviewer needs evidence.',
+      'Open the app and click Agent Gate in the header.',
+      'Create an action gate for one agent and one deployment boundary, such as refund-agent production.',
+      'In a workspace, create a runtime credential and place the decision call immediately before tool execution.',
+      'Start in Shadow mode so FetchLab records decisions without stopping the agent.',
+      'Add narrow rules for tool, operation, target, and typed argument limits. Anything unmatched is denied by default.',
+      'Switch to Enforce after the observed actions match the intended policy.',
+      'Review pending actions. Approve once creates a short-lived permission for that exact action hash and policy revision.',
+      'Before a prompt, model, tool, or code release, open Release and review the published-versus-draft authority diff.',
+      'Resolve every authority expansion, then publish the next immutable policy revision.',
     ],
-    note: 'Treat AI Workbench output as reviewable engineering evidence: run evals before shipping model, prompt, or agent changes.',
+    note: 'Local mode is an encrypted simulation and export tool. Shared approval, durable audit history, and runtime enforcement require a workspace server.',
   },
   {
     id: 'tests',
@@ -341,11 +341,11 @@ export default function HowTo() {
           </div>
           <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 620, margin: 0 }}>
             A practical walkthrough for the full product: requests, collections, environments,
-            auth, AI Workbench, tests, schema validation, runners, diffs, realtime APIs,
+            auth, Agent Change Gate, tests, schema validation, runners, diffs, realtime APIs,
             docs, sharing, and security controls.
             {' '}
             <a href="/ai-how-to" style={{ color: 'var(--color-accent)', textDecoration: 'underline', textUnderlineOffset: 4 }}>
-              Use the dedicated AI guide for provider setup and agent workflows.
+              Use the dedicated AI guide for runtime policy, provider setup, and agent workflows.
             </a>
           </p>
         </section>

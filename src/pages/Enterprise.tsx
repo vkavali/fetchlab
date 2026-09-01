@@ -3,9 +3,14 @@ import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 
 const READY = [
   'Browser-hosted web app plus Windows EXE/MSI installer for desktop teams.',
-  'Autonomy Lab studies compare recommend, draft, approval-gated, and bounded-autonomous workflow variants.',
-  'Workspace-scoped pilot evidence, policy rules, decision records, and machine-readable Autonomy Contracts.',
-  'Tunnel-ready implementation handoffs with an explicit authority ceiling and acceptance criteria.',
+  'A runtime decision API returns allow, require approval, or deny for every exact tool action.',
+  'Default-deny policy rules match tool, operation, target, and typed argument constraints.',
+  'One-use approvals are bound to the action hash, policy revision, expiry, and consumption record.',
+  'Release review replays real action evidence and blocks unreviewed authority expansion.',
+  'Immutable policy revisions use optimistic concurrency to prevent stale-tab publishing.',
+  'Runtime credentials are shown once, hashed at rest, scoped, auditable, and revocable.',
+  'Sensitive action arguments are encrypted at rest and redacted in the review interface.',
+  'Encrypted local simulation remains available when no database or server is configured.',
   'Bring-your-own-key AI provider setup, including local mode for no external AI calls.',
   '2FA, session controls, account lockout tests, and encrypted local settings.',
   'Admin-only audit logs for auth, workspace, enterprise settings, retention, SCIM, and SOC 2 evidence events.',
@@ -19,29 +24,29 @@ const READY = [
 ];
 
 const PILOT_PACKAGE = [
-  'Choose one high-value workflow and name its accountable product and operational owners.',
-  'Map the real API evidence, users, risk, success state, stop conditions, and rollback path.',
-  'Compare four authority levels without changing production behavior.',
-  'Run a controlled pilot and measure task success, human overrides, policy events, and time saved.',
-  'Approve an Autonomy Contract that security, product, and engineering can review together.',
-  'Export the policy-bounded build task to Tunnel or your existing coding-agent workflow.',
+  'Choose one tool-using agent and name its engineering owner and action reviewer.',
+  'Connect the agent in shadow mode and capture exact tool, operation, target, and argument evidence.',
+  'Classify observed actions into explicit allow, approval, and deny rules with default deny.',
+  'Move the gate to enforce mode and validate approval, retry, expiry, and failure behavior.',
+  'Change a prompt, model, tool set, or code version and review the effective authority diff.',
+  'Publish the new immutable policy revision only after every authority expansion is resolved.',
 ];
 
 const ROADMAP = [
   {
     phase: 'Day 1',
-    title: 'Define the decision',
-    body: 'Create the workspace, select one real workflow, attach known API behavior, and define the owner, users, risk, and observable outcome.',
+    title: 'Connect one agent',
+    body: 'Create a workspace action gate, issue a scoped runtime credential, and place the decision call immediately before tool execution.',
   },
   {
     phase: 'Week 1',
-    title: 'Run the authority pilot',
-    body: 'Test recommend, draft, approval, and bounded-autonomous variants. Record real success, overrides, policy events, and time saved.',
+    title: 'Learn in shadow mode',
+    body: 'Capture real action attempts without blocking production, then turn observed behavior into narrow allow, approval, and deny rules.',
   },
   {
     phase: 'Month 1',
-    title: 'Standardize the contract',
-    body: 'Approve reusable policy rules, export the implementation handoff, and retain the evidence and audit trail for every production AI workflow.',
+    title: 'Gate every change',
+    body: 'Enforce the published policy and require a reviewed authority diff before prompt, model, tool, or agent-code changes reach production.',
   },
 ];
 
@@ -153,15 +158,15 @@ export default function Enterprise() {
                 maxWidth: '11ch',
               }}
             >
-              Prove AI authority before production.
+              Control what AI agents can do.
             </h1>
           </div>
           <div>
             <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
-              FetchLab gives product, security, operations, and engineering one decision record for every AI workflow.
-              The API Workbench captures real system behavior. Autonomy Lab compares how much work the AI may own,
-              separates simulation from real pilot evidence, and issues a policy-bounded Autonomy Contract before implementation.
-              Enterprise pilots add self-hosted deployment, PostgreSQL, RBAC, encrypted secrets, audit logs, SCIM, retention controls, OIDC SSO, and workspace evidence history.
+              FetchLab sits immediately before tool execution and gives every exact agent action a deterministic policy decision.
+              It records what the agent attempted, binds human approval to one action, and shows whether a prompt, model, tool,
+              or code change expands effective authority before release. Enterprise deployments add PostgreSQL, workspace RBAC,
+              encrypted secrets, audit logs, SCIM, retention controls, OIDC SSO, and durable policy history.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <a
@@ -176,7 +181,7 @@ export default function Enterprise() {
                   borderRadius: 5,
                 }}
               >
-                Start an autonomy study
+                Create an action gate
               </a>
               <a
                 href="mailto:hello@fetchlab.dev?subject=FetchLab%20Enterprise%20Pilot"
@@ -214,7 +219,7 @@ export default function Enterprise() {
               Simple rollout
             </div>
             <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.04em', margin: 0 }}>
-              From workflow hypothesis to approved contract
+              From shadow evidence to enforced policy
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-px" style={{ background: 'var(--color-border)' }}>
