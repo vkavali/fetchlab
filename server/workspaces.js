@@ -4,7 +4,7 @@ import { requireAuth } from './auth.js';
 import { encrypt, decrypt, isEncrypted } from './encryption.js';
 import { appendAudit } from './db.js';
 
-async function memberOrFail(req, res, workspaceId, requireRole = null) {
+export async function memberOrFail(req, res, workspaceId, requireRole = null) {
   const m = await db.getWorkspaceMember(workspaceId, req.user.id);
   if (!m) {
     res.status(403).json({ error: 'Not a member of this workspace' });

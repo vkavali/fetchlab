@@ -3,6 +3,24 @@ import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 
 const FEATURES = [
   {
+    id: 'product-missions',
+    label: 'Product Missions',
+    title: 'Turn customer evidence into a reviewed draft pull request',
+    summary: 'Keep the original problem, proposed source, approval, GitHub change, and repository checks in one mission.',
+    steps: [
+      'Open the app. Product Missions is the first workspace; API Lab remains available from the header.',
+      'Choose a customer issue, regression, AI quality failure, or repeated feature request.',
+      'Add the real evidence, the outcome the customer should experience, and the GitHub repository. A staging or live URL is optional.',
+      'In local mode, save an encrypted draft on the device. Sign in to a server workspace before any repository action can run.',
+      'From Release decision, connect the GitHub repository with a fine-grained token and configure an external AI provider.',
+      'Run the investigation. FetchLab reads bounded repository context and asks precise questions when the evidence cannot support a responsible change.',
+      'Review the likely cause, acceptance criteria, risks, every changed file, and the proposal fingerprint.',
+      'Approve that exact proposal to create an isolated branch and draft pull request. FetchLab cannot merge or deploy it.',
+      'Refresh repository checks. No checks means unverified; only completed successful checks move the mission to ready for human review.',
+    ],
+    note: 'The environment URL check proves availability only. It never proves the reported problem was reproduced.',
+  },
+  {
     id: 'requests',
     label: 'Requests',
     title: 'Send an API request',
@@ -60,11 +78,11 @@ const FEATURES = [
   },
   {
     id: 'agent-gate',
-    label: 'Agent Gate',
+    label: 'Action Gate',
     title: 'Control and release a tool-using AI agent',
     summary: 'Decide whether exact agent actions may run and block releases that expand authority without review.',
     steps: [
-      'Open the app and click Agent Gate in the header.',
+      'Open API Lab, then click Agent Gate in the header.',
       'Create an action gate for one agent and one deployment boundary, such as refund-agent production.',
       'In a workspace, create a runtime credential and place the decision call immediately before tool execution.',
       'Start in Shadow mode so FetchLab records decisions without stopping the agent.',
@@ -254,7 +272,7 @@ function FeatureCard({ feature, index }: { feature: (typeof FEATURES)[number]; i
           >
             {String(index + 1).padStart(2, '0')} / {feature.label}
           </div>
-          <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.04em', margin: 0 }}>
+          <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: 0, margin: 0 }}>
             {feature.title}
           </h2>
         </div>
@@ -330,7 +348,7 @@ export default function HowTo() {
               className="text-5xl md:text-7xl"
               style={{
                 fontFamily: 'var(--font-display)',
-                letterSpacing: '-0.07em',
+                letterSpacing: 0,
                 lineHeight: 0.92,
                 margin: 0,
                 maxWidth: '11ch',
@@ -340,12 +358,11 @@ export default function HowTo() {
             </h1>
           </div>
           <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 620, margin: 0 }}>
-            A practical walkthrough for the full product: requests, collections, environments,
-            auth, Agent Change Gate, tests, schema validation, runners, diffs, realtime APIs,
-            docs, sharing, and security controls.
+            Start with Product Missions for the complete evidence-to-draft-PR workflow. Use API Lab for requests,
+            collections, environments, auth, tests, schemas, runners, diffs, realtime APIs, docs, and sharing.
             {' '}
             <a href="/ai-how-to" style={{ color: 'var(--color-accent)', textDecoration: 'underline', textUnderlineOffset: 4 }}>
-              Use the dedicated AI guide for runtime policy, provider setup, and agent workflows.
+              Use the AI guide for provider setup, mission behavior, safety boundaries, and advanced agent workflows.
             </a>
           </p>
         </section>

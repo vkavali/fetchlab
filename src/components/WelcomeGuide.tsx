@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   Zap, Send, FolderOpen, Key, Code, GitCompare,
   ChevronRight, ChevronLeft, Rocket, ArrowRight, Terminal, Globe,
-  Link2, FlaskConical, BookOpen, X, ShieldCheck, LockKeyhole
+  Link2, FlaskConical, BookOpen, X, ShieldCheck, Target, GitPullRequest
 } from 'lucide-react';
 
 interface Props {
@@ -12,13 +12,13 @@ interface Props {
 const STEPS = [
   {
     title: 'Welcome to FetchLab',
-    subtitle: 'API evidence and agent authority in one product',
+    subtitle: 'Customer evidence and API evidence in one product',
     icon: Zap,
     iconColor: 'from-brand-500 to-accent-500',
     content: (
       <div className="space-y-4">
         <p className="text-sm text-gray-300 leading-relaxed">
-          The API Workbench proves how services behave. Agent Change Gate controls which exact tool actions an AI agent may execute and whether a release expands its authority.
+          Product Missions carries a real customer problem through repository investigation, exact source review, draft pull request, and checks. API Lab provides the request and protocol tools beside it.
         </p>
         <div className="grid grid-cols-2 gap-3">
           {[
@@ -26,8 +26,8 @@ const STEPS = [
             { icon: Key, label: 'Auto-auth', desc: 'Token profiles fetch & inject tokens' },
             { icon: Code, label: 'Test scripts', desc: 'Write assertions in JavaScript' },
             { icon: GitCompare, label: 'Response diff', desc: 'Compare API responses visually' },
-            { icon: ShieldCheck, label: 'Gate actions', desc: 'Allow, approve, or deny exact tool calls' },
-            { icon: LockKeyhole, label: 'Review releases', desc: 'Block unreviewed authority expansion' },
+            { icon: Target, label: 'Capture missions', desc: 'Keep real evidence tied to the outcome' },
+            { icon: GitPullRequest, label: 'Review changes', desc: 'Approve exact source before a draft PR' },
           ].map(f => (
             <div key={f.label} className="flex items-start gap-2.5 p-3 rounded-lg bg-gray-800/30 border border-gray-800">
               <f.icon size={16} className="text-brand-400 mt-0.5 flex-shrink-0" />
@@ -42,21 +42,21 @@ const STEPS = [
     ),
   },
   {
-    title: 'Agent Change Gate',
-    subtitle: 'Put a deterministic decision before tool execution',
+    title: 'Product Missions',
+    subtitle: 'One traceable path from customer report to code review',
     icon: ShieldCheck,
     iconColor: 'from-emerald-500 to-cyan-500',
     content: (
       <div className="space-y-4">
         <p className="text-sm text-gray-300 leading-relaxed">
-          Click <strong className="text-gray-100">Agent Gate</strong> in the header. Local mode is an encrypted simulation. A connected workspace adds runtime credentials, team review, durable evidence, and server enforcement.
+          Click <strong className="text-gray-100">Missions</strong> in the header. Local mode saves encrypted drafts. A signed-in workspace adds bounded repository investigation, team review, GitHub execution, and durable audit evidence.
         </p>
         <div className="space-y-2">
           {[
-            { step: '1', text: 'Create one action gate for one agent and deployment boundary.' },
-            { step: '2', text: 'Start in Shadow and define narrow tool, operation, target, and argument rules.' },
-            { step: '3', text: 'Review pending exact actions and approve a request once when necessary.' },
-            { step: '4', text: 'Review authority expansion before publishing a new immutable policy revision.' },
+            { step: '1', text: 'Capture the real report and the customer outcome that should change.' },
+            { step: '2', text: 'Connect one repository and an approved external model provider.' },
+            { step: '3', text: 'Review the exact proposed source, risks, acceptance criteria, and fingerprint.' },
+            { step: '4', text: 'Approve only a draft PR, then read passed, failed, pending, or unverified checks.' },
           ].map(item => (
             <div key={item.step} className="flex items-start gap-3 p-2.5 border-b border-gray-800 last:border-0">
               <span className="w-7 h-7 rounded bg-brand-500/20 text-brand-400 text-xs font-bold flex items-center justify-center flex-shrink-0">{item.step}</span>

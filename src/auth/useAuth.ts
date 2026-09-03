@@ -29,9 +29,6 @@ export interface AuthContextValue {
   setActiveWorkspaceId: (id: string | null) => void;
   loading: boolean;
   serverEnabled: boolean;
-  trialActive: boolean;
-  trialDaysRemaining: number;
-  trialEnded: boolean;
   login: (email: string, password: string) => Promise<LoginResult>;
   loginVerify2fa: (args: { code?: string; recovery_code?: string; pending_token?: string }) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;

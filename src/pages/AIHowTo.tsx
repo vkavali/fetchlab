@@ -3,24 +3,24 @@ import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 
 const SETUP_STEPS = [
   {
-    title: 'Open Agent Gate',
-    body: 'Open the app and click Agent Gate in the header. Create one gate for one agent and deployment boundary.',
+    title: 'Capture one real product mission',
+    body: 'Open the app, choose a mission type, and add the customer evidence, desired outcome, repository, and optional environment URL.',
   },
   {
-    title: 'Open LLM Provider / BYOK',
-    body: 'Use the user menu in the app header, then choose LLM Provider / BYOK. This is where you choose the active model provider.',
+    title: 'Sign in before repository work',
+    body: 'Local mode stores encrypted drafts only. Register or sign in to use a server workspace for GitHub investigation, approval, audit, and team access.',
   },
   {
-    title: 'Choose a provider',
-    body: 'FetchLab supports Anthropic direct, AWS Bedrock, Google Vertex AI, OpenAI-compatible endpoints, and Local mode for no external AI calls.',
+    title: 'Connect the workspace repository',
+    body: 'Open Release decision and connect one owner/repository with a fine-grained GitHub token. FetchLab verifies read and branch access without changing the repository.',
   },
   {
-    title: 'Save and test the connection',
-    body: 'Enter the key, model, region, project, or endpoint fields required by the provider, save the config, then use Test Connection.',
+    title: 'Configure the investigation model',
+    body: 'Choose Anthropic, AWS Bedrock, Google Vertex AI, or an OpenAI-compatible endpoint, enter the required provider fields, save, and test the connection.',
   },
   {
-    title: 'Decide where calls run',
-    body: 'Desktop users can enable client-side AI calls. Browser users use the server route unless the deployment has another proxy setup.',
+    title: 'Review before any GitHub write',
+    body: 'Inspect the exact proposed source, risks, acceptance criteria, base commit, and proposal fingerprint. Approval creates only a draft branch and draft pull request.',
   },
 ];
 
@@ -38,9 +38,9 @@ const SCOPE_COLUMNS = [
       'Generating LangChain, LlamaIndex, and CrewAI tool wrappers from tested requests.',
       'Triage of Slack incident messages through the AI Ops Agent.',
       'Summarizing agent findings and proposed next steps.',
-      'Capturing real tool actions and replaying them across policy revisions.',
-      'Showing whether a prompt, model, tool, or code change expands effective authority.',
-      'Enforcing deterministic allow, approval, and deny decisions before tool execution.',
+      'Selecting a bounded set of repository files from real customer evidence.',
+      'Preparing exact replacement source with measurable acceptance criteria and risks.',
+      'Stopping to ask questions when the evidence cannot support a responsible change.',
     ],
   },
   {
@@ -56,6 +56,9 @@ const SCOPE_COLUMNS = [
       'It prepares repeatable evidence for security review; your team remains the final approval gate.',
       'It does not declare a launch safe when required evals, rollback, owner, or approval checks are missing.',
       'It never uses an LLM to decide whether an action is authorized.',
+      'It does not call a healthy environment URL a reproduced customer problem.',
+      'It does not merge a pull request or deploy a change.',
+      'It does not call a draft verified when the repository reports no checks.',
     ],
   },
   {
@@ -70,35 +73,37 @@ const SCOPE_COLUMNS = [
       'Run the request or collection tests after applying an AI suggestion.',
       'Decide whether AI output is acceptable for customer-facing docs.',
       'Review every authority expansion before an administrator publishes a policy revision.',
+      'Review every changed source file before approving the mission fingerprint.',
+      'Review the draft pull request and repository checks before merging through GitHub.',
     ],
   },
 ];
 
 const WORKFLOWS = [
   {
-    id: 'agent-change-gate',
-    label: 'Agent Change Gate',
-    title: 'Control exact actions and gate agent releases',
+    id: 'product-mission',
+    label: 'Product Mission',
+    title: 'Turn a customer problem into a reviewed draft pull request',
     steps: [
-      'Open the app and click Agent Gate in the header.',
-      'Create a gate for one agent and environment, such as refund-agent production.',
-      'For shared enforcement, create a runtime credential and copy it immediately; FetchLab only shows it once.',
-      'Call POST /api/authority/check immediately before tool execution with an idempotency key and exact action packet.',
-      'Start the policy in Shadow mode to record what would happen without blocking the agent.',
-      'Define explicit rules for tool, operation, target, and typed argument limits. Unmatched actions are denied.',
-      'Move to Enforce mode after the observed action set matches the intended boundary.',
-      'Use Decisions to approve or deny pending exact actions. An approval expires and can be consumed once.',
-      'Use Release to compare the published policy with the draft across real evidence. Review every expansion before publishing.',
+      'Open Product Missions and choose the kind of problem you have real evidence for.',
+      'State what happened, what should happen, the customer or production evidence, and the repository.',
+      'Save the mission first so the original report has a durable record.',
+      'Connect GitHub and an external model from Release decision when the workspace is not configured yet.',
+      'Run Investigate repository. The model first selects bounded context, then prepares an exact proposal from only those files.',
+      'Answer any requested questions and reinvestigate if FetchLab reports insufficient evidence.',
+      'Review the likely cause, customer impact, acceptance criteria, risks, and complete proposed source.',
+      'Approve the exact fingerprint. FetchLab checks that the default branch still matches the investigated base commit.',
+      'Open the resulting draft pull request and refresh checks until it is passed, failed, pending, or explicitly unverified.',
     ],
-    example: 'Allow customer reads, require one-use approval for refunds up to $100, deny payouts, then block any release that makes refunds autonomous.',
-    caution: 'Local mode is encrypted device simulation, not shared runtime enforcement. Use a workspace server for team approval and durable audit history.',
+    example: 'Support reports that applying SAVE20 makes checkout total NaN. The desired outcome is a numeric total while all existing discount behavior remains unchanged.',
+    caution: 'FetchLab does not run repository code, merge the pull request, deploy it, or claim that passing CI proves the customer outcome by itself.',
   },
   {
     id: 'launch-gate',
     label: 'Launch Gate',
     title: 'Prepare an enterprise AI launch review',
     steps: [
-      'Open Agent Gate, click Advanced, then choose Launch Gate.',
+      'Open API Lab, open Agent Gate, click Advanced, then choose Launch Gate.',
       'Review the launch score and decision: Ready, Needs review, or Blocked.',
       'Clear hard blockers by selecting an API request, capturing a response, configuring the model route, and running evals.',
       'Complete the required governance controls: owner, secrets review, fallback, human approval, and rollback plan.',
@@ -113,7 +118,7 @@ const WORKFLOWS = [
     label: 'AI request builder',
     title: 'Generate a request from plain English',
     steps: [
-      'Open Agent Gate, click Advanced, then choose Create API Request.',
+      'Open API Lab, open Agent Gate, click Advanced, then choose Create API Request.',
       'Choose Natural language.',
       'Describe the API call with method, endpoint, auth, headers, and payload requirements.',
       'Use Ctrl+Enter or Generate request.',
@@ -128,7 +133,7 @@ const WORKFLOWS = [
     label: 'cURL fallback',
     title: 'Import a cURL command without AI',
     steps: [
-      'Open Agent Gate, click Advanced, then choose Create API Request.',
+      'Open API Lab, open Agent Gate, click Advanced, then choose Create API Request.',
       'Choose Paste cURL.',
       'Paste a complete curl command from docs, browser devtools, or another teammate.',
       'Generate the request.',
@@ -188,7 +193,7 @@ const WORKFLOWS = [
     label: 'AI Ops Agent',
     title: 'Use the AI Ops Agent for incident triage',
     steps: [
-      'Open Agent Gate, click Advanced, then choose Ops and open the agent monitor.',
+      'Open API Lab, open Agent Gate, click Advanced, then choose Ops and open the agent monitor.',
       'Check the AI, Slack, and GitHub status badges.',
       'Use Test Detection first with a sample incident message.',
       'Configure a Slack channel when you want the agent to monitor real messages.',
@@ -296,7 +301,7 @@ function ScopeMatrix() {
         <div className="font-mono uppercase" style={{ fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--color-accent)', marginBottom: 10 }}>
           Scope of AI assistance
         </div>
-        <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.04em', margin: 0 }}>
+        <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: 0, margin: 0 }}>
           What AI can and cannot do
         </h2>
       </div>
@@ -340,7 +345,7 @@ function WorkflowCard({ workflow, index }: { workflow: (typeof WORKFLOWS)[number
         <div className="font-mono uppercase" style={{ fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--color-accent)', marginBottom: 10 }}>
           {String(index + 1).padStart(2, '0')} / {workflow.label}
         </div>
-        <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.04em', margin: 0 }}>
+        <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: 0, margin: 0 }}>
           {workflow.title}
         </h2>
       </div>
@@ -381,14 +386,14 @@ export default function AIHowTo() {
             </div>
             <h1
               className="text-5xl md:text-7xl"
-              style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.07em', lineHeight: 0.92, margin: 0, maxWidth: '11ch' }}
+              style={{ fontFamily: 'var(--font-display)', letterSpacing: 0, lineHeight: 0.92, margin: 0, maxWidth: '11ch' }}
             >
               How to use AI in FetchLab.
             </h1>
           </div>
           <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
-            Use Agent Change Gate to control exact tool actions and prove whether a prompt, model, tool, or code release
-            expands authority. Use Advanced for optional prompt tests, request generation, evals, tool export, and incident triage.
+            Use Product Missions to turn real customer evidence into an exact, human-reviewed code proposal and draft pull request.
+            Use API Lab and its Advanced tools for request generation, evals, action policies, tool export, and incident triage.
             Authorization remains deterministic and does not depend on an AI provider.
           </p>
         </section>
@@ -444,7 +449,7 @@ export default function AIHowTo() {
             <div className="font-mono uppercase" style={{ fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--color-accent)', marginBottom: 10 }}>
               Prompt recipes
             </div>
-            <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.04em', margin: 0 }}>
+            <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: 0, margin: 0 }}>
               Useful prompts to start from
             </h2>
           </div>

@@ -32,6 +32,9 @@ function freshMemStore() {
     agent_issues: [],
     agent_actions: [],
     agent_config: [],
+    product_missions: [],
+    mission_events: [],
+    github_configs: [],
     llm_configs: [],
     enterprise_settings: [],
     soc2_evidence: [],
@@ -291,6 +294,37 @@ CREATE TABLE IF NOT EXISTS agent_config (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS product_missions (
+  id UUID PRIMARY KEY,
+  workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft',
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  proposal_hash TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS mission_events (
+  id UUID PRIMARY KEY,
+  mission_id UUID NOT NULL REFERENCES product_missions(id) ON DELETE CASCADE,
+  workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  actor_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  event_type TEXT NOT NULL,
+  detail JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS github_configs (
+  workspace_id UUID PRIMARY KEY REFERENCES workspaces(id) ON DELETE CASCADE,
+  token_enc TEXT NOT NULL,
+  default_repository TEXT NOT NULL,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS llm_configs (
   user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   provider TEXT NOT NULL,
@@ -370,6 +404,9 @@ CREATE INDEX IF NOT EXISTS idx_agent_issues_workspace ON agent_issues(workspace_
 CREATE INDEX IF NOT EXISTS idx_agent_issues_status ON agent_issues(status);
 CREATE INDEX IF NOT EXISTS idx_agent_actions_issue ON agent_actions(issue_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_config_channel ON agent_config(channel_type, channel_id);
+CREATE INDEX IF NOT EXISTS idx_product_missions_workspace ON product_missions(workspace_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_product_missions_status ON product_missions(workspace_id, status, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_mission_events_mission ON mission_events(mission_id, created_at ASC);
 CREATE INDEX IF NOT EXISTS idx_soc2_evidence_control ON soc2_evidence(control_id, status);
 `;
 
@@ -1498,6 +1535,8 @@ export async function runEnterpriseRetention(settings = null) {
     sessions: 0,
     agent_actions: 0,
     agent_issues: 0,
+    mission_events: 0,
+    product_missions: 0,
     soc2_evidence: 0,
   };
 
@@ -1512,6 +1551,8 @@ export async function runEnterpriseRetention(settings = null) {
     )).rowCount;
     counts.agent_actions = (await pgQuery(`DELETE FROM agent_actions WHERE created_at < $1 RETURNING id`, [dataCutoff])).rowCount;
     counts.agent_issues = (await pgQuery(`DELETE FROM agent_issues WHERE detected_at < $1 RETURNING id`, [dataCutoff])).rowCount;
+    counts.mission_events = (await pgQuery(`DELETE FROM mission_events WHERE created_at < $1 RETURNING id`, [dataCutoff])).rowCount;
+    counts.product_missions = (await pgQuery(`DELETE FROM product_missions WHERE updated_at < $1 RETURNING id`, [dataCutoff])).rowCount;
     counts.soc2_evidence = (await pgQuery(
       `DELETE FROM soc2_evidence
        WHERE collected_at IS NOT NULL AND collected_at < $1
@@ -1528,6 +1569,8 @@ export async function runEnterpriseRetention(settings = null) {
   );
   counts.agent_actions = pruneMemList('agent_actions', row => row.created_at < dataCutoff);
   counts.agent_issues = pruneMemList('agent_issues', row => row.detected_at < dataCutoff);
+  counts.mission_events = pruneMemList('mission_events', row => row.created_at < dataCutoff);
+  counts.product_missions = pruneMemList('product_missions', row => row.updated_at < dataCutoff);
   counts.soc2_evidence = pruneMemList('soc2_evidence', row => row.collected_at && row.collected_at < evidenceCutoff);
   await persistFile();
   return { counts, cutoffs: { audit: auditCutoff, data: dataCutoff, soc2_evidence: evidenceCutoff } };
@@ -1647,6 +1690,233 @@ export async function deleteOidcConfig(id) {
     await pgQuery(`DELETE FROM oidc_configs WHERE id = $1`, [id]);
   } else {
     memStore.oidc_configs = memCollection('oidc_configs').filter(c => c.id !== id);
+    await persistFile();
+  }
+}
+
+// ============ Product missions / evidence ============
+export async function createProductMission({ workspace_id, created_by, title, status = 'draft', data = {} }) {
+  const id = newId();
+  const now = new Date().toISOString();
+  const row = {
+    id,
+    workspace_id,
+    created_by: created_by || null,
+    title,
+    status,
+    data,
+    proposal_hash: null,
+    created_at: now,
+    updated_at: now,
+  };
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `INSERT INTO product_missions
+       (id, workspace_id, created_by, title, status, data, proposal_hash, created_at, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       RETURNING *`,
+      [row.id, row.workspace_id, row.created_by, row.title, row.status, row.data, row.proposal_hash, row.created_at, row.updated_at]
+    );
+    return rows[0];
+  }
+  memCollection('product_missions').push(row);
+  await persistFile();
+  return row;
+}
+
+export async function getProductMission(id, workspaceId) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT * FROM product_missions WHERE id = $1 AND workspace_id = $2`,
+      [id, workspaceId]
+    );
+    return rows[0] || null;
+  }
+  return memCollection('product_missions').find((row) => row.id === id && row.workspace_id === workspaceId) || null;
+}
+
+export async function listProductMissions(workspaceId, { limit = 100 } = {}) {
+  const cappedLimit = Math.max(1, Math.min(Number(limit) || 100, 500));
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT * FROM product_missions WHERE workspace_id = $1 ORDER BY updated_at DESC LIMIT $2`,
+      [workspaceId, cappedLimit]
+    );
+    return rows;
+  }
+  return memCollection('product_missions')
+    .filter((row) => row.workspace_id === workspaceId)
+    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+    .slice(0, cappedLimit);
+}
+
+export async function updateProductMission(id, workspaceId, patch = {}) {
+  const allowed = ['title', 'status', 'data', 'proposal_hash'];
+  const entries = Object.entries(patch).filter(([key, value]) => allowed.includes(key) && value !== undefined);
+  if (entries.length === 0) return getProductMission(id, workspaceId);
+  const updated_at = new Date().toISOString();
+
+  if (mode === 'pg') {
+    const values = [];
+    const fields = entries.map(([key, value], index) => {
+      values.push(value);
+      return `${key} = $${index + 1}`;
+    });
+    values.push(updated_at, id, workspaceId);
+    const { rows } = await pgQuery(
+      `UPDATE product_missions
+       SET ${fields.join(', ')}, updated_at = $${entries.length + 1}
+       WHERE id = $${entries.length + 2} AND workspace_id = $${entries.length + 3}
+       RETURNING *`,
+      values
+    );
+    return rows[0] || null;
+  }
+
+  const rows = memCollection('product_missions');
+  const index = rows.findIndex((row) => row.id === id && row.workspace_id === workspaceId);
+  if (index < 0) return null;
+  rows[index] = { ...rows[index], ...Object.fromEntries(entries), updated_at };
+  await persistFile();
+  return rows[index];
+}
+
+export async function transitionProductMission(id, workspaceId, { statuses = [], updated_at: expectedUpdatedAt } = {}, patch = {}) {
+  const expectedStatuses = [...new Set(statuses.filter(Boolean))];
+  if (expectedStatuses.length === 0) return null;
+  const allowed = ['title', 'status', 'data', 'proposal_hash'];
+  const entries = Object.entries(patch).filter(([key, value]) => allowed.includes(key) && value !== undefined);
+  if (entries.length === 0) return null;
+  const expectedTime = expectedUpdatedAt == null ? 0 : new Date(expectedUpdatedAt).getTime();
+  const updatedAt = new Date(Math.max(Date.now(), Number.isFinite(expectedTime) ? expectedTime + 1 : 0)).toISOString();
+
+  if (mode === 'pg') {
+    const values = [];
+    const fields = entries.map(([key, value], index) => {
+      values.push(value);
+      return `${key} = $${index + 1}`;
+    });
+    values.push(updatedAt);
+    const updatedIndex = values.length;
+    values.push(id);
+    const idIndex = values.length;
+    values.push(workspaceId);
+    const workspaceIndex = values.length;
+    values.push(expectedStatuses);
+    const statusesIndex = values.length;
+    let expectedClause = '';
+    if (expectedUpdatedAt != null) {
+      values.push(expectedUpdatedAt);
+      expectedClause = ` AND updated_at = $${values.length}`;
+    }
+    const { rows } = await pgQuery(
+      `UPDATE product_missions
+       SET ${fields.join(', ')}, updated_at = $${updatedIndex}
+       WHERE id = $${idIndex}
+         AND workspace_id = $${workspaceIndex}
+         AND status = ANY($${statusesIndex}::text[])${expectedClause}
+       RETURNING *`,
+      values
+    );
+    return rows[0] || null;
+  }
+
+  const rows = memCollection('product_missions');
+  const index = rows.findIndex((row) => row.id === id && row.workspace_id === workspaceId);
+  if (index < 0 || !expectedStatuses.includes(rows[index].status)) return null;
+  if (expectedUpdatedAt != null && new Date(rows[index].updated_at).getTime() !== new Date(expectedUpdatedAt).getTime()) return null;
+  rows[index] = { ...rows[index], ...Object.fromEntries(entries), updated_at: updatedAt };
+  await persistFile();
+  return rows[index];
+}
+
+export async function appendMissionEvent({ mission_id, workspace_id, actor_id = null, event_type, detail = {} }) {
+  const row = {
+    id: newId(),
+    mission_id,
+    workspace_id,
+    actor_id,
+    event_type,
+    detail,
+    created_at: new Date().toISOString(),
+  };
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `INSERT INTO mission_events
+       (id, mission_id, workspace_id, actor_id, event_type, detail, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING *`,
+      [row.id, row.mission_id, row.workspace_id, row.actor_id, row.event_type, row.detail, row.created_at]
+    );
+    return rows[0];
+  }
+  memCollection('mission_events').push(row);
+  await persistFile();
+  return row;
+}
+
+export async function listMissionEvents(missionId, workspaceId) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `SELECT * FROM mission_events
+       WHERE mission_id = $1 AND workspace_id = $2
+       ORDER BY created_at ASC`,
+      [missionId, workspaceId]
+    );
+    return rows;
+  }
+  return memCollection('mission_events')
+    .filter((row) => row.mission_id === missionId && row.workspace_id === workspaceId)
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+}
+
+// ============ Workspace GitHub connections ============
+export async function getGithubConfig(workspaceId) {
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(`SELECT * FROM github_configs WHERE workspace_id = $1`, [workspaceId]);
+    return rows[0] || null;
+  }
+  return memCollection('github_configs').find((row) => row.workspace_id === workspaceId) || null;
+}
+
+export async function upsertGithubConfig({ workspace_id, token_enc, default_repository, created_by }) {
+  const now = new Date().toISOString();
+  if (mode === 'pg') {
+    const { rows } = await pgQuery(
+      `INSERT INTO github_configs
+       (workspace_id, token_enc, default_repository, created_by, created_at, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$5)
+       ON CONFLICT (workspace_id) DO UPDATE SET
+         token_enc = EXCLUDED.token_enc,
+         default_repository = EXCLUDED.default_repository,
+         created_by = EXCLUDED.created_by,
+         updated_at = EXCLUDED.updated_at
+       RETURNING *`,
+      [workspace_id, token_enc, default_repository, created_by || null, now]
+    );
+    return rows[0];
+  }
+  const rows = memCollection('github_configs');
+  const index = rows.findIndex((row) => row.workspace_id === workspace_id);
+  const row = {
+    workspace_id,
+    token_enc,
+    default_repository,
+    created_by: created_by || null,
+    created_at: index >= 0 ? rows[index].created_at : now,
+    updated_at: now,
+  };
+  if (index >= 0) rows[index] = row;
+  else rows.push(row);
+  await persistFile();
+  return row;
+}
+
+export async function deleteGithubConfig(workspaceId) {
+  if (mode === 'pg') {
+    await pgQuery(`DELETE FROM github_configs WHERE workspace_id = $1`, [workspaceId]);
+  } else {
+    memStore.github_configs = memCollection('github_configs').filter((row) => row.workspace_id !== workspaceId);
     await persistFile();
   }
 }

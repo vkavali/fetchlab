@@ -13,6 +13,7 @@ import { buildIntegrationsRouter } from './integrations.js';
 import { buildAgentRouter } from './agent/routes.js';
 import { buildLlmSettingsRouter } from './llmRoutes.js';
 import { buildAuthorityRuntimeRouter, buildAuthorityWorkspaceRouter } from './authority.js';
+import { buildMissionWorkspaceRouter } from './missions.js';
 import { registerAiRoutes } from '../ai-routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -158,6 +159,7 @@ export async function buildApp({ skipDbInit = false, staticRoot = join(ROOT, 'di
 
   // Workspace + audit + integrations
   app.use('/api/workspaces', apiLimiter, buildWorkspacesRouter());
+  app.use('/api/workspaces', buildMissionWorkspaceRouter());
   app.use('/api/workspaces', buildAuthorityWorkspaceRouter());
   app.use('/api/authority', buildAuthorityRuntimeRouter());
   app.use('/api/audit', apiLimiter, buildAuditRouter());

@@ -12,12 +12,12 @@ interface Props {
 
 const FAQ_ITEMS = [
   {
-    q: 'What does Agent Gate do?',
-    a: 'It evaluates the exact tool, operation, target, and arguments an AI agent is about to use. A published deterministic policy returns allow, require approval, or deny. Release review blocks policy changes that expand authority until they are reviewed.',
+    q: 'What do Product Missions do?',
+    a: 'They keep a real customer problem attached to bounded repository investigation, an exact source proposal, human approval, a draft pull request, and repository checks. FetchLab never merges or deploys the change.',
   },
   {
     q: 'Where is my data stored?',
-    a: 'Without a configured server, API data and encrypted action-gate state stay on this device. With a workspace server, shared collections, policies, decisions, approvals, and audit records are stored by that deployment.',
+    a: 'Without a configured server, Product Mission drafts are encrypted on this device and API Lab data stays local. With a workspace server, shared missions, collections, approvals, GitHub state, and audit records are stored by that deployment.',
   },
   {
     q: 'How do I import a cURL command?',
@@ -57,7 +57,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Is this free?',
-    a: 'Local API work and one encrypted local action gate are available free. Shared runtime enforcement, team approvals, durable policy history, and enterprise identity controls are workspace features.',
+    a: 'Local Product Mission drafts and API Lab are free. The startup pilot includes the server-backed mission workflow for 30 days without payment information.',
   },
 ];
 
@@ -88,7 +88,7 @@ export default function HelpMenu({ onClose, onShowGuide }: Props) {
             </div>
             <div className="text-left flex-1">
               <p className="text-sm font-medium text-brand-400">Interactive Guide</p>
-              <p className="text-xs text-gray-400">API Workbench and Agent Gate walkthrough</p>
+              <p className="text-sm text-gray-400">Product Missions and API Lab walkthrough</p>
             </div>
             <ExternalLink size={14} className="text-gray-600 group-hover:text-brand-400 transition-colors" />
           </button>
@@ -179,7 +179,7 @@ export default function HelpMenu({ onClose, onShowGuide }: Props) {
                 </div>
               </div>
               <p className="text-xs text-gray-400 leading-relaxed">
-                An API Workbench and Agent Change Gate for teams building AI systems that act through tools and APIs.
+                Product Missions turns real customer evidence into a human-reviewed draft pull request. API Lab provides the request and protocol workspace beside it.
               </p>
               <div className="p-3 rounded-lg bg-gray-800/30 border border-gray-800 space-y-2">
                 <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Built with</p>
@@ -191,7 +191,7 @@ export default function HelpMenu({ onClose, onShowGuide }: Props) {
               </div>
               <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/20">
                 <p className="text-xs text-green-400 font-medium">Local-first, workspace-ready</p>
-                <p className="text-xs text-gray-400 mt-1">Use encrypted device simulation without a server, or connect a managed workspace for runtime enforcement and team controls.</p>
+                <p className="text-xs text-gray-400 mt-1">Use encrypted mission drafts without a server, or connect a managed workspace for repository investigation, review, audit, and team controls.</p>
               </div>
             </div>
           )}

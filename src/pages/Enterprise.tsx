@@ -3,50 +3,45 @@ import { usePublicLightTheme } from '../utils/usePublicLightTheme';
 
 const READY = [
   'Browser-hosted web app plus Windows EXE/MSI installer for desktop teams.',
-  'A runtime decision API returns allow, require approval, or deny for every exact tool action.',
-  'Default-deny policy rules match tool, operation, target, and typed argument constraints.',
-  'One-use approvals are bound to the action hash, policy revision, expiry, and consumption record.',
-  'Release review replays real action evidence and blocks unreviewed authority expansion.',
-  'Immutable policy revisions use optimistic concurrency to prevent stale-tab publishing.',
-  'Runtime credentials are shown once, hashed at rest, scoped, auditable, and revocable.',
-  'Sensitive action arguments are encrypted at rest and redacted in the review interface.',
-  'Encrypted local simulation remains available when no database or server is configured.',
-  'Bring-your-own-key AI provider setup, including local mode for no external AI calls.',
-  '2FA, session controls, account lockout tests, and encrypted local settings.',
-  'Admin-only audit logs for auth, workspace, enterprise settings, retention, SCIM, and SOC 2 evidence events.',
-  'Global admin/user controls plus workspace admin/member/viewer RBAC.',
+  'Product Missions preserve the customer evidence, desired outcome, repository state, proposal, approval, pull request, and check result.',
+  'Repository investigation reads bounded source and rejects secret paths, generated dependencies, traversal, oversized changes, and CI workflow edits.',
+  'Insufficient evidence produces explicit questions instead of an invented solution.',
+  'Human approval is bound to the exact source proposal fingerprint and investigated base commit.',
+  'GitHub execution creates an isolated branch and draft pull request only; FetchLab has no merge or deploy action.',
+  'Repository checks remain passed, failed, pending, or unverified. Zero checks never becomes a false pass.',
+  'Encrypted local drafts remain available when no database or server is configured.',
+  'The connected API Lab retains REST, GraphQL, WebSocket, SSE, collections, environments, scripts, diffs, and request history.',
+  'Bring-your-own-key model setup supports Anthropic, AWS Bedrock, Google Vertex AI, and OpenAI-compatible endpoints.',
+  'PostgreSQL accounts, 2FA, session controls, lockouts, rate limits, and workspace admin/member/viewer RBAC.',
+  'Admin-only audit records cover mission, GitHub, auth, workspace, and enterprise changes.',
   'OIDC SSO configuration, SCIM v2 user provisioning endpoints, and admin status checks.',
-  'Configurable retention policy execution for audit logs, request history, sessions, agent records, and evidence.',
-  'SOC 2 evidence tracking workflow with control IDs, owners, status, details, and audit events.',
-  'SSRF-safe request proxy behavior covered by tests.',
-  'AI-ready response artifacts with Markdown, structured JSON, and token/cost estimates.',
-  'Agent framework snippets for LangChain, LlamaIndex, and CrewAI.',
+  'Configurable retention for audit logs, request history, sessions, mission records, and evidence.',
 ];
 
 const PILOT_PACKAGE = [
-  'Choose one tool-using agent and name its engineering owner and action reviewer.',
-  'Connect the agent in shadow mode and capture exact tool, operation, target, and argument evidence.',
-  'Classify observed actions into explicit allow, approval, and deny rules with default deny.',
-  'Move the gate to enforce mode and validate approval, retry, expiry, and failure behavior.',
-  'Change a prompt, model, tool set, or code version and review the effective authority diff.',
-  'Publish the new immutable policy revision only after every authority expansion is resolved.',
+  'Choose one repository, one product owner, and one engineering reviewer.',
+  'Bring three recent customer issues or AI product failures with evidence and a clear desired outcome.',
+  'Connect a scoped GitHub credential and the model provider approved by the startup.',
+  'Run each issue through investigation, exact source review, approval, draft pull request creation, and repository checks.',
+  'Track where FetchLab asks for evidence, where proposals are rejected, and whether the team merges anything after its own review.',
+  'Continue only if the same team voluntarily uses it for another real problem; the free pilot is product validation, not proof of adoption.',
 ];
 
 const ROADMAP = [
   {
     phase: 'Day 1',
-    title: 'Connect one agent',
-    body: 'Create a workspace action gate, issue a scoped runtime credential, and place the decision call immediately before tool execution.',
+    title: 'Connect one repository',
+    body: 'Create the workspace, assign roles, connect a scoped GitHub token, and configure the approved model provider.',
   },
   {
     phase: 'Week 1',
-    title: 'Learn in shadow mode',
-    body: 'Capture real action attempts without blocking production, then turn observed behavior into narrow allow, approval, and deny rules.',
+    title: 'Run three real missions',
+    body: 'Start from actual support or production evidence. Review every question, proposal, approval boundary, draft pull request, and check result.',
   },
   {
     phase: 'Month 1',
-    title: 'Gate every change',
-    body: 'Enforce the published policy and require a reviewed authority diff before prompt, model, tool, or agent-code changes reach production.',
+    title: 'Measure repeat use',
+    body: 'Compare time and manual handoffs against the existing workflow. Keep the product only if the team chooses it for the next problem without prompting.',
   },
 ];
 
@@ -105,7 +100,7 @@ function Checklist({ title, items, tone }: { title: string; items: string[]; ton
         <div className="font-mono uppercase" style={{ fontSize: 10.5, letterSpacing: '0.16em', color: tone === 'ready' ? 'var(--color-accent)' : 'var(--color-warning)', marginBottom: 8 }}>
           {tone === 'ready' ? 'Available today' : 'Enterprise pilot package'}
         </div>
-        <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.04em', margin: 0 }}>
+        <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: 0, margin: 0 }}>
           {title}
         </h2>
       </div>
@@ -152,21 +147,21 @@ export default function Enterprise() {
               className="text-4xl md:text-6xl"
               style={{
                 fontFamily: 'var(--font-display)',
-                letterSpacing: '-0.07em',
+                letterSpacing: 0,
                 lineHeight: 0.92,
                 margin: 0,
                 maxWidth: '11ch',
               }}
             >
-              Control what AI agents can do.
+              Turn customer evidence into reviewed code.
             </h1>
           </div>
           <div>
             <p className="text-base md:text-lg" style={{ color: 'var(--color-text-muted)', lineHeight: 1.75, maxWidth: 650, margin: 0 }}>
-              FetchLab sits immediately before tool execution and gives every exact agent action a deterministic policy decision.
-              It records what the agent attempted, binds human approval to one action, and shows whether a prompt, model, tool,
-              or code change expands effective authority before release. Enterprise deployments add PostgreSQL, workspace RBAC,
-              encrypted secrets, audit logs, SCIM, retention controls, OIDC SSO, and durable policy history.
+              FetchLab gives product and engineering teams one traceable mission from a real customer problem to a reviewable
+              draft pull request. It keeps the original evidence attached to bounded repository investigation, exact proposed
+              source, human approval, GitHub state, and CI status. Enterprise deployments add PostgreSQL, workspace RBAC,
+              encrypted evidence and credentials, audit logs, retention controls, OIDC SSO, and SCIM.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <a
@@ -181,10 +176,10 @@ export default function Enterprise() {
                   borderRadius: 5,
                 }}
               >
-                Create an action gate
+                Create a product mission
               </a>
               <a
-                href="mailto:hello@fetchlab.dev?subject=FetchLab%20Enterprise%20Pilot"
+                href="mailto:vkavali10@gmail.com?subject=FetchLab%20Enterprise%20Pilot"
                 className="inline-flex items-center"
                 style={{
                   fontSize: 13,
@@ -218,8 +213,8 @@ export default function Enterprise() {
             <div className="font-mono uppercase" style={{ fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--color-accent)', marginBottom: 8 }}>
               Simple rollout
             </div>
-            <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.04em', margin: 0 }}>
-              From shadow evidence to enforced policy
+            <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'var(--font-display)', letterSpacing: 0, margin: 0 }}>
+              From one real issue to repeat use
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-px" style={{ background: 'var(--color-border)' }}>

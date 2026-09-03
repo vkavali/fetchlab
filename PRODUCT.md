@@ -2,178 +2,160 @@
 
 ## Product definition
 
-- **Primary user:** An AI platform engineer or workflow owner preparing a tool-using AI system for production.
-- **Moment of use:** A prompt, model, tool, permission, policy, or code change is ready for review.
-- **Job:** Prove how the candidate changes external actions, decide which actions require approval, and publish a deterministic release policy.
-- **Current alternative:** Combine traces, spreadsheets, eval dashboards, security review, cloud policy engines, and CI scripts. The evidence is fragmented and the approved behavior is rarely bound to the policy that runs.
-- **Reason to return:** Every material AI change gets a behavior and authority review before release.
-- **Counterfactual:** The current worksheet can be replaced by documents. The product becomes essential only when evidence, review, publication, and runtime decisions are one closed loop.
+- **Primary user:** A product engineer, engineering lead, or technical founder responsible for an AI-enabled software product.
+- **Moment of use:** A customer reports a problem, production behavior looks wrong, or a repeated request deserves a product change.
+- **Job:** Turn real product evidence into a reviewable code change and prove whether the proposed change passed the repository's own checks.
+- **Current alternative:** Manually join support tickets, analytics, error reports, a coding agent, GitHub, CI, and release review. Context is repeatedly rewritten and generated code is often presented before anyone has proved that it addresses the original problem.
+- **Reason to return:** Every important product problem becomes a durable mission with evidence, an exact proposed change, human approval, and validation status in one place.
+- **Counterfactual:** If FetchLab only summarizes issues or suggests code, a team can replace it with chat and a ticket. It becomes useful only when it closes the path from evidence to an approved, traceable, CI-verified pull request.
 
 ## First working slice
 
-FetchLab is the change gate for AI systems that act through tools and APIs.
+FetchLab is the product-engineering operator that turns one real customer issue into one reviewable pull request.
 
 One complete path:
 
-1. A workspace owner defines structured action rules.
-2. The owner publishes an immutable policy revision.
-3. An agent submits a real action attempt through the FetchLab decision API.
-4. FetchLab returns `allow`, `require_approval`, or `deny` with the exact policy revision and reason.
-5. Actions requiring approval wait for a workspace reviewer.
-6. Approval is bound to the exact action payload and can be consumed once.
-7. Every decision is stored as evidence.
-8. A draft policy is replayed against stored evidence and exposes every authority expansion before publication.
-9. The owner can publish only after required reviews are resolved.
+1. A workspace member creates a mission from a real customer problem and states the desired outcome.
+2. The member identifies the repository and may provide a live or staging URL.
+3. FetchLab records the evidence and performs a safe availability probe of the supplied URL. A successful probe is not described as reproducing the reported problem.
+4. FetchLab reads a bounded repository tree, selects relevant source files, and prepares an exact file-level proposal.
+5. The proposal includes the likely cause, acceptance criteria, risks, changed file contents, repository base commit, and a deterministic proposal fingerprint.
+6. A member reviews the proposal and approves that exact fingerprint.
+7. FetchLab refuses approval if the repository base branch changed after investigation.
+8. FetchLab creates a new commit on a mission branch and opens a draft pull request. It never merges or deploys.
+9. FetchLab reads the pull request's checks. It calls the mission verified only when at least one check exists and every required reported check has completed successfully.
+10. Every mission transition is append-only evidence and every external action is written to the audit log.
 
 ## Deliberate exclusions
 
-- FetchLab does not build or host the agent.
-- FetchLab does not use an LLM to make authorization decisions.
-- FetchLab does not infer that a successful HTTP response means the business outcome succeeded.
-- Synthetic or sample events never count as production evidence.
-- A JSON export is not described as enforcement unless a runtime used it to make a decision.
-- Prompt quality, answer quality, and generic model benchmarking remain advanced tools, not the primary product path.
+- FetchLab does not decide what product to build from anonymous market data in this slice.
+- FetchLab does not continuously watch support, analytics, or error tools yet; evidence starts with a real issue supplied by a user.
+- FetchLab does not execute customer repository code on the FetchLab server.
+- FetchLab does not merge pull requests or deploy changes.
+- FetchLab does not call a healthy URL a reproduced bug.
+- FetchLab does not claim a code change is verified when a repository has no CI checks.
+- The API client, agent authority gate, model tools, and protocol testers remain advanced instruments, not the primary product experience.
 
 ## Core objects
 
-### Action attempt
+### Mission
 
-An action attempt records:
+A mission records:
 
-- workspace and study
-- agent and session identity
-- tool name
-- operation (`read`, `write`, `delete`, `execute`, or `unknown`)
-- target resource
-- arguments
-- reversibility
-- request timestamp
+- workspace and creator
+- problem title and raw evidence
+- desired user or business outcome
+- repository and optional environment URL
+- current status
+- investigation, exact proposal, pull request, and validation result
+- created and updated timestamps
 
-Arguments may contain sensitive data. Sensitive values are encrypted at rest and omitted from audit summaries.
+### Investigation
 
-### Policy rule
+An investigation records:
 
-A rule has:
+- repository and immutable base commit
+- bounded repository paths considered
+- files read for context
+- optional environment availability result
+- likely cause and uncertainties
+- questions when the evidence is insufficient
 
-- stable ID and name
-- effect (`allow`, `require_approval`, or `deny`)
-- enabled state
-- tool pattern
-- operation
-- target pattern
-- zero or more typed argument constraints
+### Proposal
 
-Rules are deterministic. Deny wins over approval, and approval wins over allow. An unknown action defaults to deny.
+A proposal records:
 
-### Policy revision
+- concise summary and user impact
+- likely root cause
+- measurable acceptance criteria
+- risks and manual review notes
+- every file path and exact proposed content
+- base commit and deterministic fingerprint
 
-A published revision is an immutable snapshot with:
+The fingerprint changes when any reviewed proposal content changes.
 
-- monotonically increasing revision number
-- canonical policy fingerprint
-- publisher identity
-- publication timestamp
-- prior revision fingerprint
+### Mission event
 
-Runtime checks use only a published revision. Editing a draft cannot silently alter production behavior.
-
-### Decision event
-
-Every valid runtime check produces an append-only event with:
-
-- canonical action hash
-- policy revision and fingerprint
-- decision and matched rule
-- enforcement mode
-- reason
-- review and consumption state
-
-### Authority diff
-
-FetchLab replays stored real events through the published and draft policies.
-
-- `expansion`: a previous deny becomes approval or allow, or approval becomes allow
-- `restriction`: allow becomes approval or deny, or approval becomes deny
-- `unchanged`: both policies return the same decision
-
-Every expansion must be reviewed before publication. Restrictions remain visible but do not require an expansion approval.
+Mission events are append-only records of capture, investigation, proposal, approval, pull-request creation, validation, failure, or rejection. Event summaries never contain repository credentials or full proposed source files.
 
 ## System guarantees
 
-### Draft and publication
+### Capture and storage
 
-- Draft edits are saved independently from the published revision.
-- Publishing requires the last-seen revision. A stale browser tab receives `409 Conflict` and cannot overwrite a newer publication.
-- Publication is rejected when there is no enabled rule, an unresolved authority expansion, or an invalid rule.
-- Publication creates an audit event containing fingerprints, counts, and publisher identity, never raw action arguments.
+- Invalid mission input returns a field-specific error and creates nothing.
+- Workspace viewers can read missions but cannot create, investigate, approve, or reject them.
+- Sensitive-looking values in persisted mission evidence are encrypted with the existing server encryption layer.
+- A user can never read or mutate a mission from another workspace.
+- Local mode stores mission drafts on the device and clearly states that repository investigation and pull-request execution require a signed-in server workspace.
 
-### Runtime decision
+### Investigation
 
-- Invalid input returns `400` and creates no evidence event.
-- Missing or revoked credentials return `401`.
-- A token cannot address another workspace.
-- Missing study or published policy returns `404` or `409`; the service never invents a policy.
-- Unknown actions return deny in enforcement mode.
-- Shadow mode records the policy decision but returns `execute: true` so it cannot block traffic.
-- Enforcement mode returns `execute: true` only for allow or a consumed exact-match approval.
-- Policy evaluation performs no network or model calls.
+- Repository credentials remain server-side and are never returned to the browser or sent to the model.
+- Environment URLs are checked against the server's SSRF policy before a request is made.
+- Repository context excludes secrets files, generated dependencies, binaries, and oversized files.
+- Source sent to a configured model is bounded and obvious credential patterns are redacted.
+- A missing model, inaccessible repository, insufficient evidence, invalid model response, or oversized proposal produces a visible blocked state instead of a fabricated result.
 
-### Human approval
+### Approval and GitHub
 
-- Only workspace members with member or admin role can review.
-- Reviewers see the exact action packet, decision reason, policy revision, and sensitive-field redactions.
-- A reviewer cannot approve a changed payload by reusing an event ID.
-- Approval expires and can be consumed once.
-- A denied or expired approval can never become executable without a new action attempt.
+- Approval must include the exact current proposal fingerprint.
+- A stale or altered fingerprint returns `409 Conflict`.
+- The repository base branch must still point to the investigated commit. If it changed, approval returns `409 Conflict` and requires reinvestigation.
+- Only paths shown in the approved proposal are written.
+- Absolute paths, parent traversal, secret files, and CI workflow changes are rejected.
+- FetchLab creates a dedicated branch and draft pull request. It never pushes to the default branch.
+- Repeating approval cannot create a second change for the same mission.
 
-### Evidence
+### Validation
 
-- Runtime events are append-only through product APIs.
-- Review identity and timestamps are retained.
-- Deleting a study requires admin-level intent and remains in the audit log.
-- Sample data is visually and structurally separate from real evidence.
+- Pending checks remain pending.
+- Failed or cancelled checks mark validation failed.
+- Zero checks means unverified, never passed.
+- A mission becomes ready for human review only after one or more reported checks complete successfully.
+- FetchLab reports GitHub's result; it does not claim those checks prove the business outcome by themselves.
 
 ## Experience states
 
 ### Empty workspace
 
-Show one path: define the first rule, publish it, then send a real test action. Do not populate fake metrics.
+Show one large mission composer with four concrete starting outcomes. Do not show fake missions, metrics, or activity.
 
-### Invalid rule
+### Missing configuration
 
-Show the exact field and reason. Keep the previous published revision active.
+The mission can be saved. The UI names the missing model or GitHub connection and does not enable an action that cannot succeed.
 
-### No server or database
+### Wrong or incomplete evidence
 
-Local mode can build policies, paste action JSON, replay evidence stored on the device, and export artifacts. It clearly states that no shared runtime endpoint, team approval, or server enforcement exists.
+Keep the original evidence, show the questions FetchLab still needs answered, and allow reinvestigation after the mission is updated.
 
-### Slow or unavailable server
+### Slow investigation
 
-The UI preserves the draft, shows the last confirmed publication, and never claims a save or approval succeeded. Runtime clients must treat transport failure according to their configured fail-open or fail-closed policy; FetchLab recommends fail-closed for state-changing actions.
+Persist the mission before starting model or GitHub work, show the active stage, and retain the mission if the request times out. Never claim the proposal was created until the server confirms it.
 
-### Close, gate switching, and reload
+### Changed repository
 
-An encrypted recovery copy preserves an unsaved draft across reload. Closing the gate or switching to another gate asks for confirmation while a draft is dirty.
+Block approval, retain the old proposal as evidence, and ask the user to investigate again against the new base commit.
 
 ### Two browser tabs
 
-Both may edit drafts. Only the tab holding the latest published revision may publish. The stale tab must refresh and review the newer diff.
+Approval is bound to the server's current fingerprint. A stale tab receives a conflict and must reload the mission.
 
 ## Release acceptance path
 
 The first slice is done only when these paths are exercised twice:
 
-1. Publish a policy, submit an allowed action, and receive an executable decision tied to that revision.
-2. Submit an approval action, approve it, consume it once, and prove the second consumption fails.
-3. Submit an unknown state-changing action and prove it is denied.
-4. Change a rule so a denied historical action becomes allowed, see the authority expansion, and block publication until review.
-5. Attempt stale publication from a second revision and receive a conflict.
-6. Repeat locally without a database and verify that the UI does not claim server enforcement.
+1. Create a mission, investigate a mocked repository, review an exact proposal, and open a draft pull request from the approved content.
+2. Submit a stale proposal fingerprint and prove no GitHub write occurs.
+3. Move the repository base after investigation and prove approval is blocked.
+4. Return zero CI checks and prove the UI says unverified.
+5. Return successful checks and prove the mission becomes ready for review.
+6. Use a second workspace and prove it cannot read or mutate the first workspace's mission.
+7. Use local mode and prove it saves the mission without claiming repository execution.
 
 ## Success metric
 
-The first product metric is not account creation or studies created. It is:
+The first product metric is:
 
-> Percentage of material agent changes that reach a reviewed release decision using real action evidence.
+> Percentage of accepted customer problems that reach a human-reviewed pull request with traceable evidence and completed repository checks.
 
-Secondary measures are time to decision, unreviewed authority expansions found before release, approval latency, and policy violations prevented.
+Secondary measures are time to first proposal, proposal acceptance rate, stale proposals prevented, validation pass rate, and missions returned for more evidence.

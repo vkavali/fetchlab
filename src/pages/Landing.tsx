@@ -10,7 +10,7 @@ import { useCountry } from '../utils/useCountry';
  * the brand. No gradients, no glows, no floating mockups.
  *
  * Localizes for India when the visitor's country (via /api/geo) is IN -
- * INR pricing references, Bangalore-flavored attribution, Razorpay mention,
+ * INR localization, Bangalore-flavored attribution,
  * IST timestamp suffix in the investigation log. Otherwise USD / generic.
  * ========================================================================== */
 
@@ -127,7 +127,7 @@ function CTA({
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: 12,
-            letterSpacing: '-0.02em',
+            letterSpacing: 0,
             transform: hover ? 'translateX(2px)' : 'translateX(0)',
             transition: `transform 220ms ${EASE}`,
           }}
@@ -245,9 +245,9 @@ function ScrollProgress() {
   );
 }
 
-/* ---------- Agent-loop meta - the status bar under the hero CTAs ---------- */
+/* ---------- Mission-loop meta - the status bar under the hero CTAs ---------- */
 
-const LOOP_STEPS = ['Detect', 'Reproduce', 'Root-cause', 'Propose', 'Verify'];
+const LOOP_STEPS = ['Capture', 'Investigate', 'Propose', 'Approve', 'Verify'];
 
 function AgentLoopMeta() {
   const [active, setActive] = useState(0);
@@ -258,13 +258,12 @@ function AgentLoopMeta() {
 
   return (
     <div
-      className="font-mono"
+      className="font-mono hidden sm:flex"
       style={{
         marginTop: 40,
         fontSize: 11,
         letterSpacing: '0.16em',
         textTransform: 'uppercase',
-        display: 'flex',
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: 14,
@@ -408,15 +407,15 @@ function Nav() {
   );
 }
 
-/* ---------- Hero visual: Agent Change Gate release review ---------- */
+/* ---------- Hero visual: the actual Product Missions workflow ---------- */
 
-function AgentGateSpecimen() {
-  const changes = [
-    { tool: 'stripe.refunds.create', target: 'charges/*/refund', published: 'Approval', draft: 'Allow', change: 'Expansion', warning: true },
-    { tool: 'stripe.customers.read', target: 'customers/*', published: 'Allow', draft: 'Allow', change: 'Unchanged', warning: false },
-    { tool: 'stripe.payouts.create', target: 'accounts/*/payout', published: 'Deny', draft: 'Approval', change: 'Expansion', warning: true },
+function ProductMissionSpecimen() {
+  const stages = [
+    { label: 'Evidence', state: 'complete' },
+    { label: 'Proposal', state: 'complete' },
+    { label: 'Draft PR', state: 'current' },
+    { label: 'Checks', state: 'waiting' },
   ];
-
   return (
     <div
       style={{
@@ -435,101 +434,80 @@ function AgentGateSpecimen() {
             className="font-mono"
             style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 650 }}
           >
-            Agent Change Gate
+            Product mission
           </span>
           <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.1em' }}>
-            Illustrative: refund agent - production
+            Illustrative product view
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--color-success)' }} />
           <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-success)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-            Published policy
+            Human review required
           </span>
         </div>
       </div>
 
       <div style={{ padding: '18px 16px 15px' }}>
         <div className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 7 }}>
-          Illustrative release review
+          Customer issue / checkout
         </div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 650, lineHeight: 1.2 }}>
-          refund-agent / candidate build
+          Checkout total breaks after a discount
         </div>
         <div className="flex flex-wrap gap-4" style={{ marginTop: 9, color: 'var(--color-text-muted)', fontSize: 12.5 }}>
-          <span>Recorded runtime evidence</span>
-          <span>Policy mode: Enforce</span>
-          <span>Named release owner</span>
+          <span>Support case 443</span>
+          <span>acme/store</span>
+          <span>Base 2a4d9e8</span>
         </div>
       </div>
 
       <div
         style={{
-          padding: '15px 16px',
+          padding: '14px 16px',
           borderTop: '1px solid var(--color-border)',
           borderBottom: '1px solid var(--color-border)',
-          borderLeft: '4px solid var(--color-accent)',
-          background: 'var(--color-accent-soft)',
+          background: 'var(--color-surface-2)',
         }}
       >
-        <div className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-          Release decision
-        </div>
-        <div className="flex items-end justify-between gap-4" style={{ marginTop: 5 }}>
-          <div>
-            <strong style={{ display: 'block', fontSize: 17 }}>Blocked by authority expansion</strong>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: 12.5 }}>The draft would allow actions that the published policy stopped or required approval for.</span>
-          </div>
-          <span className="font-mono" style={{ color: 'var(--color-warning)', fontSize: 11, letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>
-            REVIEW REQUIRED
-          </span>
+        <div className="grid grid-cols-4 gap-2">
+          {stages.map((stage, index) => (
+            <div key={stage.label} style={{ minWidth: 0 }}>
+              <div style={{ height: 3, background: stage.state === 'complete' ? 'var(--color-success)' : stage.state === 'current' ? 'var(--color-accent)' : 'var(--color-border-strong)' }} />
+              <div className="font-mono" style={{ marginTop: 7, fontSize: 10, color: stage.state === 'waiting' ? 'var(--color-text-subtle)' : 'var(--color-text)', letterSpacing: '0.08em' }}>
+                {String(index + 1).padStart(2, '0')} {stage.label}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="landing-gate-table">
-        <div
-          className="grid landing-gate-row"
-          style={{ gap: 8, padding: '9px 16px', borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-subtle)', fontSize: 10.5 }}
-        >
-          <span>Observed action</span><span>Published</span><span>Draft</span><span>Change</span>
+      <div style={{ padding: '16px', borderBottom: '1px solid var(--color-border)' }}>
+        <div className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-accent)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          Proposed product change
         </div>
-        {changes.map((row) => (
-          <div
-            key={row.tool}
-            className="grid landing-gate-row"
-            style={{
-              gap: 8,
-              alignItems: 'center',
-              padding: '11px 16px',
-              borderBottom: '1px solid var(--color-border)',
-              background: row.warning ? 'var(--color-warning-soft)' : 'transparent',
-              boxShadow: row.warning ? 'inset 4px 0 0 var(--color-warning)' : 'none',
-              fontSize: 12.5,
-            }}
-          >
-            <span style={{ minWidth: 0 }}>
-              <strong className="font-mono" style={{ display: 'block', fontSize: 11.5 }}>{row.tool}</strong>
-              <span className="font-mono" style={{ display: 'block', marginTop: 3, fontSize: 10, color: 'var(--color-text-subtle)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.target}</span>
-            </span>
-            <span className="font-mono">{row.published}</span>
-            <span className="font-mono">{row.draft}</span>
-            <span className="font-mono" style={{ color: row.warning ? 'var(--color-warning)' : 'var(--color-text-muted)' }}>{row.change}</span>
-          </div>
-        ))}
+        <strong style={{ display: 'block', marginTop: 7, fontSize: 17 }}>Normalize a missing discount before calculating the total</strong>
+        <p style={{ margin: '7px 0 0', color: 'var(--color-text-muted)', fontSize: 13, lineHeight: 1.55 }}>
+          One exact source file, measurable acceptance criteria, risks, and the investigated base commit stay attached to the review.
+        </p>
+        <div className="flex items-center justify-between gap-4" style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
+          <span className="font-mono" style={{ fontSize: 11.5, color: 'var(--color-text)' }}>src/checkout/total.ts</span>
+          <span style={{ color: 'var(--color-accent)', fontSize: 12.5, fontWeight: 650 }}>Review exact source</span>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4" style={{ padding: '14px 16px', background: 'var(--color-surface-2)' }}>
         <div>
           <span className="font-mono" style={{ display: 'block', fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-            Deterministic policy diff
+            Approval boundary
           </span>
-          <strong style={{ display: 'block', marginTop: 4, fontSize: 13.5 }}>Default deny - exact-action approvals - immutable revisions</strong>
+          <strong style={{ display: 'block', marginTop: 4, fontSize: 13.5 }}>Exact proposal hash - draft branch only - no merge or deploy</strong>
         </div>
         <span
           className="font-mono"
-          style={{ padding: '7px 9px', border: '1px solid var(--color-warning)', borderRadius: 4, color: 'var(--color-warning)', fontSize: 10.5, letterSpacing: '0.1em', whiteSpace: 'nowrap' }}
+          style={{ padding: '7px 9px', border: '1px solid var(--color-accent)', borderRadius: 4, color: 'var(--color-accent)', fontSize: 10.5, letterSpacing: '0.1em', whiteSpace: 'nowrap' }}
         >
-          RELEASE BLOCKED
+          AWAITING APPROVAL
         </span>
       </div>
     </div>
@@ -552,13 +530,13 @@ function Hero() {
         className="absolute inset-y-0 right-0 hidden lg:block fl-grid-paper"
         style={{ width: '46%', opacity: 0.32, pointerEvents: 'none' }}
       />
-      <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pt-16 pb-20 md:pt-24 md:pb-28 relative">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pt-8 pb-10 md:pt-12 md:pb-14 relative">
         <Reveal>
           <div
             className="flex flex-wrap items-center gap-4"
-            style={{ marginBottom: 28 }}
+            style={{ marginBottom: 20 }}
           >
-            <FetchLabLogo markSize={58} wordmarkSize={20} />
+            <FetchLabLogo markSize={46} wordmarkSize={18} />
             <span
               className="font-mono"
               style={{
@@ -570,39 +548,39 @@ function Hero() {
                 paddingLeft: 16,
               }}
             >
-              API Workbench + Agent Change Gate
+              Product Missions + API Lab
             </span>
           </div>
         </Reveal>
 
         <Reveal delay={40}>
-          <div style={{ marginBottom: 32 }}>
-            <Eyebrow index="00">Test the API. Gate the action. Prove the change.</Eyebrow>
+          <div style={{ marginBottom: 20 }}>
+            <Eyebrow index="00">Customer evidence to a reviewed code change</Eyebrow>
           </div>
         </Reveal>
 
         <Reveal delay={100}>
           <h1
-            className="text-[48px] md:text-[72px] lg:text-[96px]"
+            className="text-[40px] md:text-[60px] lg:text-[72px]"
             style={{
               fontFamily: 'var(--font-display)',
-              lineHeight: 0.95,
+              lineHeight: 0.98,
               letterSpacing: 0,
               fontWeight: 600,
               color: 'var(--color-text)',
               marginBottom: 0,
             }}
           >
-            The release gate for AI agents<br />
-            <span style={{ color: 'var(--color-text-muted)' }}>
-              that take real actions.
+            Turn a customer problem{' '}
+            <span className="block" style={{ color: 'var(--color-text-muted)' }}>
+              into a reviewed pull request.
             </span>
           </h1>
         </Reveal>
 
         <div
           className="grid lg:grid-cols-[1fr_1.05fr] gap-12 lg:gap-16 items-start"
-          style={{ marginTop: 56 }}
+          style={{ marginTop: 36 }}
         >
           <Reveal delay={180}>
             <div>
@@ -615,13 +593,13 @@ function Hero() {
                   marginBottom: 30,
                 }}
               >
-                A prompt, model, tool, or code change can silently give an agent more power. FetchLab records
-                exact action attempts, enforces deterministic allow, approval, or deny rules, and blocks a release
-                when the new version expands authority without review.
+                Capture the real report and the outcome that should change. FetchLab reads bounded repository context,
+                asks when evidence is weak, prepares an exact source proposal, and opens a draft pull request only after
+                a human approves that exact version.
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
-                <CTA href="/app">Open Agent Gate</CTA>
+                <CTA href="/app">Create a product mission</CTA>
                 <GhostCTA href="/download">Download installer</GhostCTA>
                 <GhostCTA href="/enterprise">Enterprise pilot</GhostCTA>
               </div>
@@ -630,9 +608,11 @@ function Hero() {
             </div>
           </Reveal>
 
-          <Reveal delay={240}>
-            <AgentGateSpecimen />
-          </Reveal>
+          <div className="hidden lg:block">
+            <Reveal delay={240}>
+              <ProductMissionSpecimen />
+            </Reveal>
+          </div>
         </div>
       </div>
     </section>
@@ -671,7 +651,7 @@ function Declaration() {
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(80px, 18vw, 260px)',
             lineHeight: 0.86,
-            letterSpacing: '-0.045em',
+            letterSpacing: 0,
             fontWeight: 600,
             color: 'var(--color-accent-ink)',
             margin: 0,
@@ -696,15 +676,15 @@ function Declaration() {
             style={{
               fontSize: 'clamp(20px, 2.2vw, 28px)',
               lineHeight: 1.25,
-              letterSpacing: '-0.01em',
+              letterSpacing: 0,
               fontWeight: 500,
               color: 'var(--color-accent-ink)',
               maxWidth: '34ch',
               margin: 0,
             }}
           >
-            One API Workbench for requests, collections, environments, protocols, and scripts.
-            One Agent Change Gate for runtime decisions, exact-action approval, authority diffs, and controlled releases.
+            Product Missions owns the path from customer evidence to a human-reviewed draft pull request.
+            API Lab preserves the requests, responses, environments, protocols, and scripts needed to investigate the product underneath it.
           </p>
           <div
             className="font-mono"
@@ -727,20 +707,20 @@ function Declaration() {
   );
 }
 
-/* ---------- The loop - presented as the agent's actual investigation log ---------- */
+/* ---------- The loop - presented as an illustrative mission record ---------- */
 
 type LogEntry = { t: string; stage: string; line: string; mark?: 'ok' | 'warn' };
 const LOG_ENTRIES: LogEntry[] = [
-  { t: '00:00:01', stage: 'web app',    line: '/app opens the full API Workbench in the browser', mark: 'ok' },
-  { t: '00:00:06', stage: 'desktop',    line: 'Windows EXE and MSI installers are available from /download', mark: 'ok' },
-  { t: '00:00:11', stage: 'api bench',  line: 'requests, collections, environments, scripts, WebSocket, SSE, OpenAPI', mark: 'ok' },
-  { t: '00:00:18', stage: 'agent gate', line: 'observed actions replay against published and draft policies', mark: 'ok' },
-  { t: '00:00:26', stage: 'teams',      line: 'workspace members use admin, member, and viewer roles', mark: 'ok' },
-  { t: '00:00:31', stage: 'security',   line: 'JWT sessions, 2FA, lockouts, AES-256-GCM credential encryption', mark: 'ok' },
-  { t: '00:00:37', stage: 'enterprise', line: 'PostgreSQL, audit logs, retention, OIDC SSO, and SCIM endpoints', mark: 'ok' },
-  { t: '00:00:43', stage: 'release',    line: 'authority expansions wait for named reviewer approval', mark: 'ok' },
-  { t: '00:00:50', stage: 'release',    line: 'the release record binds evidence, reviews, and an immutable policy revision', mark: 'ok' },
-  { t: '00:00:58', stage: 'ready',      line: 'API understanding and agent authority control stay connected', mark: 'ok' },
+  { t: '00:00:01', stage: 'capture',     line: 'customer report and desired product outcome saved as one mission', mark: 'ok' },
+  { t: '00:00:03', stage: 'protect',     line: 'raw evidence encrypted in the workspace record', mark: 'ok' },
+  { t: '00:00:06', stage: 'repository',  line: 'connected GitHub repository fixed to base commit 2a4d9e8', mark: 'ok' },
+  { t: '00:00:12', stage: 'investigate', line: 'bounded source context selected; secret and workflow paths excluded', mark: 'ok' },
+  { t: '00:00:31', stage: 'proposal',    line: 'one exact source change with acceptance criteria and risks prepared', mark: 'ok' },
+  { t: '00:00:36', stage: 'approval',    line: 'human approved the proposal fingerprint and investigated base', mark: 'ok' },
+  { t: '00:00:41', stage: 'github',      line: 'isolated branch and draft pull request created; default branch untouched', mark: 'ok' },
+  { t: '00:00:48', stage: 'checks',      line: 'repository checks pending; FetchLab does not claim verification yet', mark: 'warn' },
+  { t: '00:01:22', stage: 'checks',      line: 'reported repository checks completed successfully', mark: 'ok' },
+  { t: '00:01:23', stage: 'review',      line: 'draft pull request ready for the engineering team', mark: 'ok' },
 ];
 
 function HowItWorks() {
@@ -758,7 +738,7 @@ function HowItWorks() {
               fontFamily: 'var(--font-display)',
               fontSize: 'clamp(28px, 3.8vw, 44px)',
               lineHeight: 1.08,
-              letterSpacing: '-0.02em',
+              letterSpacing: 0,
               fontWeight: 600,
               color: 'var(--color-text)',
               marginTop: 18,
@@ -766,11 +746,11 @@ function HowItWorks() {
               maxWidth: '28ch',
             }}
           >
-            A real app, not just a download page.
+            One traceable path from report to review.
           </h2>
           <p style={{ fontSize: 17, maxWidth: '60ch', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
-            The website now points to the actual product surfaces: open the browser app, install the Windows desktop build,
-            or run the enterprise backend with PostgreSQL, auth, workspaces, audit, SSO, and SCIM.
+            Product work usually breaks across support, chat, a coding agent, GitHub, and CI. FetchLab keeps the original
+            evidence, exact proposal, approval, pull request, and check result in one mission record.
           </p>
         </Reveal>
 
@@ -799,9 +779,9 @@ function HowItWorks() {
             >
               <span>
                 <span style={{ color: 'var(--color-accent)', marginRight: 12 }}>*</span>
-                FetchLab product surface - current
+                Illustrative mission record - checkout issue
               </span>
-              <span>Web + installer + enterprise</span>
+              <span>Evidence + code + review</span>
             </div>
 
             {/* The log itself */}
@@ -865,9 +845,9 @@ function HowItWorks() {
                 color: 'var(--color-text-subtle)',
               }}
             >
-              <span>Total - 4m 12s</span>
-              <span>Engineer interventions - 0</span>
-              <span>PR - <span style={{ color: 'var(--color-accent)' }}>#1284</span></span>
+              <span>Default branch writes - 0</span>
+              <span>Required human approvals - 1</span>
+              <span>Output - <span style={{ color: 'var(--color-accent)' }}>Draft PR</span></span>
             </div>
           </div>
         </Reveal>
@@ -963,20 +943,20 @@ function AIBuilderVisual() {
   );
 }
 
-function AuthorityDiffVisual() {
+function ProposalReviewVisual() {
   const items = [
-    { name: 'stripe.refunds.create', transition: 'Approval -> Allow', active: true },
-    { name: 'stripe.customers.read', transition: 'Allow -> Allow', active: false },
-    { name: 'stripe.payouts.create', transition: 'Deny -> Approval', active: true },
+    { name: 'Customer evidence', detail: 'Support case 443', state: 'Captured', active: false },
+    { name: 'Investigated source', detail: 'src/checkout/total.ts', state: 'Bound', active: false },
+    { name: 'Exact code proposal', detail: 'sha256: 8ab2c410...91f2', state: 'Review', active: true },
   ];
   return (
     <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-strong)', borderRadius: 8 }}>
       <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--color-border)' }}>
         <div className="font-mono" style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
-          Refund agent release
+          Checkout issue / reviewed proposal
         </div>
         <div style={{ fontSize: 12.5, color: 'var(--color-text-subtle)', marginTop: 4 }}>
-          Illustrative published policy vs draft
+          One mission, one investigated base commit
         </div>
       </div>
       <div>
@@ -998,22 +978,25 @@ function AuthorityDiffVisual() {
                   background: 'var(--color-surface)',
                 }}
               />
-              <span className="font-mono" style={{ fontSize: 12.5, color: 'var(--color-text)', fontWeight: item.active ? 650 : 400 }}>{item.name}</span>
+              <span style={{ minWidth: 0 }}>
+                <strong style={{ display: 'block', fontSize: 13, color: 'var(--color-text)', fontWeight: item.active ? 650 : 550 }}>{item.name}</strong>
+                <span className="font-mono" style={{ display: 'block', marginTop: 3, fontSize: 10.5, color: 'var(--color-text-subtle)' }}>{item.detail}</span>
+              </span>
             </div>
             <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.12em', color: item.active ? 'var(--color-accent)' : 'var(--color-text-subtle)' }}>
-              {item.transition}
+              {item.state}
             </span>
           </div>
         ))}
       </div>
       <div className="flex items-center justify-between" style={{ padding: '12px 14px', borderTop: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}>
-        <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>Release status</span>
-        <strong style={{ color: 'var(--color-warning)', fontSize: 12.5 }}>2 reviews required</strong>
+        <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>Approval result</span>
+        <strong style={{ color: 'var(--color-accent)', fontSize: 12.5 }}>Draft PR only</strong>
       </div>
     </div>
   );
 }
-function AgentVisual() {
+function ReleaseDecisionVisual() {
   const [ref, visible] = useInView<HTMLDivElement>({ threshold: 0.45 });
   const stage = (i: number): React.CSSProperties => ({
     opacity: visible ? 1 : 0,
@@ -1024,10 +1007,10 @@ function AgentVisual() {
     <div ref={ref} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-strong)', borderRadius: 8 }}>
       <div className="flex items-center justify-between" style={{ padding: '10px 14px', borderBottom: '1px solid var(--color-border)' }}>
         <span className="font-mono" style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
-          # api-alerts
+          Release decision
         </span>
         <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--color-text-subtle)', letterSpacing: '0.06em' }}>
-          14:02 - live
+          Workspace controlled
         </span>
       </div>
       <div style={{ padding: 14, fontSize: 13.5, color: 'var(--color-text)', lineHeight: 1.6 }}>
@@ -1035,19 +1018,17 @@ function AgentVisual() {
           <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-accent)', marginRight: 8 }}>
             FETCHLAB
           </span>
-          <span style={{ color: 'var(--color-text-muted)' }}>2:14 PM</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>Configuration verified</span>
         </div>
         <p style={{ margin: 0, ...stage(1) }}>
-          <span className="font-mono" style={{ color: 'var(--color-error)', fontSize: 11, fontWeight: 600, marginRight: 6 }}>500</span>
-          on <span className="font-mono" style={{ fontSize: 12.5, color: 'var(--color-text)' }}>/v1/orders</span> since 14:02.
-          Root cause: missing <span className="font-mono" style={{ fontSize: 12.5 }}>customer_id</span> in schema
-          after deploy <span className="font-mono" style={{ fontSize: 12 }}>a3f2c</span>.
+          <strong>Repository access</strong> and the investigation model are configured for this workspace.
+          Credentials stay encrypted on the server and are not returned to the browser or sent to the model.
         </p>
         <div style={{ marginTop: 12, padding: '10px 12px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 12.5, color: 'var(--color-text-muted)', ...stage(2) }}>
           <span className="font-mono" style={{ fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-subtle)', marginRight: 8 }}>
-            PROPOSED
+            HARD BOUNDARY
           </span>
-          Add <span className="font-mono" style={{ fontSize: 12, color: 'var(--color-text)' }}>customer_id</span> to the request validator.
+          Exact proposal only. New branch only. No default-branch write. No merge. No deploy.
         </div>
         <div className="flex items-center gap-2" style={{ marginTop: 12, ...stage(3) }}>
           <button
@@ -1057,7 +1038,7 @@ function AgentVisual() {
               padding: '6px 12px', borderRadius: 5,
             }}
           >
-            Open PR
+            Approve draft pull request
           </button>
           <button
             style={{
@@ -1067,7 +1048,7 @@ function AgentVisual() {
               padding: '5px 12px', borderRadius: 5,
             }}
           >
-            Dismiss
+            Reject proposal
           </button>
         </div>
       </div>
@@ -1125,7 +1106,7 @@ function Chapter({
                 fontFamily: 'var(--font-display)',
                 fontSize: 'clamp(28px, 3.8vw, 48px)',
                 lineHeight: 1.04,
-                letterSpacing: '-0.025em',
+                letterSpacing: 0,
                 fontWeight: 600,
                 color: 'var(--color-text)',
                 marginBottom: 22,
@@ -1223,51 +1204,52 @@ function Features() {
                 fontFamily: 'var(--font-display)',
                 fontSize: 'clamp(40px, 6vw, 88px)',
                 lineHeight: 0.96,
-                letterSpacing: '-0.035em',
+                letterSpacing: 0,
                 fontWeight: 600,
                 color: 'var(--color-text)',
                 marginTop: 16,
                 maxWidth: '20ch',
               }}
             >
-              API evidence and AI authority,<br />in one product.
+              Customer evidence and API evidence,<br />in one product.
             </h2>
           </div>
         </Reveal>
 
         <Chapter
           num="02.01"
-          title="API Workbench for the actual development loop."
+          title="Product Missions turn evidence into reviewed code."
           body={
             <>
-              Build requests, organize collections, manage environments, run scripts, compare responses,
-              inspect JSON, validate schemas, test WebSocket/SSE streams, and generate OpenAPI artifacts.
+              Start with a real support report, regression, AI failure, or repeated feature request. FetchLab binds
+              that evidence to the desired customer outcome and a specific repository commit.
               <br /><br />
-              Use it in the browser for fast access or install the Windows desktop build when your team wants a local app.
+              It reads a bounded set of source files, asks questions instead of inventing missing facts, and prepares
+              exact replacement content with acceptance criteria, risks, and a deterministic fingerprint.
             </>
           }
-          marginalia="The API client is still the foundation. AI features only work because the request, response, environment, and history are captured in one structured workspace."
+          marginalia="A summary is not the product. The value is preserving the chain from original evidence to the exact code a human reviewed."
           figLabel="Fig. 02.01"
-          figCaption="Requests, scripts, protocol testing"
-          figure={<AIBuilderVisual />}
+          figCaption="Evidence, source, proposal, approval"
+          figure={<ProposalReviewVisual />}
         />
 
         <Chapter
           num="02.02"
-          title="Agent Change Gate for releases teams can defend."
+          title="API Lab keeps investigation grounded in real behavior."
           body={
             <>
-              Give every tool action a deterministic allow, approval, or deny result. Runtime credentials are
-              hashed, action secrets are encrypted, retries require idempotency keys, and approvals bind to one exact action.
+              Build requests, organize collections, manage environments, run scripts, compare responses, inspect JSON,
+              validate schemas, test WebSocket and SSE streams, and generate OpenAPI artifacts.
               <br /><br />
-              Before a prompt, model, tool, or code release, replay real action evidence through the published and draft
-              policies. Any expansion from deny to approval, deny to allow, or approval to allow must be reviewed before publish.
+              API Lab remains a full workspace, not a hidden utility. Use it beside Product Missions whenever the problem
+              crosses an endpoint, model route, auth flow, streaming connection, or multi-step API workflow.
             </>
           }
-          marginalia="FetchLab does not build or host the agent. It is the independent control point that proves what changed in the agent's effective authority and decides whether each exact action may execute."
+          marginalia="The API client remains one complete bench. Product Missions is the other, with explicit navigation between them."
           figLabel="Fig. 02.02"
-          figCaption="Real-action authority diff"
-          figure={<AuthorityDiffVisual />}
+          figCaption="Requests, scripts, protocol testing"
+          figure={<AIBuilderVisual />}
         />
 
         <Chapter
@@ -1275,16 +1257,17 @@ function Features() {
           title="Enterprise controls for teams that need governance."
           body={
             <>
-              Run FetchLab with PostgreSQL-backed accounts, personal and team workspaces, encrypted credentials,
+              Run FetchLab with PostgreSQL-backed accounts, personal and team workspaces, encrypted evidence and credentials,
               JWT sessions, 2FA, rate limits, admin audit logs, retention controls, OIDC SSO, and SCIM provisioning.
               <br /><br />
-              The agent monitor stays in the loop for incident triage, but admins get the controls enterprises expect.
+              GitHub and model access are configured per workspace. Members can investigate and approve; viewers can inspect
+              the record without creating repository changes. Every external action is auditable.
             </>
           }
           marginalia="This is the buyer-facing change: FetchLab is no longer just an installer or a local API client. It is a web app, desktop app, and enterprise-controlled AI development bench."
           figLabel="Fig. 02.03"
-          figCaption="Team controls and agent monitoring"
-          figure={<AgentVisual />}
+          figCaption="Workspace configuration and hard boundaries"
+          figure={<ReleaseDecisionVisual />}
           last
         />
       </div>
@@ -1301,9 +1284,9 @@ function TickerBar() {
     'WEB APP - /APP - LIVE WORKBENCH',
     'DESKTOP - WINDOWS EXE + MSI',
     'API BENCH - REST + GRAPHQL + WEBSOCKET + SSE',
-    'AGENT GATE - ACTION POLICY + APPROVAL + RELEASE DIFF',
+    'PRODUCT MISSIONS - EVIDENCE + PROPOSAL + DRAFT PR + CHECKS',
     'ENTERPRISE - POSTGRES + RBAC + AUDIT + SSO',
-    'RUNTIME - DEFAULT DENY + EXACT ACTION + IDEMPOTENT RETRIES',
+    'BOUNDARY - HUMAN APPROVAL + NO MERGE + NO DEPLOY',
   ];
   const seq = [...tickerItems, ...tickerItems];
 
@@ -1342,7 +1325,7 @@ function TickerBar() {
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(36px, 5.4vw, 84px)',
             lineHeight: 0.98,
-            letterSpacing: '-0.03em',
+            letterSpacing: 0,
             fontWeight: 600,
             color: 'var(--color-accent-ink)',
             margin: 0,
@@ -1400,12 +1383,12 @@ function TickerBar() {
 /* ---------- Product surface archive - horizontal strip of buyer-facing proof ---------- */
 
 const SPECIMENS = [
-  { num: '0001', time: 'Live now', service: 'Browser app',      cause: 'Full API Workbench is available from /app without installing anything.',               pr: '/app',        fix: 'Web',        status: 'closed' },
-  { num: '0002', time: 'v1.2.0',   service: 'Windows installer', cause: 'EXE and MSI packages are published for local workflows and managed rollouts.',         pr: '/download',   fix: 'EXE/MSI',    status: 'closed' },
-  { num: '0003', time: 'API bench', service: 'Protocol testing',  cause: 'REST, GraphQL, WebSocket, SSE, collections, environments, scripts, and history.',       pr: 'Built in',    fix: 'API',        status: 'closed' },
-  { num: '0004', time: 'Agent gate', service: 'Action control',    cause: 'Runtime decisions, exact-action approvals, authority diffs, and immutable policy revisions.',         pr: 'Built in',    fix: 'Gate',       status: 'closed' },
-  { num: '0005', time: 'Teams',     service: 'Enterprise backend', cause: 'PostgreSQL accounts, workspace RBAC, encrypted credentials, audit logs, SSO, SCIM.',     pr: '/enterprise', fix: 'Governance', status: 'closed' },
-  { num: '0006', time: 'Agents',    service: 'Coding handoffs',   cause: 'Turn known-good API calls, responses, and diagnostics into clean coding-agent context.',   pr: 'Built in',    fix: 'Context',    status: 'closed' },
+  { num: '0001', time: 'Primary bench', service: 'Product Missions', cause: 'Capture a customer issue, regression, AI failure, or repeated request with the outcome that must change.', pr: '/app', fix: 'Evidence', status: 'closed' },
+  { num: '0002', time: 'Investigation', service: 'Bounded repository review', cause: 'Select only relevant source, exclude sensitive paths, and ask for missing evidence instead of fabricating a fix.', pr: 'Built in', fix: 'Context', status: 'closed' },
+  { num: '0003', time: 'Human gate', service: 'Exact proposal approval', cause: 'Bind approval to complete proposed source, risks, acceptance criteria, base commit, and a deterministic fingerprint.', pr: 'Built in', fix: 'Review', status: 'closed' },
+  { num: '0004', time: 'GitHub', service: 'Draft PR and checks', cause: 'Create an isolated branch and draft pull request, then distinguish passed, failed, pending, and unverified checks.', pr: 'Built in', fix: 'PR', status: 'closed' },
+  { num: '0005', time: 'Second bench', service: 'API Lab', cause: 'Keep REST, GraphQL, WebSocket, SSE, collections, environments, scripts, diffs, and history beside the mission.', pr: 'Built in', fix: 'API', status: 'closed' },
+  { num: '0006', time: 'Teams', service: 'Enterprise backend', cause: 'Use PostgreSQL accounts, workspace RBAC, encrypted credentials, audit logs, retention, SSO, and SCIM.', pr: '/enterprise', fix: 'Control', status: 'closed' },
 ];
 
 function SpecimenCard({ s, index, revealed }: { s: typeof SPECIMENS[number]; index: number; revealed: boolean }) {
@@ -1498,7 +1481,7 @@ function SpecimensArchive() {
                   fontFamily: 'var(--font-display)',
                   fontSize: 'clamp(28px, 3.8vw, 44px)',
                   lineHeight: 1.08,
-                  letterSpacing: '-0.02em',
+                  letterSpacing: 0,
                   fontWeight: 600,
                   color: 'var(--color-text)',
                   marginTop: 18,
@@ -1506,14 +1489,14 @@ function SpecimensArchive() {
                   maxWidth: '24ch',
                 }}
               >
-                Everything available from the website.
+                What a team can use today.
               </h2>
               <p style={{ fontSize: 16, maxWidth: '52ch', color: 'var(--color-text-muted)', lineHeight: 1.55, margin: 0 }}>
-                Open the browser app, download the Windows installer or MSI, and evaluate the enterprise backend from the same public site.
+                Start locally with encrypted mission drafts and the full API Lab. Sign in to connect a repository, investigate source, approve an exact proposal, and create a draft pull request.
               </p>
             </div>
             <div className="font-mono" style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}>
-              <Counter target={SPECIMENS.length} /> live product surfaces
+              <Counter target={SPECIMENS.length} /> working product surfaces
             </div>
           </div>
         </Reveal>
@@ -1588,14 +1571,14 @@ function PullQuote() {
                 transition: `opacity 600ms ${EASE}, transform 600ms ${EASE}`,
               }}
             >
-              <Eyebrow index="*">Release principle</Eyebrow>
+              <Eyebrow index="*">Product principle</Eyebrow>
             </div>
             <div
               style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: 'clamp(28px, 4.8vw, 64px)',
                 lineHeight: 1.06,
-                letterSpacing: '-0.025em',
+                letterSpacing: 0,
                 fontWeight: 500,
                 color: 'var(--color-text)',
                 margin: 0,
@@ -1605,7 +1588,7 @@ function PullQuote() {
                 transition: `opacity 700ms ${EASE} 120ms, transform 700ms ${EASE} 120ms`,
               }}
             >
-              An agent should never gain new authority because a prompt, model, tool, or code change slipped through an answer-quality review.
+              The customer problem should remain attached to the code change until a human and the repository checks have reviewed it.
             </div>
             <div
               style={{
@@ -1623,7 +1606,7 @@ function PullQuote() {
                 className="font-mono"
                 style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}
               >
-                FetchLab release model
+                FetchLab mission model
               </span>
             </div>
           </div>
@@ -1656,7 +1639,8 @@ function PullQuote() {
                 <span>Web</span>        <span style={{ color: 'var(--color-text)' }}>/app</span>
                 <span>Desktop</span>    <span style={{ color: 'var(--color-text)' }}>EXE + MSI</span>
                 <span>Enterprise</span> <span style={{ color: 'var(--color-accent)' }}>RBAC + SSO</span>
-                <span>Agent gate</span> <span style={{ color: 'var(--color-text)' }}>Decide + approve</span>
+                <span>Primary</span>     <span style={{ color: 'var(--color-text)' }}>Product Missions</span>
+                <span>Second bench</span><span style={{ color: 'var(--color-text)' }}>API Lab</span>
               </div>
             </div>
           </div>
@@ -1684,18 +1668,18 @@ function Closing() {
                 fontFamily: 'var(--font-display)',
                 fontSize: 'clamp(44px, 8vw, 116px)',
                 lineHeight: 0.94,
-                letterSpacing: '-0.038em',
+                letterSpacing: 0,
                 fontWeight: 600,
                 color: 'var(--color-text)',
                 margin: 0,
                 maxWidth: '14ch',
               }}
             >
-              Build in the browser.<br />
-              <span style={{ color: 'var(--color-text-muted)' }}>Install when you need desktop.</span>
+              Bring one real product problem.<br />
+              <span style={{ color: 'var(--color-text-muted)' }}>Leave with a reviewable change.</span>
             </h2>
             <div>
-              <div className="flex flex-wrap gap-3"><CTA href="/app">Open web app</CTA><GhostCTA href="/download">Download installer</GhostCTA></div>
+              <div className="flex flex-wrap gap-3"><CTA href="/app">Create a product mission</CTA><GhostCTA href="/download">Download installer</GhostCTA></div>
               <div
                 className="font-mono"
                 style={{
@@ -1709,7 +1693,7 @@ function Closing() {
               >
                 <div>Web app available now - Windows installer included</div>
                 <div>
-                  Pro from {isIN ? 'INR 999/mo - Razorpay coming soon' : '$12/mo'} -{' '}
+                  Local mode free - startup pilot $0 for 30 days -{' '}
                   <a href="/pricing" style={{ color: 'var(--color-text-muted)', textDecoration: 'underline', textUnderlineOffset: 3 }}>full pricing</a>
                 </div>
                 {isIN && (
@@ -1750,7 +1734,7 @@ function Footer() {
             className="font-mono"
             style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}
           >
-            FetchLab - API Workbench + Agent Change Gate - (c) 2026
+            FetchLab - Product Missions + API Lab - (c) 2026
           </div>
         </div>
       </div>

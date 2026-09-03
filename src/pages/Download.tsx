@@ -124,7 +124,7 @@ export default function Download() {
               className="text-4xl md:text-6xl"
               style={{
                 fontFamily: 'var(--font-display)',
-                letterSpacing: '-0.07em',
+                letterSpacing: 0,
                 lineHeight: 0.92,
                 margin: 0,
                 maxWidth: '10ch',

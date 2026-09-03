@@ -7,7 +7,7 @@ describe('PostgreSQL schema migrations', () => {
     delete process.env.DATABASE_URL;
   });
 
-  it('backfills auth and authority columns on existing installations', async () => {
+  it('backfills auth and authority columns and creates product mission storage', async () => {
     const queries = [];
     class Pool {
       async query(sql) {
@@ -39,5 +39,10 @@ describe('PostgreSQL schema migrations', () => {
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS authority_events');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS authority_change_reviews');
     expect(schema).toContain('idx_authority_events_idempotency');
+    expect(schema).toContain('CREATE TABLE IF NOT EXISTS product_missions');
+    expect(schema).toContain('CREATE TABLE IF NOT EXISTS mission_events');
+    expect(schema).toContain('CREATE TABLE IF NOT EXISTS github_configs');
+    expect(schema).toContain('idx_product_missions_workspace');
+    expect(schema).toContain('idx_mission_events_mission');
   });
 });

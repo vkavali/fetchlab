@@ -1,8 +1,8 @@
-# FetchLab - API Workbench + Agent Change Gate
+# FetchLab - Product Missions + API Lab
 
-FetchLab gives engineering teams two connected benches: an **API Workbench** for understanding the systems agents call, and an **Agent Change Gate** for deciding whether exact tool actions may execute and whether a prompt, model, tool, or code release expands authority.
+FetchLab gives product and engineering teams two connected benches: **Product Missions** turns real customer evidence into a human-reviewed draft pull request, while **API Lab** provides the request, response, protocol, and scripting tools needed to investigate the product underneath it.
 
-It runs as an encrypted local simulation with no database, or as a self-hosted team service with PostgreSQL, runtime credentials, immutable policy revisions, exact-action approvals, audit logs, RBAC, rate limits, OIDC SSO, and SCIM surfaces.
+It runs in encrypted local draft mode without a database, or as a self-hosted team service with PostgreSQL, GitHub repository access, external model configuration, audit logs, RBAC, rate limits, OIDC SSO, and SCIM.
 
 ![FetchLab](https://img.shields.io/badge/FetchLab-v1.1.0-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![AI](https://img.shields.io/badge/AI-Claude%20Sonnet%204.6-purple) ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
 
@@ -12,15 +12,15 @@ It runs as an encrypted local simulation with no database, or as a self-hosted t
 
 FetchLab has two benches in one app:
 
-- **API Workbench** — send requests, manage collections, run scripts, compare responses, test WebSocket/SSE streams, build flows, generate OpenAPI specs.
-- **Agent Change Gate** — enforce default-deny action policies, review exact actions once, replay real evidence across policy revisions, and block releases with unreviewed authority expansion.
+- **Product Missions** - capture a customer issue, regression, AI failure, or repeated request; investigate bounded repository context; review exact proposed source; approve a fingerprinted proposal; create a draft PR; and read repository checks.
+- **API Lab** - send requests, manage collections, run scripts, compare responses, test WebSocket/SSE streams, build flows, and generate OpenAPI specs.
 
-Optional prompt, eval, request-generation, and incident tools remain under **Advanced**. Agent authorization is deterministic and does not require an AI provider.
+Action policies, prompt tools, evals, request generation, and incident tooling remain available under the API Lab's advanced surfaces.
 
-### Agent Change Gate
-Click **Agent Gate** in the header. Create a gate, issue a runtime credential, and place `POST /api/authority/check` immediately before tool execution. Policies match tool, operation, target, and typed argument constraints. Unmatched actions are denied. Approval grants are bound to one action hash and policy revision, expire, and can be consumed once.
+### Product Missions
+Open `/app` and start with real evidence plus the customer outcome that should change. Local mode encrypts the draft on the device and performs no repository action. In a signed-in workspace, connect a fine-grained GitHub token and an external model provider. FetchLab first selects bounded repository context, then produces an exact file proposal with acceptance criteria, risks, a base commit, and a deterministic proposal fingerprint.
 
-Release review replays stored real actions through the published and draft policies. A change from deny to approval, deny to allow, or approval to allow is an authority expansion and must be reviewed before an administrator can publish the next immutable revision.
+Approval is accepted only for the current fingerprint and investigated base. FetchLab creates a dedicated branch and draft pull request, never writes to the default branch, and has no merge or deploy operation. CI is reported as passed, failed, pending, or unverified; zero reported checks never becomes a false pass.
 
 ### 🧪 AI Test Generation
 After any successful response, click **Generate Tests** in the response status bar. FetchLab analyzes the actual response body, status, and headers, then writes a complete `fl.test()` script with assertions like:
@@ -63,7 +63,9 @@ Open [http://localhost:5173](http://localhost:5173).
 
 ```bash
 npm run build
-ANTHROPIC_API_KEY=sk-ant-... npm start
+JWT_SECRET=replace-with-a-long-random-secret \
+APP_ENCRYPTION_KEY=replace-with-32-byte-hex-or-base64 \
+npm start
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -75,6 +77,8 @@ docker build -t fetchlab .
 docker run -p 3000:3000 \
   -e JWT_SECRET=replace-with-a-long-random-secret \
   -e APP_ENCRYPTION_KEY=replace-with-32-byte-hex-or-base64 \
+  -e GITHUB_TOKEN=optional-server-fallback \
+  -e GITHUB_REPO=owner/repository \
   fetchlab
 ```
 
@@ -84,23 +88,22 @@ docker run -p 3000:3000 \
 2. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
 3. Select `vkavali/fetchlab` → Railway auto-detects the Dockerfile
 4. Add PostgreSQL and set `DATABASE_URL`, `JWT_SECRET`, and `APP_ENCRYPTION_KEY`
-5. Optionally set an AI provider key for Advanced features
+5. Connect GitHub and an AI provider in a workspace, or set server fallback credentials
 
-> Without `ANTHROPIC_API_KEY`, AI endpoints return 503 and the UI degrades gracefully — the rest of FetchLab still works perfectly.
+> Without a GitHub connection and external model provider, Product Missions remains an encrypted evidence capture tool and API Lab continues to work locally. Repository investigation and pull-request creation stay disabled rather than being simulated.
 
 ## 🏢 Enterprise Mode
 
 FetchLab can run in two modes:
 
-- **Local mode** (default): no auth, all state in `localStorage`. Just `npm run dev` and go.
-- **Server mode**: PostgreSQL-backed multi-user with auth, team workspaces, encrypted credentials, audit log, rate limiting, and OIDC SSO.
+- **Local mode** (default): no auth or database; Product Mission drafts and sensitive local credentials are encrypted in browser storage, while ordinary API Lab state remains local to the device.
+- **Server mode**: PostgreSQL-backed multi-user workspaces with repository execution, encrypted credentials and evidence, audit logs, rate limiting, and OIDC SSO.
 
 ### Sellable packages
 
-- **Free** — local API Workbench plus one encrypted local action gate.
-- **Pro** — unlimited local action gates and optional AI-assisted API development.
-- **Team** — runtime decision API, exact-action approvals, authority release diffs, shared workspaces, RBAC, and audit history.
-- **Enterprise Pilot** — self-hosted setup, SSO/SCIM configuration support, security review support, and guided rollout.
+- **Free** - encrypted local Product Mission drafts plus the local API Lab.
+- **Team** - shared missions, workspace GitHub and model connections, draft PR creation, RBAC, and audit history.
+- **Enterprise Pilot** - self-hosted setup, SSO/SCIM and retention configuration, security review support, and a guided three-mission trial against one real repository.
 
 ### Environment variables
 
@@ -110,7 +113,9 @@ FetchLab can run in two modes:
 | `FETCHLAB_DATA_FILE` | Optional path to persist auth/workspace data as JSON when no DB is configured. |
 | `JWT_SECRET` | Required in production. Used to sign session tokens. |
 | `APP_ENCRYPTION_KEY` | Required in production. 32 bytes (hex or base64) used for AES-256-GCM credential encryption. |
-| `ANTHROPIC_API_KEY` | Optional. Enables `/api/ai/*` endpoints (diagnose, generate-tests). |
+| `GITHUB_TOKEN` | Optional server fallback for Product Missions. A workspace admin can instead connect an encrypted fine-grained token in the UI. |
+| `GITHUB_REPO` | Optional server fallback repository in `owner/name` form. |
+| `ANTHROPIC_API_KEY` | Optional server fallback. Enables Anthropic-backed investigation and `/api/ai/*` tools. |
 | `ANTHROPIC_MODEL` | Optional. Defaults to `claude-haiku-4-5-20251001`. |
 | `VITE_API_BASE_URL` | Optional frontend build variable. Set this to the backend origin when the web frontend and API run as separate Railway services. Leave unset for the normal single-service deployment. |
 | `FETCHLAB_ALLOWED_ORIGINS` | Optional comma-separated backend allowlist for split deployments, for example `https://your-web-service.up.railway.app,https://fetchlab.app`. |
@@ -122,6 +127,7 @@ FetchLab can run in two modes:
 - `POST /api/auth/register` — first user becomes admin. 8+ char password.
 - `POST /api/auth/login` / `POST /api/auth/logout` / `GET /api/auth/me`
 - `GET /api/workspaces`, `POST /api/workspaces`, members at `/api/workspaces/:id/members` (admin role to invite)
+- Product Missions: `GET/POST /api/workspaces/:id/missions`, investigation and approval under `/api/workspaces/:id/missions/:missionId`, and workspace GitHub setup at `/api/workspaces/:id/missions/config/github`.
 - Action gates: `GET/POST /api/workspaces/:id/autonomy-studies`, policy state/draft/publish under `/api/workspaces/:id/autonomy-studies/:studyId/authority`, and runtime credentials at `/api/workspaces/:id/authority-tokens`.
 - Runtime enforcement: `POST /api/authority/check`, `GET /api/authority/events/:eventId`, and one-time approval consumption at `POST /api/authority/events/:eventId/consume`.
 - OIDC SSO: admin configures providers via `POST /api/auth/sso/admin`; users log in at `/api/auth/sso/start/:configId`.
@@ -132,11 +138,19 @@ FetchLab can run in two modes:
 npm test
 ```
 
-Runs Vitest across server and browser encryption, JWT auth, workspaces, Agent Change Gate policy evaluation and runtime behavior, UI acceptance paths, the script runner (`fl.*`), curl parser, and mocked AI endpoints.
+Runs Vitest across Product Mission state, proposal fingerprints, GitHub draft-PR safety, CI truthfulness, server and browser encryption, JWT auth, workspaces, action policies, UI acceptance paths, the script runner (`fl.*`), curl parser, and mocked AI endpoints.
 
 ---
 
 ## 📦 Features
+
+### Product Missions
+- **Evidence capture** - customer issues, regressions, AI failures, and repeated requests tied to a desired outcome
+- **Bounded repository investigation** - source selection limits, blocked sensitive paths, secret redaction, and explicit insufficient-evidence questions
+- **Exact proposal review** - complete proposed source, acceptance criteria, risks, base commit, and deterministic fingerprint
+- **Human-gated GitHub execution** - isolated branch and draft pull request only; no merge or deploy capability
+- **Truthful validation** - passed, failed, pending, and unverified repository check states
+- **Mission record** - append-only workflow events plus enterprise audit entries
 
 ### Core
 - **7 HTTP methods** — GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS
@@ -205,10 +219,16 @@ Runs Vitest across server and browser encryption, JWT auth, workspaces, Agent Ch
 
 ---
 
-## 🔑 API Endpoints (server.js)
+## 🔑 API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
+| `/api/workspaces/:id/missions` | GET / POST | List or capture Product Missions |
+| `/api/workspaces/:id/missions/:missionId/investigate` | POST | Read bounded repository context and prepare an exact proposal |
+| `/api/workspaces/:id/missions/:missionId/approve` | POST | Approve the current fingerprint and create a draft pull request |
+| `/api/workspaces/:id/missions/:missionId/validation` | POST | Refresh GitHub check status |
+| `/api/workspaces/:id/missions/config` | GET | Read repository/model readiness without returning credentials |
+| `/api/workspaces/:id/missions/config/github` | PUT / DELETE | Manage encrypted workspace GitHub access |
 | `/api/ai/generate-request` | POST | Natural language → request spec |
 | `/api/ai/generate-tests` | POST | Response → `fl.test()` assertions |
 | `/api/ai/diagnose` | POST | Failed request → root-cause + fixes |
@@ -220,7 +240,7 @@ Runs Vitest across server and browser encryption, JWT auth, workspaces, Agent Ch
 | `/api/widget` | GET | Embeddable API test widget |
 | `/api/health` | GET | Server health check |
 
-All AI endpoints use `claude-sonnet-4-6`. They return 503 when `ANTHROPIC_API_KEY` isn't set so the UI can degrade gracefully.
+Model-backed behavior uses the provider configured for the signed-in user or a server fallback. Supported paths include Anthropic, AWS Bedrock, Google Vertex AI, and OpenAI-compatible endpoints. A missing external provider returns a clear unavailable state; local heuristics are not allowed to author mission code.
 
 ---
 
@@ -230,6 +250,7 @@ All AI endpoints use `claude-sonnet-4-6`. They return 503 when `ANTHROPIC_API_KE
 fetchlab/
 ├── src/
 │   ├── components/
+│   │   ├── MissionWorkspace.tsx     # Evidence-to-draft-PR product workflow
 │   │   ├── AIRequestBuilder.tsx     # Natural-language + cURL request builder
 │   │   ├── OpenApiGenerator.tsx     # AI OpenAPI 3.0 spec modal
 │   │   ├── RequestBuilder.tsx       # URL bar, params, headers, body, auth
@@ -237,7 +258,8 @@ fetchlab/
 │   │   ├── ErrorDiagnosis.tsx       # Rules-based + AI fix suggestions
 │   │   ├── ResponseDiff.tsx         # Snapshot diff + AI breaking analysis
 │   │   └── ... (Sidebar, Header, TabBar, Auth, Tokens, Snippets, …)
-│   ├── store/AppContext.tsx         # Global state (useReducer)
+│   ├── product/missions.ts          # Mission types + encrypted local drafts
+│   ├── store/AppContext.tsx         # API Lab state (useReducer)
 │   ├── types/index.ts               # All TypeScript interfaces
 │   └── utils/
 │       ├── aiClient.ts              # Frontend AI fetch helpers
@@ -245,8 +267,13 @@ fetchlab/
 │       ├── scriptRunner.ts          # `fl.*` JavaScript sandbox
 │       ├── jsonDiff.ts              # Recursive JSON diff
 │       └── helpers.ts, docGenerator.ts, shareLink.ts
-├── ai-routes.js                     # Express routes for all AI endpoints
-├── server.js                        # Express server (Slack/Teams/Widget/SPA + AI)
+├── server/
+│   ├── missions.js                  # Workspace mission API and state transitions
+│   ├── missionEngine.js             # Bounded investigation + proposal validation
+│   ├── agent/github.js              # Exact commit, draft PR, and check reads
+│   └── db.js                        # PostgreSQL/file/memory persistence and migrations
+├── ai-routes.js                     # Express routes for API Lab AI tools
+├── server.js                        # Express entrypoint
 ├── Dockerfile                       # Multi-stage Docker build
 └── package.json
 ```

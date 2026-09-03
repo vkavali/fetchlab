@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { useApp } from '../store/useApp';
 import { useAuth } from '../auth/useAuth';
-import { PanelLeftClose, PanelLeft, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, LogOut, LogIn, User as UserIcon, Users, Scale, Shield, Cpu, Loader2 } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Globe, Sun, Moon, BookOpen, Activity, Plug, Wifi, Radio, GitBranch, LogOut, LogIn, User as UserIcon, Users, Scale, Shield, Cpu, Loader2, Target, TerminalSquare } from 'lucide-react';
 import WelcomeGuide from './WelcomeGuide';
 import { FetchLabLogo } from './FetchLabLogo';
 
@@ -28,7 +28,15 @@ function ToolLoading() {
   );
 }
 
-export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
+export default function Header({
+  onSignIn,
+  activeProductView = 'api',
+  onProductViewChange,
+}: {
+  onSignIn?: () => void;
+  activeProductView?: 'missions' | 'api';
+  onProductViewChange?: (view: 'missions' | 'api') => void;
+} = {}) {
   const { state, dispatch } = useApp();
   const { user, workspaces, activeWorkspaceId, setActiveWorkspaceId, logout } = useAuth();
   const isGuest = !user;
@@ -72,23 +80,26 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
   return (
     <>
       <header
-        className="flex items-center justify-between px-4 h-11"
+        className="flex items-center justify-between px-2 md:px-4 h-11"
         style={{ background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)' }}
       >
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
-            className="p-1.5 rounded hover:bg-gray-800"
-            style={{ color: 'var(--color-text-muted)' }}
-            title={state.sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-          >
-            {state.sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
-          </button>
+        <div className="flex items-center gap-2 md:gap-3 min-w-0">
+          {activeProductView === 'api' && (
+            <button
+              onClick={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
+              className="p-1.5 rounded hover:bg-gray-800 flex-none"
+              style={{ color: 'var(--color-text-muted)' }}
+              title={state.sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+              aria-label={state.sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+            >
+              {state.sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
+            </button>
+          )}
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-none">
             <FetchLabLogo markSize={26} wordmarkSize={12} />
             <span
-              className="font-mono"
+              className="font-mono hidden lg:inline-flex"
               style={{
                 padding: '2px 6px',
                 fontSize: 9.5,
@@ -102,67 +113,106 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
               Beta
             </span>
           </div>
+
+          <nav
+            className="flex items-center rounded-md border p-0.5 flex-none"
+            style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface-2)' }}
+            aria-label="Product workspace"
+          >
+            <button
+              type="button"
+              onClick={() => onProductViewChange?.('missions')}
+              className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded text-[13px] font-semibold transition-colors"
+              style={{
+                color: activeProductView === 'missions' ? 'var(--color-accent-ink)' : 'var(--color-text-muted)',
+                background: activeProductView === 'missions' ? 'var(--color-accent)' : 'transparent',
+              }}
+              aria-current={activeProductView === 'missions' ? 'page' : undefined}
+              title="Product Missions"
+            >
+              <Target size={15} />
+              <span>Missions</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onProductViewChange?.('api')}
+              className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded text-[13px] font-semibold transition-colors"
+              style={{
+                color: activeProductView === 'api' ? 'var(--color-text)' : 'var(--color-text-muted)',
+                background: activeProductView === 'api' ? 'var(--color-surface-3)' : 'transparent',
+              }}
+              aria-current={activeProductView === 'api' ? 'page' : undefined}
+              title="API Lab"
+            >
+              <TerminalSquare size={15} />
+              <span>API Lab</span>
+            </button>
+          </nav>
         </div>
 
-        <div className="flex items-center gap-0.5" style={{ color: 'var(--color-text-muted)' }}>
-          {/* Agent Change Gate */}
-          <button
-            onClick={() => setShowAutonomyLab(true)}
-            className="flex items-center gap-2 px-3 h-8 rounded text-[13px] font-semibold hover:bg-[color:var(--color-surface-3)]"
-            style={{
-              color: 'var(--color-text)',
-              border: '1px solid var(--color-border)',
-              background: 'var(--color-accent-soft)',
-            }}
-            title="Review and enforce changes to an AI agent's actions"
-          >
-            <Scale size={15} style={{ color: 'var(--color-accent)' }} />
-            <span className="hidden sm:inline">Agent Gate</span>
-          </button>
+        <div className="flex items-center gap-0.5 min-w-0" style={{ color: 'var(--color-text-muted)' }}>
+          {activeProductView === 'api' && (
+            <>
+              {/* Agent Change Gate */}
+              <button
+                onClick={() => setShowAutonomyLab(true)}
+                className="flex items-center gap-2 px-3 h-8 rounded text-[13px] font-semibold hover:bg-[color:var(--color-surface-3)]"
+                style={{
+                  color: 'var(--color-text)',
+                  border: '1px solid var(--color-border)',
+                  background: 'var(--color-accent-soft)',
+                }}
+                title="Review and enforce changes to an AI agent's actions"
+              >
+                <Scale size={15} style={{ color: 'var(--color-accent)' }} />
+                <span className="hidden xl:inline">Agent Gate</span>
+              </button>
 
-          <button
-            onClick={() => setShowWebSocket(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
-            style={{ color: 'var(--color-text-muted)' }}
-            title="WebSocket Tester"
-          >
-            <Wifi size={13} />
-            <span className="hidden sm:inline">WS</span>
-          </button>
+              <button
+                onClick={() => setShowWebSocket(true)}
+                className="hidden lg:flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+                style={{ color: 'var(--color-text-muted)' }}
+                title="WebSocket Tester"
+              >
+                <Wifi size={13} />
+                <span className="hidden xl:inline">WS</span>
+              </button>
 
-          <button
-            onClick={() => setShowSSE(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
-            style={{ color: 'var(--color-text-muted)' }}
-            title="SSE / Event Stream Viewer"
-          >
-            <Radio size={13} />
-            <span className="hidden sm:inline">SSE</span>
-          </button>
+              <button
+                onClick={() => setShowSSE(true)}
+                className="hidden lg:flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+                style={{ color: 'var(--color-text-muted)' }}
+                title="SSE / Event Stream Viewer"
+              >
+                <Radio size={13} />
+                <span className="hidden xl:inline">SSE</span>
+              </button>
 
-          <button
-            onClick={() => setShowFlow(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
-            style={{ color: 'var(--color-text-muted)' }}
-            title="Visual API Flow Builder"
-          >
-            <GitBranch size={13} />
-            <span className="hidden sm:inline">Flow</span>
-          </button>
+              <button
+                onClick={() => setShowFlow(true)}
+                className="hidden lg:flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+                style={{ color: 'var(--color-text-muted)' }}
+                title="Visual API Flow Builder"
+              >
+                <GitBranch size={13} />
+                <span className="hidden xl:inline">Flow</span>
+              </button>
 
-          <button
-            onClick={() => setShowHealth(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
-            style={{ color: 'var(--color-text-muted)' }}
-            title="API Health Dashboard"
-          >
-            <Activity size={13} />
-            <span className="hidden sm:inline">Health</span>
-          </button>
+              <button
+                onClick={() => setShowHealth(true)}
+                className="hidden lg:flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+                style={{ color: 'var(--color-text-muted)' }}
+                title="API Health Dashboard"
+              >
+                <Activity size={13} />
+                <span className="hidden xl:inline">Health</span>
+              </button>
+            </>
+          )}
 
           <button
             onClick={() => setShowIntegrations(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+            className="hidden md:flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
             style={{ color: 'var(--color-text-muted)' }}
             title="Slack, Teams & Embed integrations"
           >
@@ -172,7 +222,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
 
           <button
             onClick={() => setShowHelp(true)}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+            className="hidden sm:flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
             style={{ color: 'var(--color-text-muted)' }}
             title="Help & Guide"
           >
@@ -180,41 +230,43 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
             <span className="hidden sm:inline">Help</span>
           </button>
 
-          <div style={{ width: 1, height: 14, background: 'var(--color-border)', margin: '0 6px' }} />
+          <div className="hidden sm:block" style={{ width: 1, height: 14, background: 'var(--color-border)', margin: '0 6px' }} />
 
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-1.5 rounded hover:bg-[color:var(--color-surface-3)]"
+            className="hidden sm:inline-flex p-1.5 rounded hover:bg-[color:var(--color-surface-3)]"
             style={{ color: 'var(--color-text-muted)' }}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
           </button>
 
-          {/* Environment selector - mono label, accent dot only when active */}
-          <button
-            onClick={() => dispatch({ type: 'SET_SIDEBAR_TAB', tab: 'environments' })}
-            className="flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
-            style={{ color: 'var(--color-text-muted)' }}
-            title="Active environment"
-          >
-            <Globe size={12} />
-            <span
-              className="font-mono"
-              style={{ fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase' }}
+          {/* Environment selector - API Lab only */}
+          {activeProductView === 'api' && (
+            <button
+              onClick={() => dispatch({ type: 'SET_SIDEBAR_TAB', tab: 'environments' })}
+              className="hidden md:flex items-center gap-1.5 px-2 h-7 rounded text-[12px] hover:bg-[color:var(--color-surface-3)]"
+              style={{ color: 'var(--color-text-muted)' }}
+              title="Active environment"
             >
-              {activeEnv ? activeEnv.name : 'No env'}
-            </span>
-            {activeEnv && (
+              <Globe size={12} />
               <span
-                style={{
-                  width: 6, height: 6, borderRadius: 999,
-                  background: 'var(--color-accent)',
-                  boxShadow: '0 0 0 2px color-mix(in oklch, var(--color-accent) 18%, transparent)',
-                }}
-              />
-            )}
-          </button>
+                className="font-mono hidden xl:inline"
+                style={{ fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase' }}
+              >
+                {activeEnv ? activeEnv.name : 'No env'}
+              </span>
+              {activeEnv && (
+                <span
+                  style={{
+                    width: 6, height: 6, borderRadius: 999,
+                    background: 'var(--color-accent)',
+                    boxShadow: '0 0 0 2px color-mix(in oklch, var(--color-accent) 18%, transparent)',
+                  }}
+                />
+              )}
+            </button>
+          )}
 
           {/* Workspace switcher (when authed) */}
           {user && workspaces.length > 0 && (
@@ -225,7 +277,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
                 title="Switch workspace"
               >
                 <Users size={12} />
-                <span className="max-w-[120px] truncate">{activeWs ? activeWs.name : 'Workspace'}</span>
+                <span className="hidden lg:inline max-w-[120px] truncate">{activeWs ? activeWs.name : 'Workspace'}</span>
               </button>
               {wsMenuOpen && (
                 <div className="absolute right-0 mt-1 w-56 bg-gray-900 border border-gray-800 rounded z-50 py-1">
@@ -311,7 +363,7 @@ export default function Header({ onSignIn }: { onSignIn?: () => void } = {}) {
 
       <Suspense fallback={<ToolLoading />}>
         {/* Welcome guide - shown on first launch */}
-        {showGuide && (
+        {showGuide && activeProductView === 'api' && (
           <WelcomeGuide onClose={() => setShowGuide(false)} />
         )}
 

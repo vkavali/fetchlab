@@ -24,11 +24,13 @@ const AIHowTo = lazy(() => import('./pages/AIHowTo'));
 const Enterprise = lazy(() => import('./pages/Enterprise'));
 const PrivacyPolicy = lazy(() => import('./components/legal/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./components/legal/TermsOfService'));
+const MissionWorkspace = lazy(() => import('./components/MissionWorkspace'));
 
 const SIDEBAR_MIN = 180;
 const SIDEBAR_MAX = 500;
 const SPLIT_MIN = 25;
 const SPLIT_MAX = 75;
+type ProductView = 'missions' | 'api';
 
 function PublicPage({ children }: { children: React.ReactNode }) {
   return (
@@ -66,13 +68,24 @@ function usePersistentNumber(key: string, defaultValue: number): [number, (v: nu
   return [value, setAndPersist];
 }
 
-function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
+function AppLayout({ onSignIn, onSignUp }: { onSignIn?: () => void; onSignUp?: () => void } = {}) {
   const { state, dispatch } = useApp();
-  const { user, trialDaysRemaining } = useAuth();
+  const { user } = useAuth();
   const [sidebarWidth, setSidebarWidth] = usePersistentNumber('fetchlab_sidebar_width', 256);
   const [splitPercent, setSplitPercent] = usePersistentNumber('fetchlab_split_percent', 50);
+  const [productView, setProductViewState] = useState<ProductView>(() => {
+    try {
+      const saved = localStorage.getItem('fetchlab_product_view_v1');
+      return saved === 'api' ? 'api' : 'missions';
+    } catch { return 'missions'; }
+  });
   const mainRef = useRef<HTMLDivElement>(null);
   const showTrialBanner = !user;
+
+  const setProductView = useCallback((view: ProductView) => {
+    setProductViewState(view);
+    try { localStorage.setItem('fetchlab_product_view_v1', view); } catch { /* ignore */ }
+  }, []);
 
   const handleSidebarResize = useCallback((delta: number) => {
     setSidebarWidth(prev => Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, prev + delta)));
@@ -88,6 +101,7 @@ function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
   // Global keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (productView !== 'api') return;
       const isMod = e.metaKey || e.ctrlKey;
       if (isMod && e.key === 'n') {
         e.preventDefault();
@@ -113,7 +127,7 @@ function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [state.activeTabId, state.tabs, dispatch]);
+  }, [state.activeTabId, state.tabs, dispatch, productView]);
 
   // Handle share link import on page load
   const [shareImport, setShareImport] = useState<{ type: string; name: string } | null>(null);
@@ -125,6 +139,7 @@ function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
 
     const showImport = (nextImport: { type: string; name: string }) => {
       clearShareHash();
+      setProductView('api');
       showTimer = setTimeout(() => {
         setShareImport(nextImport);
         hideTimer = setTimeout(() => setShareImport(null), 5000);
@@ -150,59 +165,67 @@ function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
       if (showTimer) clearTimeout(showTimer);
       if (hideTimer) clearTimeout(hideTimer);
     };
-  }, [dispatch]);
+  }, [dispatch, setProductView]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-950 text-gray-100 overflow-hidden">
       {showTrialBanner && (
-        <TrialBanner daysRemaining={trialDaysRemaining} onSignUp={() => onSignUp?.()} />
+        <TrialBanner onSignUp={() => onSignUp?.()} />
       )}
-      <Header onSignIn={onSignUp} />
+      <Header onSignIn={onSignIn} activeProductView={productView} onProductViewChange={setProductView} />
 
-      {/* Share import toast */}
-      {shareImport && (
-        <div className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500/10 border-b border-green-500/20 text-green-400 text-xs animate-slide-in">
-          <span>✓ Imported {shareImport.type}: <strong>{shareImport.name}</strong></span>
-          <button onClick={() => setShareImport(null)} className="text-green-500/50 hover:text-green-400 ml-2">✕</button>
-        </div>
-      )}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        {state.sidebarOpen && (
-          <>
-            <div className="flex-shrink-0 overflow-hidden" style={{ width: sidebarWidth }}>
-              <Sidebar />
+      {productView === 'missions' ? (
+        <Suspense fallback={<div className="flex-1 flex items-center justify-center text-sm text-gray-400">Loading product missions</div>}>
+          <MissionWorkspace onSignIn={onSignIn} />
+        </Suspense>
+      ) : (
+        <>
+          {/* Share import toast */}
+          {shareImport && (
+            <div className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500/10 border-b border-green-500/20 text-green-400 text-xs animate-slide-in">
+              <span>✓ Imported {shareImport.type}: <strong>{shareImport.name}</strong></span>
+              <button onClick={() => setShareImport(null)} className="text-green-500/50 hover:text-green-400 ml-2">✕</button>
             </div>
-            <ResizeHandle direction="horizontal" onResize={handleSidebarResize} />
-          </>
-        )}
+          )}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Sidebar */}
+            {state.sidebarOpen && (
+              <>
+                <div className="flex-shrink-0 overflow-hidden" style={{ width: sidebarWidth }}>
+                  <Sidebar />
+                </div>
+                <ResizeHandle direction="horizontal" onResize={handleSidebarResize} />
+              </>
+            )}
 
-        {/* Main content */}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <TabBar />
-          <div ref={mainRef} className="flex-1 flex overflow-hidden">
-            {/* Request panel */}
-            <div
-              className="flex flex-col overflow-hidden border-r border-gray-800 min-w-0"
-              style={{ width: `${splitPercent}%` }}
-            >
-              <RequestBuilder />
-            </div>
+            {/* Main content */}
+            <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+              <TabBar />
+              <div ref={mainRef} className="flex-1 flex overflow-hidden">
+                {/* Request panel */}
+                <div
+                  className="flex flex-col overflow-hidden border-r border-gray-800 min-w-0"
+                  style={{ width: `${splitPercent}%` }}
+                >
+                  <RequestBuilder />
+                </div>
 
-            <ResizeHandle direction="horizontal" onResize={handleSplitResize} />
+                <ResizeHandle direction="horizontal" onResize={handleSplitResize} />
 
-            {/* Response panel */}
-            <div
-              className="flex flex-col overflow-hidden min-w-0"
-              style={{ width: `${100 - splitPercent}%` }}
-            >
-              <ResponseViewer />
+                {/* Response panel */}
+                <div
+                  className="flex flex-col overflow-hidden min-w-0"
+                  style={{ width: `${100 - splitPercent}%` }}
+                >
+                  <ResponseViewer />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
 
-      {/* Footer status bar — instrument-grade nameplate */}
+      {/* Footer status bar */}
       <footer
         className="flex items-center justify-between px-4 py-1.5"
         style={{
@@ -228,24 +251,35 @@ function AppLayout({ onSignUp }: { onSignUp?: () => void } = {}) {
             />
             Ready
           </span>
-          <span style={{ width: 1, height: 10, background: 'var(--color-border-strong)' }} />
-          <span>Local-first · BYOK</span>
+          <span className="hidden sm:inline" style={{ width: 1, height: 10, background: 'var(--color-border-strong)' }} />
+          <span className="hidden sm:inline">{productView === 'missions' ? 'Product missions / Human approved' : 'Local-first / BYOK'}</span>
         </div>
-        <div className="flex items-center gap-3">
-          <span>Enter · Send</span>
-          <span style={{ width: 1, height: 10, background: 'var(--color-border-strong)' }} />
-          <span>Ctrl+N · New tab</span>
-          <span style={{ width: 1, height: 10, background: 'var(--color-border-strong)' }} />
-          <span>Ctrl+L · Focus URL</span>
+        <div className="hidden lg:flex items-center gap-3">
+          {productView === 'missions' ? (
+            <span>Evidence / Proposal / Draft PR / Checks</span>
+          ) : (
+            <>
+              <span>Enter / Send</span>
+              <span style={{ width: 1, height: 10, background: 'var(--color-border-strong)' }} />
+              <span>Ctrl+N / New tab</span>
+              <span style={{ width: 1, height: 10, background: 'var(--color-border-strong)' }} />
+              <span>Ctrl+L / Focus URL</span>
+            </>
+          )}
         </div>
       </footer>
     </div>
   );
 }
 
-function AuthGate({ children }: { children: (opts: { onSignUp: () => void }) => React.ReactNode }) {
-  const { user, loading, trialEnded } = useAuth();
+function AuthGate({ children }: { children: (opts: { onSignIn: () => void; onSignUp: () => void }) => React.ReactNode }) {
+  const { user, loading } = useAuth();
   const [forceLogin, setForceLogin] = useState<null | 'login' | 'register'>(null);
+
+  const authActions = {
+    onSignIn: () => setForceLogin('login'),
+    onSignUp: () => setForceLogin('register'),
+  };
 
   if (loading) {
     return (
@@ -256,18 +290,14 @@ function AuthGate({ children }: { children: (opts: { onSignUp: () => void }) => 
   }
 
   if (user) {
-    return <>{children({ onSignUp: () => setForceLogin('register') })}</>;
-  }
-
-  if (trialEnded) {
-    return <LoginPage trialEnded initialMode="register" />;
+    return <>{children(authActions)}</>;
   }
 
   if (forceLogin) {
-    return <LoginPage initialMode={forceLogin} />;
+    return <LoginPage initialMode={forceLogin} onCancel={() => setForceLogin(null)} />;
   }
 
-  return <>{children({ onSignUp: () => setForceLogin('register') })}</>;
+  return <>{children(authActions)}</>;
 }
 
 function useCurrentPath() {
@@ -307,10 +337,10 @@ export default function App() {
       <ErrorBoundary>
         <AuthProvider>
           <AuthGate>
-            {({ onSignUp }) => (
+            {({ onSignIn, onSignUp }) => (
               <ErrorBoundary>
                 <AppProvider>
-                  <AppLayout onSignUp={onSignUp} />
+                  <AppLayout onSignIn={onSignIn} onSignUp={onSignUp} />
                 </AppProvider>
               </ErrorBoundary>
             )}

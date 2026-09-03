@@ -4,11 +4,10 @@ import { X } from 'lucide-react';
 const DISMISS_KEY = 'fetchlab_trial_banner_dismissed';
 
 interface TrialBannerProps {
-  daysRemaining: number;
   onSignUp: () => void;
 }
 
-export default function TrialBanner({ daysRemaining, onSignUp }: TrialBannerProps) {
+export default function TrialBanner({ onSignUp }: TrialBannerProps) {
   const [dismissed, setDismissed] = useState(() => {
     try { return sessionStorage.getItem(DISMISS_KEY) === '1'; }
     catch { return false; }
@@ -21,42 +20,34 @@ export default function TrialBanner({ daysRemaining, onSignUp }: TrialBannerProp
     setDismissed(true);
   };
 
-  const dayLabel = daysRemaining === 1 ? 'day' : 'days';
-  const trialEnded = daysRemaining <= 0;
-
   return (
     <div
-      className="flex items-center justify-between px-4 py-1.5 border-b text-xs"
+      className="flex items-center justify-between gap-3 px-3 sm:px-4 py-2 border-b text-[13px]"
       style={{
-        background: 'var(--color-warning-soft)',
-        borderColor: 'var(--color-warning)',
-        color: 'var(--color-warning)',
+        background: 'var(--color-accent-soft)',
+        borderColor: 'var(--color-border)',
+        color: 'var(--color-text-muted)',
       }}
     >
-      <div className="flex items-center gap-2">
+      <div className="min-w-0 leading-5">
         <span>
-          You're using FetchLab free.{' '}
-          {!trialEnded && (
-            <>
-              <strong>{daysRemaining} {dayLabel} left in your trial.</strong>{' '}
-            </>
-          )}
+          Local mode keeps drafts on this device.{' '}
           <button
             onClick={onSignUp}
-            className="underline font-medium"
+            className="underline font-semibold underline-offset-2"
             style={{ color: 'var(--color-accent)' }}
           >
             Sign up
           </button>{' '}
-          to save your work across devices.
+          to connect GitHub and run Product Missions with your team.
         </span>
       </div>
       <button
         onClick={dismiss}
-        className="ml-2 opacity-70 hover:opacity-100"
-        style={{ color: 'var(--color-warning)' }}
+        className="p-1 flex-none opacity-70 hover:opacity-100"
+        style={{ color: 'var(--color-text-muted)' }}
         title="Dismiss"
-        aria-label="Dismiss trial banner"
+        aria-label="Dismiss local mode banner"
       >
         <X size={14} />
       </button>

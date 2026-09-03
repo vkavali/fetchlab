@@ -166,30 +166,29 @@ interface PlanCol {
 }
 
 const PLAN_COLS: PlanCol[] = [
-  { key: 'free', name: 'Free',       price: { USD: '$0',     INR: 'INR 0' },      cta: 'Start free',     href: '/app' },
-  { key: 'pro',  name: 'Pro',        price: { USD: '$12',    INR: 'INR 999' },    period: { USD: '/ month', INR: '/ month' },          cta: 'Start Pro trial', highlight: true, href: '/app' },
-  { key: 'team', name: 'Team',       price: { USD: '$15',    INR: 'INR 2,499' },  period: { USD: '/ user / month', INR: '/ user / month' }, cta: 'Book team pilot', href: 'mailto:hello@fetchlab.dev?subject=FetchLab%20Team%20Pilot' },
-  { key: 'ent',  name: 'Enterprise', price: { USD: 'Custom', INR: 'Custom' },  cta: 'Contact sales',  href: 'mailto:hello@fetchlab.dev?subject=FetchLab%20Enterprise%20Pilot' },
+  { key: 'free', name: 'Local',      price: { USD: '$0',     INR: 'INR 0' },      cta: 'Open locally',     href: '/app' },
+  { key: 'pro',  name: 'Startup pilot', price: { USD: '$0',  INR: 'INR 0' },      period: { USD: '/ 30 days', INR: '/ 30 days' },       cta: 'Start free pilot', highlight: true, href: '/app' },
+  { key: 'team', name: 'Team',       price: { USD: 'Pilot first', INR: 'Pilot first' }, cta: 'Book team pilot', href: 'mailto:vkavali10@gmail.com?subject=FetchLab%20Team%20Pilot' },
+  { key: 'ent',  name: 'Enterprise', price: { USD: 'Custom', INR: 'Custom' },  cta: 'Contact sales',  href: 'mailto:vkavali10@gmail.com?subject=FetchLab%20Enterprise%20Pilot' },
 ];
 
 type Cell = string | { USD: string; INR: string } | boolean | null;
 
 const PLAN_ROWS: { label: string; cells: [Cell, Cell, Cell, Cell] }[] = [
-  { label: 'Local requests',         cells: ['unlimited', 'unlimited', 'unlimited', 'unlimited'] },
+  { label: 'Encrypted mission drafts', cells: ['unlimited', 'unlimited', 'unlimited', 'unlimited'] },
+  { label: 'API Lab requests',       cells: ['unlimited', 'unlimited', 'unlimited', 'unlimited'] },
   { label: 'Collections',            cells: ['3', 'unlimited', 'unlimited', 'unlimited'] },
-  { label: 'Local action gates',     cells: ['1', 'unlimited', 'unlimited', 'unlimited'] },
-  { label: 'Encrypted policy export', cells: [true, true, true, true] },
-  { label: 'Runtime decision API',   cells: [null, null, true, true] },
-  { label: 'Exact-action approvals', cells: [null, null, true, true] },
-  { label: 'Authority release diff', cells: [null, null, true, true] },
-  { label: 'Immutable policy history', cells: [null, null, true, true] },
+  { label: 'Repository investigation', cells: [null, true, true, true] },
+  { label: 'Exact source proposals', cells: [null, true, true, true] },
+  { label: 'Draft pull requests',    cells: [null, true, true, true] },
+  { label: 'Repository check status', cells: [null, true, true, true] },
   { label: 'AI request builder',     cells: [null, true, true, true] },
   { label: 'Test generation',        cells: [null, true, true, true] },
   { label: 'Error diagnosis (AI)',   cells: [null, true, true, true] },
   { label: 'Shared workspaces',      cells: [null, null, true, true] },
   { label: 'Role-based access',      cells: [null, null, true, true] },
   { label: 'Audit log',              cells: [null, null, true, true] },
-  { label: 'Slack ops agent',        cells: [null, null, true, true] },
+  { label: 'Action policy gate',     cells: [null, null, true, true] },
   { label: 'OIDC SSO',               cells: [null, null, null, true] },
   { label: 'Custom data residency',  cells: [null, null, null, true] },
   { label: 'Support',                cells: ['community', 'email', 'email', 'priority'] },
@@ -211,8 +210,8 @@ function PricingCell({ value, highlight }: { value: Cell; highlight?: boolean })
 
 /* ---------- Waitlist modal ----------
  *
- * Payments aren't wired up yet. This modal captures email intent into
- * localStorage and offers a direct free-trial start. No fake checkout.
+ * This legacy fallback captures pilot interest in localStorage and clearly
+ * directs the user to email us. It is not a submission or checkout flow.
  */
 
 function WaitlistModal({
@@ -256,8 +255,7 @@ function WaitlistModal({
     setSubmitted(true);
   };
 
-  const planLabel = plan.highlight ? 'Pro' : plan.name;
-  const provider = currency === 'INR' ? 'Razorpay' : 'Stripe';
+  const planLabel = plan.name;
 
   return (
     <div
@@ -333,18 +331,17 @@ function WaitlistModal({
                   fontFamily: 'var(--font-display)',
                   fontSize: 26,
                   lineHeight: 1.12,
-                  letterSpacing: '-0.02em',
+                  letterSpacing: 0,
                   fontWeight: 600,
                   color: 'var(--color-text)',
                   margin: 0,
                   marginBottom: 10,
                 }}
               >
-                Payments aren't live yet.
+                Pilot intake is manual.
               </h2>
               <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--color-text-muted)', margin: 0 }}>
-                We're getting {provider} set up for {currency === 'INR' ? 'India' : 'the rest of the world'}.
-                Leave your email and we'll write to you the moment it ships.
+                Save your email on this device, then contact us to apply for a scoped startup pilot.
               </p>
             </div>
 
@@ -359,7 +356,7 @@ function WaitlistModal({
                   marginBottom: 6,
                 }}
               >
-                Notify when {provider} is live
+                Pilot contact
               </div>
               <input
                 ref={inputRef}
@@ -412,7 +409,7 @@ function WaitlistModal({
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-accent-hover)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-accent)'; }}
               >
-                Notify me when {provider} ships
+                Save pilot interest
               </button>
 
               <div
@@ -448,7 +445,7 @@ function WaitlistModal({
                   borderRadius: 5,
                 }}
               >
-                Start the 30-day free trial today
+                Open the free startup pilot
                 <span aria-hidden style={{ fontFamily: 'var(--font-mono)', fontSize: 12, marginLeft: 8 }}>{'->'}</span>
               </a>
 
@@ -483,25 +480,24 @@ function WaitlistModal({
               }}
             >
               <span aria-hidden style={{ width: 18, height: 1, background: 'currentColor', opacity: 0.6 }} />
-              Filed - waitlist
+              Saved locally
             </div>
             <h2
               style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: 24,
                 lineHeight: 1.15,
-                letterSpacing: '-0.02em',
+                letterSpacing: 0,
                 fontWeight: 600,
                 color: 'var(--color-text)',
                 margin: 0,
                 marginBottom: 8,
               }}
             >
-              Thanks. We'll write the moment {provider} is live.
+              Pilot interest saved on this device.
             </h2>
             <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--color-text-muted)', margin: 0, marginBottom: 18 }}>
-              In the meantime, the free 30-day trial is the full Pro experience.
-              No card, no upgrade nag.
+              This did not submit an application. Email us when you are ready to run three real Product Missions.
             </p>
             <div className="flex items-center gap-2">
               <a
@@ -564,7 +560,7 @@ function Footer() {
             </div>
           </div>
           <div className="font-mono" style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}>
-            Model 0001 - Continuous API diagnostics - (c) 2026
+            FetchLab - Product Missions + API Lab - (c) 2026
           </div>
         </div>
       </div>
@@ -622,7 +618,7 @@ export default function Pricing() {
                 fontFamily: 'var(--font-display)',
                 fontSize: 'clamp(40px, 6.4vw, 88px)',
                 lineHeight: 0.96,
-                letterSpacing: '-0.035em',
+                letterSpacing: 0,
                 fontWeight: 600,
                 color: 'var(--color-text)',
                 marginTop: 18,
@@ -634,8 +630,8 @@ export default function Pricing() {
               <span style={{ color: 'var(--color-text-muted)' }}>Scale when ready.</span>
             </h1>
             <p style={{ fontSize: 17, maxWidth: '54ch', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
-              No credit card to start. Every tier includes the full request client.
-              AI features run on a key (yours, or ours).
+              Local drafts and API Lab are free. The first startup pilot includes the complete Product Mission workflow
+              for 30 days so a real team can decide whether it removes enough product-to-engineering handoffs to keep using.
             </p>
           </Reveal>
 
@@ -664,8 +660,8 @@ export default function Pricing() {
               >
                 <span aria-hidden style={{ width: 18, height: 1, background: 'var(--color-border-strong)' }} />
                 {currency === 'INR'
-                  ? 'India - INR - PPP-adjusted - GST at invoice'
-                  : 'Global - USD - billed monthly'}
+                  ? 'India - free startup pilot - no payment information'
+                  : 'Global - free startup pilot - no payment information'}
               </div>
               <CurrencyChange currency={currency} onToggle={toggleCurrency} />
             </div>
@@ -739,7 +735,7 @@ export default function Pricing() {
                             marginTop: 8,
                             fontFamily: 'var(--font-display)',
                             fontSize: 28,
-                            letterSpacing: '-0.02em',
+                            letterSpacing: 0,
                             fontWeight: 600,
                             color: 'var(--color-text)',
                           }}
@@ -853,13 +849,13 @@ export default function Pricing() {
                 <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--color-text)', margin: 0 }}>
                   {currency === 'INR' ? (
                     <>
-                      Start free immediately. For Team and Enterprise, book a pilot and we will handle setup,
-                      invoice, and rollout directly.
+                      Open the local product immediately or run one 30-day startup pilot at no charge. Team and Enterprise
+                      pricing is scoped only after the workflow proves useful on real product problems.
                     </>
                   ) : (
                     <>
-                      Start free immediately. For Team and Enterprise, book a pilot and we will handle setup,
-                      invoice, and rollout directly.
+                      Open the local product immediately or run one 30-day startup pilot at no charge. Team and Enterprise
+                      pricing is scoped only after the workflow proves useful on real product problems.
                     </>
                   )}
                 </p>
@@ -870,16 +866,15 @@ export default function Pricing() {
               >
                 {currency === 'INR' ? (
                   <>
-                    <div>- INR pricing is PPP-adjusted, not a USD multiplication.</div>
-                    <div>- GST and purchase-order details handled on invoice.</div>
-                    <div>- Team pilots include onboarding and workspace setup.</div>
-                    <div>- Annual contracts available for Enterprise.</div>
+                    <div>- Startup pilot is free and requires no payment information.</div>
+                    <div>- Pilot scope is one repository and three real Product Missions.</div>
+                    <div>- Team rollout includes workspace and security setup.</div>
                   </>
                 ) : (
                   <>
-                    <div>- Pricing in USD, billed monthly or annually.</div>
-                    <div>- Team pilots include onboarding and workspace setup.</div>
-                    <div>- Purchase orders available for Enterprise.</div>
+                    <div>- Startup pilot is free and requires no payment information.</div>
+                    <div>- Pilot scope is one repository and three real Product Missions.</div>
+                    <div>- Team rollout includes workspace and security setup.</div>
                   </>
                 )}
               </div>
